@@ -2,8 +2,8 @@ package config
 
 var DB = configDB{
 	User:      "root",
-	Soc:       "",
-	Password:  "@tcp(127.0.0.1:3306)/",
+	Password:  "",
+	Soc:       "@tcp(127.0.0.1:3306)/",
 	TableName: "lotto_music",
 }
 

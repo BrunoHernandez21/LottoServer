@@ -4,7 +4,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	gormdb "lottomusic/src/models/gormDB"
-	"lottomusic/src/models/services"
+	"lottomusic/src/models/services/auth"
+	"lottomusic/src/modules/jwts"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +14,7 @@ import (
 
 func login(c *fiber.Ctx) error {
 	//catch midelware
-	input := services.Auth_Get_Login{}
+	input := auth.Get_Login{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
@@ -40,7 +41,12 @@ func login(c *fiber.Ctx) error {
 		m["mensjae"] = "Contraseña invalida"
 		return c.JSON(m)
 	}
-	return c.JSON(a)
+	token, expireAt := jwts.GenerateToken(a.Id)
+	rsponse := auth.Put_login{
+		Access_token: token,
+		Expires_in:   &expireAt,
+	}
+	return c.JSON(rsponse)
 }
 
 func signup(c *fiber.Ctx) error {

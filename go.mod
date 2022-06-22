@@ -4,8 +4,6 @@ go 1.18
 
 require github.com/gofiber/fiber/v2 v2.34.0
 
-require github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
-
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -16,7 +14,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	go.mongodb.org/mongo-driver v1.9.1
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	gorm.io/driver/mysql v1.3.4
 	gorm.io/gorm v1.23.5

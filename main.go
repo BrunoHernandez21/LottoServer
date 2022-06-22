@@ -2,14 +2,14 @@ package main
 
 import (
 	"lottomusic/src/config"
-	"lottomusic/src/rutes/apuestas"
-	"lottomusic/src/rutes/auth"
-	"lottomusic/src/rutes/carrito"
-	carritoa "lottomusic/src/rutes/carritoapuesta"
-	"lottomusic/src/rutes/compra"
-	"lottomusic/src/rutes/juegos"
-	"lottomusic/src/rutes/planes"
-	"lottomusic/src/rutes/videos"
+	"lottomusic/src/routes/apuestas"
+	"lottomusic/src/routes/auth"
+	"lottomusic/src/routes/carrito"
+	carritoa "lottomusic/src/routes/carritoapuesta"
+	"lottomusic/src/routes/compra"
+	"lottomusic/src/routes/juegos"
+	"lottomusic/src/routes/planes"
+	"lottomusic/src/routes/videos"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

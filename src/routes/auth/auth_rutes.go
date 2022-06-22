@@ -10,7 +10,7 @@ var db *gorm.DB
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 	v3 := app.Group("/api/auth/")
-	v2 := app.Group("/api/auth/")
+	v2 := app.Group("/api/auth/", middleware1)
 	v1 := app.Group("/api/auth/")
 	//v2.Get("logout", logout)
 
@@ -28,4 +28,12 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v3.Delete("users/:id", deleteById)
 	v3.Get("users/:id", getById)
 
+}
+
+func middleware1(c *fiber.Ctx) error {
+	if true {
+		return c.Next()
+	} else {
+		return c.Context().Err()
+	}
 }

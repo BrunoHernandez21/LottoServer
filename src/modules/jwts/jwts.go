@@ -4,37 +4,31 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var jwtSignKey = []byte("TestForFasthttpWithJWT")
+var jwtKey = []byte("TestForFasthttpWithJWT")
 
 type userCredential struct {
-	ID string `bson:"_id" json:"id"`
+	ID uint32 `bson:"_id" json:"id"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(id primitive.ObjectID) (string, time.Time) {
-
-	expireAt := time.Now().Add(48 * time.Hour)
-
+func GenerateToken(id uint32) (string, time.Time) {
+	expireAt := time.Now().Add(24 * time.Hour)
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, &userCredential{
-		ID: id.Hex(),
+		ID: id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireAt.Unix(),
 		},
 	})
-
-	tokenString, _ := newToken.SignedString(jwtSignKey)
-
+	tokenString, _ := newToken.SignedString(jwtKey)
 	return tokenString, expireAt
 }
 
 func ValidateToken(requestToken string) (*jwt.Token, *userCredential, error) {
 	user := &userCredential{}
 	token, err := jwt.ParseWithClaims(requestToken, user, func(token *jwt.Token) (interface{}, error) {
-		return jwtSignKey, nil
+		return jwtKey, nil
 	})
-
 	return token, user, err
 }
