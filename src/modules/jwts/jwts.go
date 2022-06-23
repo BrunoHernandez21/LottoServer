@@ -1,6 +1,7 @@
 package jwts
 
 import (
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -25,9 +26,16 @@ func GenerateToken(id uint32) (string, time.Time) {
 	return tokenString, expireAt
 }
 
-func ValidateToken(requestToken string) (*jwt.Token, *userCredential, error) {
+func ValidateToken(tok string) (*jwt.Token, *userCredential, error) {
 	user := &userCredential{}
-	token, err := jwt.ParseWithClaims(requestToken, user, func(token *jwt.Token) (interface{}, error) {
+	var temp string
+	if strings.Contains(strings.ToLower(tok), "bearer ") {
+		temp = tok[7:]
+	} else {
+		temp = tok
+	}
+
+	token, err := jwt.ParseWithClaims(temp, user, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 	return token, user, err

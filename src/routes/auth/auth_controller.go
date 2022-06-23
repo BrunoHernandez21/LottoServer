@@ -3,8 +3,9 @@ package auth
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	gormdb "lottomusic/src/models/gormDB"
-	"lottomusic/src/models/services/auth"
+	"lottomusic/src/models/auth"
+	"lottomusic/src/models/gormdb"
+	"lottomusic/src/modules/email"
 	"lottomusic/src/modules/jwts"
 	"strconv"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func login(c *fiber.Ctx) error {
-	//catch midelware
+	//catch body
 	input := auth.Get_Login{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
@@ -23,29 +24,34 @@ func login(c *fiber.Ctx) error {
 		m["mensjae"] = "informacion insuficiente"
 		return c.JSON(m)
 	}
-
 	//db midelware
 	a := gormdb.Usuarios{}
 	err2 := db.Find(&a, "email = ?", input.Username)
 	if err2.Error != nil {
-		return c.JSON(err2.Error)
+		m := make(map[string]string)
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
 	}
 	//password midelware
 	h := sha1.New()
 	h.Write([]byte(*input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
 	input.Password = &i
-	//validator midelware
 	if a.Password != *input.Password {
 		m := make(map[string]string)
 		m["mensjae"] = "Contraseña invalida"
 		return c.JSON(m)
 	}
+	//// JWT midelware
 	token, expireAt := jwts.GenerateToken(a.Id)
-	rsponse := auth.Put_login{
+	tokentipe := "Bearer"
+	rsponse := auth.Set_login{
 		Access_token: token,
+		Token_type:   &tokentipe,
 		Expires_in:   &expireAt,
 	}
+
+	jwts.GenerateToken(a.Id)
 	return c.JSON(rsponse)
 }
 
@@ -55,6 +61,7 @@ func signup(c *fiber.Ctx) error {
 		return err
 	}
 	input.Id = 0
+	input.Activo = true
 	h := sha1.New()
 	h.Write([]byte(input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
@@ -62,47 +69,73 @@ func signup(c *fiber.Ctx) error {
 
 	a := db.Create(&input)
 	if a.Error != nil {
-		return c.JSON(a.Error)
+		m := make(map[string]string)
+		m["mensjae"] = "No se pudo acceder a la base de datos"
+		return c.JSON(m)
 	}
 	return c.JSON(input)
 }
 
 func forgetpassword(c *fiber.Ctx) error {
-
-	input := gormdb.Usuarios{}
+	input := auth.Get_forgetpassword{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
-
+	a := gormdb.Usuarios{}
+	err2 := db.Find(&a, "email = ?", input.Email)
+	if err2.Error != nil {
+		m := make(map[string]string)
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
+	}
 	password := utils.UUID()[0:13]
 	h := sha1.New()
 	h.Write([]byte(password))
 	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = i
-
-	//moduls.Send_Mail_Password(input.Email, password)
-
-	db.Create(&input)
-	return c.JSON(input)
+	a.Password = i
+	email.Send_Recovery_Password(input.Email, password)
+	b := db.Save(&a)
+	if b.Error != nil {
+		m := make(map[string]string)
+		m["mensjae"] = "No se pudo acceder a la base de datos"
+		return c.JSON(m)
+	}
+	return c.JSON(auth.Set_Forgetpassword{
+		Mensaje: "Se a enviado un correo a su cuenta",
+	})
 }
 
 func infouser(c *fiber.Ctx) error {
-
-	//db midelware
 	a := gormdb.Usuarios{}
-	err2 := db.Find(&a, "id = ?", "1")
+	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
 	if err2.Error != nil {
 		return c.JSON(err2.Error)
 	}
-
 	return c.JSON(a)
 }
 
 func deleteuser(c *fiber.Ctx) error {
-	//db midelware
-	a := gormdb.Usuarios{
-		Id: 11,
+	headers := c.GetReqHeaders()
+	a := gormdb.Usuarios{}
+	err := db.Find(&a, "id = ?", c.Locals("userID"))
+	if err.Error != nil {
+		return c.JSON(err.Error)
 	}
+	if a.Id == 0 {
+		m := make(map[string]string)
+		m["mensjae"] = "La cuenta no existe"
+		return c.JSON(m)
+	}
+	h := sha1.New()
+	h.Write([]byte(headers["Password"]))
+	i := hex.EncodeToString(h.Sum(nil))
+	var password string = i
+	if a.Password != password {
+		m := make(map[string]string)
+		m["mensjae"] = "Contraseña invalida"
+		return c.JSON(m)
+	}
+	//db midelware
 	err2 := db.Delete(&a)
 	if err2.Error != nil {
 		return c.JSON(err2.Error)
@@ -115,21 +148,20 @@ func deleteuser(c *fiber.Ctx) error {
 
 func renuevaToken(c *fiber.Ctx) error {
 
-	input := gormdb.Usuarios{}
-	if err := c.BodyParser(&input); err != nil {
-		return err
+	m := make(map[string]string)
+	a := gormdb.Usuarios{}
+	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
+	if err2.Error != nil {
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
 	}
-
-	password := utils.UUID()[0:13]
-	h := sha1.New()
-	h.Write([]byte(password))
-	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = i
-
-	//moduls.Send_Mail_Password(input.Email, password)
-
-	db.Create(&input)
-	return c.JSON(input)
+	token, expireAt := jwts.GenerateToken(a.Id)
+	tipe := "Bearer"
+	return c.JSON(auth.Set_login{
+		Access_token: token,
+		Token_type:   &tipe,
+		Expires_in:   &expireAt,
+	})
 }
 
 func users(c *fiber.Ctx) error {
@@ -178,40 +210,53 @@ func getById(c *fiber.Ctx) error {
 
 func changepassword(c *fiber.Ctx) error {
 
-	input := gormdb.Usuarios{}
+	input := auth.Get_ChangePassword{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m := make(map[string]string)
+		m["mensjae"] = "Datos insuficientes"
+		return c.JSON(m)
+	}
+	a := gormdb.Usuarios{}
+	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
+	if err2.Error != nil {
+		m := make(map[string]string)
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
 	}
 
-	password := utils.UUID()[0:13]
 	h := sha1.New()
-	h.Write([]byte(password))
+	h.Write([]byte(input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = i
+	a.Password = i
 
-	//moduls.Send_Mail_Password(input.Email, password)
+	db.Save(&a)
 
-	db.Create(&input)
-	return c.JSON(input)
+	return c.JSON(auth.Set_ChangePassword{
+		Mensaje: "Contraseña cambiada con exito",
+	})
 }
 
 func updateuser(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	a := gormdb.Usuarios{}
+	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
+	if err2.Error != nil {
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
+	}
 
 	input := gormdb.Usuarios{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
+	input.Id = a.Id
+	input.Activo = a.Activo
+	input.Email = a.Email
+	input.Password = a.Password
 
-	password := utils.UUID()[0:13]
-	h := sha1.New()
-	h.Write([]byte(password))
-	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = i
-
-	//moduls.Send_Mail_Password(input.Email, password)
-
-	db.Create(&input)
-	return c.JSON(input)
+	db.Save(&input)
+	m["mensjae"] = "Acualizacion de datos exitosa"
+	return c.JSON(m)
 }
 
 /*

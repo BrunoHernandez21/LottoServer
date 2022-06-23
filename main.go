@@ -5,11 +5,8 @@ import (
 	"lottomusic/src/routes/apuestas"
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
-	carritoa "lottomusic/src/routes/carritoapuesta"
 	"lottomusic/src/routes/compra"
-	"lottomusic/src/routes/juegos"
-	"lottomusic/src/routes/planes"
-	"lottomusic/src/routes/videos"
+	"lottomusic/src/routes/plan"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -55,15 +52,11 @@ func conexionDB() (conexiones *gorm.DB) {
 
 func rutasMain(app *fiber.App, db *gorm.DB) {
 	auth.Init_routes(app, db)
-	planes.Init_routes(app, db)
-
+	plan.Init_routes(app, db)
 	carrito.Init_routes(app, db)
-	juegos.Init_routes(app, db)
-	apuestas.Init_routes(app, db)
-	carritoa.Init_routes(app, db)
 	compra.Init_routes(app, db)
+	apuestas.Init_routes(app, db)
 
-	videos.Init_routes(app, db)
 }
 
 /*
