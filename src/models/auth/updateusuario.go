@@ -1,5 +1,5 @@
 package auth
 
-type Auth_Get_updateusuario struct {
-	Usuario string
+type Get_updateusuario struct {
+	NombreP string
 }

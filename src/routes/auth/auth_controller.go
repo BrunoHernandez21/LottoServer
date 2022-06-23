@@ -253,6 +253,18 @@ func updateuser(c *fiber.Ctx) error {
 	input.Activo = a.Activo
 	input.Email = a.Email
 	input.Password = a.Password
+	if input.Apellidom == "" {
+		input.Apellidom = a.Apellidom
+	}
+	if input.Apellidop == "" {
+		input.Apellidop = a.Apellidop
+	}
+	if input.Fecha_nacimiento == "" {
+		input.Fecha_nacimiento = a.Fecha_nacimiento
+	}
+	if input.Nombre == "" {
+		input.Nombre = a.Nombre
+	}
 
 	db.Save(&input)
 	m["mensjae"] = "Acualizacion de datos exitosa"
