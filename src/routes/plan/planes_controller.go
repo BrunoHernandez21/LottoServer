@@ -11,12 +11,7 @@ func lista(c *fiber.Ctx) error {
 	db.Table("plan").Find(&input)
 	return c.JSON(input)
 }
-func user(c *fiber.Ctx) error {
 
-	m := make(map[string]string)
-	m["mensjae"] = "user"
-	return c.JSON(m)
-}
 func byname(c *fiber.Ctx) error {
 	a := gormdb.Plan{}
 	err2 := db.Table("plan").Find(&a, "nombre LIKE ?", "%"+c.Params("name")+"%")
@@ -35,13 +30,13 @@ func byid(c *fiber.Ctx) error {
 	return c.JSON(a)
 }
 func create(c *fiber.Ctx) error {
-
+	m := make(map[string]string)
 	input := gormdb.Plan{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
 	if (input.Precio == nil) || (input.Nombre == nil) || (input.Oportunidades == nil) {
-		m := make(map[string]string)
+
 		m["mensjae"] = "informacion insuficiente"
 		return c.JSON(m)
 	}
@@ -49,12 +44,11 @@ func create(c *fiber.Ctx) error {
 	input.Id = 0
 	a := db.Table("plan").Create(&input)
 	if a.Error != nil {
-		m := make(map[string]string)
+
 		m["mensjae"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)
 	}
 
-	m := make(map[string]string)
 	m["mensjae"] = "El plan ha sido creado"
 	return c.JSON(m)
 }

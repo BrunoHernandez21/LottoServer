@@ -1,22 +1,19 @@
 package suscripcion
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"lottomusic/src/models/gormdb"
 
-func crear(c *fiber.Ctx) error {
+	"github.com/gofiber/fiber/v2"
+)
 
-	m := make(map[string]string)
-	m["mensjae"] = "Lista"
-	return c.JSON(m)
-}
-func eliminar(c *fiber.Ctx) error {
-
-	m := make(map[string]string)
-	m["mensjae"] = "Lista"
-	return c.JSON(m)
-}
 func listar(c *fiber.Ctx) error {
+	input := []gormdb.Suscripciones{}
+	db.Find(&input, "Id_usuario = ?", c.Locals("userID"))
+	return c.JSON(input)
+}
 
-	m := make(map[string]string)
-	m["mensjae"] = "Lista"
-	return c.JSON(m)
+func listaractivos(c *fiber.Ctx) error {
+	input := []gormdb.Suscripciones{}
+	db.Find(&input, "Id_usuario = ? AND Activo = ?", c.Locals("userID"), true)
+	return c.JSON(input)
 }
