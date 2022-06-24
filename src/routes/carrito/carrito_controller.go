@@ -2,22 +2,53 @@ package carrito
 
 import (
 	"lottomusic/src/models/gormdb"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func crear(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := gormdb.Orden{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
-	errdb := db.Model("Orden").Create(&input)
-	if errdb.Error != nil {
-		return c.JSON(errdb)
+
+	if input.Id_plan == nil {
+		m["mensjae"] = "Id plna no puede ser null"
+		return c.JSON(m)
 	}
+	if input.Cantidad == 0 {
+		m["mensjae"] = "Cantidad no puede ser null o 0"
+		return c.JSON(m)
+	}
+
+	if input.Cantidad == 0 {
+		m["mensjae"] = "Cantidad no puede ser null o 0"
+		return c.JSON(m)
+	}
+
+	id, ok := c.Locals("userID").(uint32)
+	if ok {
+		input.Usuario_id = &id
+	} else {
+		m["mensjae"] = "error interno"
+		return c.JSON(m)
+	}
+	status := "Carrito"
+	fecha := time.Now()
 	input.Id = 0
-	db.Model("Orden").Save(&input)
-	db.Model("Orden").Find(&input, "Usuario_id = ?", c.Locals("userID")).Last(&input)
+	input.Orden_status = &status
+	input.Fecha_orden = &fecha
+
+	errdb := db.Create(&input)
+	if errdb.Error != nil {
+		return c.JSON(errdb.Error)
+	}
+	errdb = db.Find(&input, "Usuario_id = ? AND Fecha_orden = ?", input.Usuario_id, input.Fecha_orden)
+	if errdb.Error != nil {
+		return c.JSON(errdb.Error)
+	}
 	return c.JSON(input)
 }
 func eliminar(c *fiber.Ctx) error {
@@ -25,16 +56,22 @@ func eliminar(c *fiber.Ctx) error {
 	param := c.Params("id")
 	//db midelware
 	a := gormdb.Orden{}
-	err := db.Model("Orden").Find(&a, "id = ?", param).Delete(&a)
+	err := db.Find(&a, "id = ?", param).Delete(&a)
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
-	m["mensjae"] = "Eliminado Satisfactoriamente"
+
+	if a.Id == 0 {
+		m["mensjae"] = "El item no existe"
+	} else {
+		m["mensjae"] = "Eliminado Satisfactoriamente"
+	}
+
 	return c.JSON(m)
 }
 func listar(c *fiber.Ctx) error {
 	input := []gormdb.Orden{}
-	db.Model("Orden").Find(&input, "Usuario_id = ?", c.Locals("userID"))
+	db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
 	return c.JSON(input)
 }
 func editar(c *fiber.Ctx) error {
@@ -47,6 +84,18 @@ func editar(c *fiber.Ctx) error {
 		m["mensaje"] = "El id es necesario"
 		return c.JSON(m)
 	}
-	db.Model("Orden").Find(&input)
-	return c.JSON(input)
+	out := gormdb.Orden{
+		Id: input.Id,
+	}
+	db.Find(&out)
+	out.Cantidad = input.Cantidad
+	out.Id_plan = input.Id_plan
+	out.Id_charges = input.Id_charges
+	out.Amount = input.Amount
+
+	er := db.Save(out)
+	if er.Error != nil {
+		return c.JSON(er.Error)
+	}
+	return c.JSON(out)
 }

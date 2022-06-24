@@ -11,7 +11,7 @@ func crear(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
-	errdb := db.Model("Apuesta_usuario").Create(&input)
+	errdb := db.Create(&input)
 	if errdb.Error != nil {
 		return c.JSON(errdb)
 	}
@@ -27,12 +27,12 @@ func editar(c *fiber.Ctx) error {
 		return c.JSON(m)
 	}
 	input := gormdb.Usuarios{}
-	db.Model("Apuesta_usuario").Save(&input)
+	db.Save(&input)
 	return c.JSON(input)
 }
 func byid(c *fiber.Ctx) error {
 	input := gormdb.Apuesta_usuario{}
-	db.Model("Apuesta_usuario").Find(&input, "Id = ?", c.Params("id"))
+	db.Find(&input, "Id = ?", c.Params("id"))
 	return c.JSON(input)
 }
 func eliminar(c *fiber.Ctx) error {
@@ -40,7 +40,7 @@ func eliminar(c *fiber.Ctx) error {
 
 	//db midelware
 	a := gormdb.Apuesta_usuario{}
-	err := db.Model("Apuesta_usuario").Find(&a, "id = ?", c.Params("id")).Delete(&a)
+	err := db.Find(&a, "id = ?", c.Params("id")).Delete(&a)
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
@@ -49,16 +49,16 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listarTodos(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
-	db.Model("Apuesta_usuario").Find(&input)
+	db.Find(&input)
 	return c.JSON(input)
 }
 func listarActivos(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
-	db.Model("Apuesta_usuario").Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
+	db.Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)
 }
 func activo(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
-	db.Model("Apuesta_usuario").Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
+	db.Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)
 }

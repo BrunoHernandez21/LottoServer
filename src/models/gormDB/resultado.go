@@ -9,3 +9,7 @@ type Resultado struct {
 	Like_count       *uint32 `json:"like_count,omitempty"`
 	View_count       *uint32 `json:"view_count,omitempty"`
 }
+
+func (product *Resultado) TableName() string {
+	return "Resultado"
+}

@@ -7,3 +7,7 @@ type Item_compra struct {
 	Orden_id  *uint32 `json:"orden_id,omitempty"`
 	Id_plan   *uint32 `json:"id_plan,omitempty"`
 }
+
+func (product *Item_compra) TableName() string {
+	return "Item_compra"
+}

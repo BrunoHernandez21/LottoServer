@@ -17,7 +17,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Post("/compra", isRegister, crear)
 	v1.Delete("/compra", isRegister, eliminar)
 	v1.Get("/compra", isRegister, listar)
-	v1.Get("/checkout", isRegister, checkout)
+	v1.Post("/checkout", isRegister, checkout)
 }
 
 func isRegister(c *fiber.Ctx) error {

@@ -12,3 +12,7 @@ type Suscripciones struct {
 	Id_plan               *uint32 `json:"id_plan,omitempty"`
 	Id_usuario            *uint32 `json:"id_usuario,omitempty"`
 }
+
+func (product *Suscripciones) TableName() string {
+	return "Suscripciones"
+}

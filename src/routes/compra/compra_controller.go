@@ -11,7 +11,7 @@ func crear(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
-	errdb := db.Model("Compra").Create(&input)
+	errdb := db.Create(&input)
 	if errdb.Error != nil {
 		return c.JSON(errdb)
 	}
@@ -23,7 +23,7 @@ func eliminar(c *fiber.Ctx) error {
 	param := c.Params("id")
 	//db midelware
 	a := gormdb.Compra{}
-	err := db.Model("Compra").Find(&a, "id = ?", param).Delete(&a)
+	err := db.Find(&a, "id = ?", param).Delete(&a)
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
@@ -32,7 +32,7 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listar(c *fiber.Ctx) error {
 	input := []gormdb.Compra{}
-	db.Model("Compra").Find(&input)
+	db.Find(&input)
 	return c.JSON(input)
 }
 func checkout(c *fiber.Ctx) error {
@@ -45,10 +45,10 @@ func checkout(c *fiber.Ctx) error {
 	if input.Id == 0 {
 		return c.JSON(m)
 	}
-	db.Model("Orden").Find(&input)
+	db.Find(&input)
 	order := "En comprovacion"
 	input.Orden_status = &order
-	errdb := db.Model("Orden").Save(&input)
+	errdb := db.Save(&input)
 	if errdb.Error != nil {
 		return c.JSON(errdb)
 	}

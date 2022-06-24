@@ -11,3 +11,7 @@ type Plan struct {
 	Oportunidades         *uint32  `json:"oportunidades,omitempty"`
 	Precio                *float64 `json:"precio,omitempty"`
 }
+
+func (product *Plan) TableName() string {
+	return "Plan"
+}

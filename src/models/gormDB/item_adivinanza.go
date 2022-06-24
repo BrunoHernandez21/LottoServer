@@ -7,3 +7,7 @@ type Item_adivinanza struct {
 	Id_apuesta          *uint32 `json:"id_apuesta,omitempty"`
 	Juego_id            *uint32 `json:"juego_id,omitempty"`
 }
+
+func (product *Item_adivinanza) TableName() string {
+	return "Item_adivinanza"
+}

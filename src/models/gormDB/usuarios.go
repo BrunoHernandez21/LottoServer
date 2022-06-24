@@ -11,3 +11,7 @@ type Usuarios struct {
 	Password         string `json:"password,omitempty"`
 	Telefono         string `json:"telefono,omitempty"`
 }
+
+func (product *Usuarios) TableName() string {
+	return "Usuarios"
+}

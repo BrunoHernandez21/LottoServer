@@ -12,3 +12,7 @@ type Apuesta_usuario struct {
 	Usuario        *uint32 `json:"usuario,omitempty"`
 	Suscribcion_id *uint32 `json:"suscribcion_id,omitempty"`
 }
+
+func (product *Apuesta_usuario) TableName() string {
+	return "Apuesta_usuario"
+}

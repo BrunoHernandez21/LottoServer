@@ -10,3 +10,7 @@ type Pago struct {
 	Holder_name     *string `json:"holder_name"`
 	Type            *string `json:"type"`
 }
+
+func (product *Pago) TableName() string {
+	return "Pago"
+}

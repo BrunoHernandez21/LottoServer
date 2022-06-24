@@ -26,6 +26,38 @@ func GenerateToken(id uint32) (string, time.Time) {
 	return tokenString, expireAt
 }
 
+func GenerateShortToken(id uint32) (string, time.Time) {
+	expireAt := time.Now().Add(1 * time.Hour)
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, &userCredential{
+		ID: id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expireAt.Unix(),
+		},
+	})
+	tokenString, _ := newToken.SignedString(jwtKey)
+	return tokenString, expireAt
+}
+
+func GenerateLongToken(id uint32) (string, time.Time) {
+	expireAt := time.Now().Add(8760 * time.Hour)
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, &userCredential{
+		ID: id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expireAt.Unix(),
+		},
+	})
+	tokenString, _ := newToken.SignedString(jwtKey)
+	return tokenString, expireAt
+}
+func GenerateUnExpiredToken(id uint32) string {
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, &userCredential{
+		ID:             id,
+		StandardClaims: jwt.StandardClaims{},
+	})
+	tokenString, _ := newToken.SignedString(jwtKey)
+	return tokenString
+}
+
 func ValidateToken(tok string) (*jwt.Token, *userCredential, error) {
 	user := &userCredential{}
 	var temp string

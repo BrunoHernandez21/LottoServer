@@ -11,6 +11,7 @@ func crear(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
+	input.Id = 0
 	errdb := db.Create(&input)
 	if errdb.Error != nil {
 		return c.JSON(errdb)
@@ -23,6 +24,11 @@ func byid(c *fiber.Ctx) error {
 	err2 := db.Find(&a, "id = ?", param)
 	if err2.Error != nil {
 		return c.JSON(err2.Error)
+	}
+	if a.Id == 0 {
+		m := make(map[string]string)
+		m["mensjae"] = "El evento no existe"
+		return c.JSON(m)
 	}
 
 	return c.JSON(a)
@@ -73,6 +79,11 @@ func eliminar(c *fiber.Ctx) error {
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
+	if a.Id == 0 {
+		m["mensjae"] = "El evento no existe"
+		return c.JSON(m)
+	}
+
 	m["mensjae"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }

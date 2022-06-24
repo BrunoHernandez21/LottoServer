@@ -17,3 +17,8 @@ func listaractivos(c *fiber.Ctx) error {
 	db.Find(&input, "Id_usuario = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)
 }
+func listarall(c *fiber.Ctx) error {
+	input := []gormdb.Suscripciones{}
+	db.Find(&input)
+	return c.JSON(input)
+}

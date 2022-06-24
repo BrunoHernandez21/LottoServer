@@ -8,3 +8,7 @@ type Compra struct {
 	Fecha_compra  *time.Time `json:"Fecha_compra,omitempty"`
 	Usuario_id    *uint32    `json:"Usuario_id,omitempty"`
 }
+
+func (product *Compra) TableName() string {
+	return "Compra"
+}

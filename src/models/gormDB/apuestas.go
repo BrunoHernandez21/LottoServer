@@ -10,3 +10,7 @@ type Apuestas struct {
 	Tipo_apuesta_id      *uint32  `json:"tipo_apuesta_id,omitempty"`
 	Video_id             *uint32  `json:"video_id,omitempty"`
 }
+
+func (product *Apuestas) TableName() string {
+	return "Apuestas"
+}

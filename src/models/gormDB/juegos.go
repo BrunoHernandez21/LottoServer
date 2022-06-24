@@ -8,3 +8,7 @@ type Juegos struct {
 	Fecha_compra *time.Time `json:"fecha_compra,omitempty"`
 	Usuario_id   *uint32    `json:"usuario_id,omitempty"`
 }
+
+func (product *Juegos) TableName() string {
+	return "Juegos"
+}

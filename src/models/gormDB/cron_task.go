@@ -5,3 +5,7 @@ type Cron_task struct {
 	Tarea_cron *string `json:"tarea_cron,omitempty"`
 	Apuesta_id *uint32 `json:"apuesta_id,omitempty"`
 }
+
+func (product *Cron_task) TableName() string {
+	return "Cron_task"
+}

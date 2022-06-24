@@ -12,3 +12,7 @@ type Videos struct {
 	Titulo      string    `json:"Titulo,omitempty"`
 	Url_video   string    `json:"Url_video,omitempty"`
 }
+
+func (product *Videos) TableName() string {
+	return "Videos"
+}

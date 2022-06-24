@@ -29,6 +29,10 @@ func login(c *fiber.Ctx) error {
 	if errdb.Error != nil {
 		return c.JSON(errdb.Error)
 	}
+	if a.Id == 0 {
+		m["mensjae"] = "Usuario no registrado"
+		return c.JSON(m)
+	}
 	//password midelware
 	h := sha1.New()
 	h.Write([]byte(*input.Password))

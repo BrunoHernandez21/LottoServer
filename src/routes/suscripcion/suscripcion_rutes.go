@@ -14,7 +14,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1 := app.Group("/api/suscripcion")
 	v1.Get("/suscripcion", isRegister, listar)
 	v1.Get("/suscripcion/activo", isRegister, listaractivos)
-
+	v1.Get("/suscripcion/all", isRegister, listarall)
 }
 
 func isRegister(c *fiber.Ctx) error {
