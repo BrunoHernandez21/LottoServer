@@ -56,12 +56,12 @@ func delete(c *fiber.Ctx) error {
 
 	m := make(map[string]string)
 	a := gormdb.Plan{}
-	err := db.Table("plan").Find(&a, "id = ?", c.Params("id"))
+	err := db.Find(&a, "id = ?", c.Params("id"))
 	if (err.Error != nil) || (a.Id == 0) {
 		m["mensaje"] = "Plan no encontrado"
 		return c.JSON(m)
 	}
-	err2 := db.Table("plan").Delete(&a)
+	err2 := db.Delete(&a)
 	if err2.Error != nil {
 		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)

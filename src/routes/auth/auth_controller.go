@@ -75,7 +75,7 @@ func signup(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	input.Id = 0
-	input.Activo = true
+	*input.Activo = true
 	h := sha1.New()
 	h.Write([]byte(*input.Password))
 	i := hex.EncodeToString(h.Sum(nil))

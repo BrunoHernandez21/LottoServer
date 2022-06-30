@@ -10,6 +10,7 @@ import (
 	evento "lottomusic/src/routes/eventos"
 	"lottomusic/src/routes/plan"
 	"lottomusic/src/routes/suscripcion"
+	"lottomusic/src/routes/videos"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -61,6 +62,7 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	apuesta.Init_routes(app, db)
 	evento.Init_routes(app, db)
 	suscripcion.Init_routes(app, db)
+	videos.Init_routes(app, db)
 
 }
 

@@ -4,7 +4,7 @@ import "time"
 
 type Usuarios struct {
 	Id               uint32     `json:"id"`
-	Activo           bool       `json:"activo"`
+	Activo           *bool      `json:"activo"`
 	Apellidom        *string    `json:"apellidom,omitempty"`
 	Apellidop        *string    `json:"apellidop,omitempty"`
 	Email            *string    `json:"email,omitempty"`
