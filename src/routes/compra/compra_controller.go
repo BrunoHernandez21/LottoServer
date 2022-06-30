@@ -137,14 +137,7 @@ func checkout(c *fiber.Ctx) error {
 			return c.Status(500).JSON(m)
 		}
 	}
-	c.App().Post("", func(c *fiber.Ctx) error {
-		c.Accepts("application/json")
-		c.GetRespHeader("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNjU2Njk5MzU3fQ.6kpTcYFL22Q-UdhsHLvLkSY7qQVp-vWaZcTq3HouU2QJja-0qs5xexf182NdrsGTUjXO4rghPfkx2YjNqmbH6g")
-		if err := c.BodyParser(input); err != nil {
-			return err
-		}
-		return nil
-	})
+
 	m["mensaje"] = "su compra esta en Comprobacion"
 	return c.JSON(input)
 }
