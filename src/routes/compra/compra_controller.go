@@ -27,7 +27,7 @@ func eliminar(c *fiber.Ctx) error {
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
-	m["mensjae"] = "Eliminado Satisfactoriamente"
+	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 func listar(c *fiber.Ctx) error {

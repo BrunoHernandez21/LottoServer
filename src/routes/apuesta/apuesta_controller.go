@@ -23,7 +23,7 @@ func editar(c *fiber.Ctx) error {
 	a := gormdb.Usuarios{}
 	err2 := db.Find(&a, "id = ?", c.Params("id"))
 	if err2.Error != nil {
-		m["mensjae"] = "Usuario no registrado"
+		m["mensaje"] = "Usuario no registrado"
 		return c.JSON(m)
 	}
 	input := gormdb.Usuarios{}
@@ -44,7 +44,7 @@ func eliminar(c *fiber.Ctx) error {
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
-	m["mensjae"] = "Eliminado Satisfactoriamente"
+	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 func listarTodos(c *fiber.Ctx) error {

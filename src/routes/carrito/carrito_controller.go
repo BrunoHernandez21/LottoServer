@@ -15,16 +15,16 @@ func crear(c *fiber.Ctx) error {
 	}
 
 	if input.Id_plan == nil {
-		m["mensjae"] = "Id plna no puede ser null"
+		m["mensaje"] = "Id plna no puede ser null"
 		return c.JSON(m)
 	}
 	if input.Cantidad == 0 {
-		m["mensjae"] = "Cantidad no puede ser null o 0"
+		m["mensaje"] = "Cantidad no puede ser null o 0"
 		return c.JSON(m)
 	}
 
 	if input.Cantidad == 0 {
-		m["mensjae"] = "Cantidad no puede ser null o 0"
+		m["mensaje"] = "Cantidad no puede ser null o 0"
 		return c.JSON(m)
 	}
 
@@ -32,7 +32,7 @@ func crear(c *fiber.Ctx) error {
 	if ok {
 		input.Usuario_id = &id
 	} else {
-		m["mensjae"] = "error interno"
+		m["mensaje"] = "error interno"
 		return c.JSON(m)
 	}
 	status := "Carrito"
@@ -62,9 +62,9 @@ func eliminar(c *fiber.Ctx) error {
 	}
 
 	if a.Id == 0 {
-		m["mensjae"] = "El item no existe"
+		m["mensaje"] = "El item no existe"
 	} else {
-		m["mensjae"] = "Eliminado Satisfactoriamente"
+		m["mensaje"] = "Eliminado Satisfactoriamente"
 	}
 
 	return c.JSON(m)

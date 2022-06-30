@@ -27,7 +27,7 @@ func byid(c *fiber.Ctx) error {
 	}
 	if a.Id == 0 {
 		m := make(map[string]string)
-		m["mensjae"] = "El evento no existe"
+		m["mensaje"] = "El evento no existe"
 		return c.JSON(m)
 	}
 
@@ -80,11 +80,11 @@ func eliminar(c *fiber.Ctx) error {
 		return c.JSON(err.Error)
 	}
 	if a.Id == 0 {
-		m["mensjae"] = "El evento no existe"
+		m["mensaje"] = "El evento no existe"
 		return c.JSON(m)
 	}
 
-	m["mensjae"] = "Eliminado Satisfactoriamente"
+	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 func listarTodos(c *fiber.Ctx) error {

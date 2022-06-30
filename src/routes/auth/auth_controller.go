@@ -20,8 +20,8 @@ func login(c *fiber.Ctx) error {
 		return err
 	}
 	if (input.Username == nil) || (input.Password == nil) {
-		m["mensjae"] = "informacion insuficiente"
-		return c.JSON(m)
+		m["mensaje"] = "informacion insuficiente"
+		return c.Status(400).JSON(m)
 	}
 	//db midelware
 	a := gormdb.Usuarios{}
@@ -30,16 +30,16 @@ func login(c *fiber.Ctx) error {
 		return c.JSON(errdb.Error)
 	}
 	if a.Id == 0 {
-		m["mensjae"] = "Usuario no registrado"
-		return c.JSON(m)
+		m["mensaje"] = "Usuario no registrado"
+		return c.Status(500).JSON(m)
 	}
 	//password midelware
 	h := sha1.New()
 	h.Write([]byte(*input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
 	input.Password = &i
-	if a.Password != *input.Password {
-		m["mensjae"] = "Contraseña invalida"
+	if *a.Password != *input.Password {
+		m["mensaje"] = "Contraseña invalida"
 		return c.JSON(m)
 	}
 	//// JWT midelware
@@ -61,25 +61,37 @@ func signup(c *fiber.Ctx) error {
 	if err != nil {
 		return c.JSON(err)
 	}
-	if (input.Email == "") || (input.Password == "") {
-		m["mensjae"] = "informacion insuficiente"
-		return c.JSON(m)
+	if (input.Email == nil) || (input.Password == nil) {
+		m["mensaje"] = "Email y contraseña son obligatorios"
+		return c.Status(400).JSON(m)
+	}
+	out := gormdb.Usuarios{}
+	errdb := db.Find(&out, "email = ?", input.Email)
+	if errdb.Error != nil {
+		return c.JSON(errdb)
+	}
+	if out.Id != 0 {
+		m["mensaje"] = "El usuario ya esta registrado"
+		return c.Status(500).JSON(m)
 	}
 	input.Id = 0
 	input.Activo = true
 	h := sha1.New()
-	h.Write([]byte(input.Password))
+	h.Write([]byte(*input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = i
-
-	errdb := db.Create(&input)
+	input.Password = &i
+	errdb = db.Create(&input)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = "Error en la base de datos"
+		return c.Status(500).JSON(m)
 	}
 	errdb = db.Find(&input, "email = ?", input.Email)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = "Error en la base de datos"
+		return c.Status(500).JSON(m)
 	}
+	///// Asignacion del UserRol
+
 	user_rol := gormdb.Usuarios_roles{
 		User_id: input.Id,
 		Role_id: 1,
@@ -101,7 +113,7 @@ func forgetpassword(c *fiber.Ctx) error {
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "email = ?", input.Email)
 	if errdb.Error != nil {
-		m["mensjae"] = "Usuario no registrado"
+		m["mensaje"] = "Usuario no registrado"
 		return c.JSON(m)
 	}
 
@@ -109,7 +121,7 @@ func forgetpassword(c *fiber.Ctx) error {
 	h := sha1.New()
 	h.Write([]byte(password))
 	i := hex.EncodeToString(h.Sum(nil))
-	a.Password = i
+	a.Password = &i
 	email.Send_Recovery_Password(input.Email, password)
 
 	errdb = db.Save(&a)
@@ -138,15 +150,15 @@ func deleteuser(c *fiber.Ctx) error {
 		return c.JSON(err.Error)
 	}
 	if a.Id == 0 {
-		m["mensjae"] = "La cuenta no existe"
+		m["mensaje"] = "La cuenta no existe"
 		return c.JSON(m)
 	}
 	h := sha1.New()
 	h.Write([]byte(headers["Password"]))
 	i := hex.EncodeToString(h.Sum(nil))
 	var password string = i
-	if a.Password != password {
-		m["mensjae"] = "Contraseña invalida"
+	if *a.Password != password {
+		m["mensaje"] = "Contraseña invalida"
 		return c.JSON(m)
 	}
 	//db midelware
@@ -160,7 +172,7 @@ func deleteuser(c *fiber.Ctx) error {
 		return c.JSON(err.Error)
 	}
 
-	m["mensjae"] = "Eliminado satisfactoriamente"
+	m["mensaje"] = "Eliminado satisfactoriamente"
 	return c.JSON(m)
 }
 
@@ -200,7 +212,7 @@ func deleteById(c *fiber.Ctx) error {
 	if err.Error != nil {
 		return c.JSON(err.Error)
 	}
-	m["mensjae"] = "Eliminado Satisfactoriamente"
+	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 
@@ -220,21 +232,21 @@ func changepassword(c *fiber.Ctx) error {
 	input := auth.Get_ChangePassword{}
 	if err := c.BodyParser(&input); err != nil {
 		m := make(map[string]string)
-		m["mensjae"] = "Datos insuficientes"
+		m["mensaje"] = "Datos insuficientes"
 		return c.JSON(m)
 	}
 	a := gormdb.Usuarios{}
 	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
 	if err2.Error != nil {
 		m := make(map[string]string)
-		m["mensjae"] = "Usuario no registrado"
+		m["mensaje"] = "Usuario no registrado"
 		return c.JSON(m)
 	}
 
 	h := sha1.New()
 	h.Write([]byte(input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
-	a.Password = i
+	a.Password = &i
 
 	db.Save(&a)
 
@@ -248,7 +260,7 @@ func updateuser(c *fiber.Ctx) error {
 	a := gormdb.Usuarios{}
 	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
 	if err2.Error != nil {
-		m["mensjae"] = "Usuario no registrado"
+		m["mensaje"] = "Usuario no registrado"
 		return c.JSON(m)
 	}
 
@@ -260,16 +272,16 @@ func updateuser(c *fiber.Ctx) error {
 	input.Activo = a.Activo
 	input.Email = a.Email
 	input.Password = a.Password
-	if input.Apellidom == "" {
+	if input.Apellidom == nil {
 		input.Apellidom = a.Apellidom
 	}
-	if input.Apellidop == "" {
+	if input.Apellidop == nil {
 		input.Apellidop = a.Apellidop
 	}
-	if input.Fecha_nacimiento == "" {
+	if input.Fecha_nacimiento == nil {
 		input.Fecha_nacimiento = a.Fecha_nacimiento
 	}
-	if input.Nombre == "" {
+	if input.Nombre == nil {
 		input.Nombre = a.Nombre
 	}
 

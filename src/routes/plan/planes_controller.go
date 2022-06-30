@@ -37,7 +37,7 @@ func create(c *fiber.Ctx) error {
 	}
 	if (input.Precio == nil) || (input.Nombre == nil) || (input.Oportunidades == nil) {
 
-		m["mensjae"] = "informacion insuficiente"
+		m["mensaje"] = "informacion insuficiente"
 		return c.JSON(m)
 	}
 
@@ -45,11 +45,11 @@ func create(c *fiber.Ctx) error {
 	a := db.Table("plan").Create(&input)
 	if a.Error != nil {
 
-		m["mensjae"] = "No se pudo acceder a la base de datos"
+		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)
 	}
 
-	m["mensjae"] = "El plan ha sido creado"
+	m["mensaje"] = "El plan ha sido creado"
 	return c.JSON(m)
 }
 func delete(c *fiber.Ctx) error {
@@ -58,16 +58,16 @@ func delete(c *fiber.Ctx) error {
 	a := gormdb.Plan{}
 	err := db.Table("plan").Find(&a, "id = ?", c.Params("id"))
 	if (err.Error != nil) || (a.Id == 0) {
-		m["mensjae"] = "Plan no encontrado"
+		m["mensaje"] = "Plan no encontrado"
 		return c.JSON(m)
 	}
 	err2 := db.Table("plan").Delete(&a)
 	if err2.Error != nil {
-		m["mensjae"] = "No se pudo acceder a la base de datos"
+		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)
 	}
 
-	m["mensjae"] = "Eliminado con exito"
+	m["mensaje"] = "Eliminado con exito"
 	return c.JSON(m)
 }
 func edit(c *fiber.Ctx) error {
@@ -77,14 +77,14 @@ func edit(c *fiber.Ctx) error {
 		return err
 	}
 	if input.Id == 0 {
-		m["mensjae"] = "informacion insuficiente"
+		m["mensaje"] = "informacion insuficiente"
 		return c.JSON(m)
 	}
 
 	a := gormdb.Plan{}
 	err2 := db.Table("plan").Find(&a, "id = ?", input.Id)
 	if err2.Error != nil {
-		m["mensjae"] = "No se pudo acceder a la base de datos"
+		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)
 	}
 	if input.Acumulado_alto8am != nil {
@@ -111,10 +111,10 @@ func edit(c *fiber.Ctx) error {
 
 	err3 := db.Table("plan").Save(a)
 	if err3.Error != nil {
-		m["mensjae"] = "No se pudo acceder a la base de datos"
+		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.JSON(m)
 	}
 
-	m["mensjae"] = "Editado con exito"
+	m["mensaje"] = "Editado con exito"
 	return c.JSON(m)
 }

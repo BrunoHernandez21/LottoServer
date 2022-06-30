@@ -30,7 +30,7 @@ func isRegister(c *fiber.Ctx) error {
 	_, credentials, err := jwts.ValidateToken(headers["Authorization"])
 	if err != nil {
 		m := make(map[string]string)
-		m["mensjae"] = "Token invalido"
+		m["mensaje"] = "Token invalido"
 		return c.JSON(m)
 	}
 	c.Locals("userID", credentials.ID)
@@ -42,7 +42,7 @@ func isRoot(c *fiber.Ctx) error {
 	_, credentials, err := jwts.ValidateToken(headers["Authorization"])
 	if err != nil {
 		m := make(map[string]string)
-		m["mensjae"] = "Token invalido"
+		m["mensaje"] = "Token invalido"
 		return c.JSON(m)
 	}
 	c.Locals("userID", credentials.ID)
