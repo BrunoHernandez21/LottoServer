@@ -14,7 +14,7 @@ func crear(c *fiber.Ctx) error {
 		return err
 	}
 
-	if input.Id_plan == nil {
+	if input.Id_plan == 0 {
 		m["mensaje"] = "Id plna no puede ser null"
 		return c.JSON(m)
 	}
@@ -23,14 +23,14 @@ func crear(c *fiber.Ctx) error {
 		return c.JSON(m)
 	}
 
-	if input.Cantidad == 0 {
+	if input.Usuario_id == 0 {
 		m["mensaje"] = "Cantidad no puede ser null o 0"
 		return c.JSON(m)
 	}
 
 	id, ok := c.Locals("userID").(uint32)
 	if ok {
-		input.Usuario_id = &id
+		input.Usuario_id = id
 	} else {
 		m["mensaje"] = "error interno"
 		return c.JSON(m)
@@ -40,6 +40,8 @@ func crear(c *fiber.Ctx) error {
 	input.Id = 0
 	input.Orden_status = &status
 	input.Fecha_orden = &fecha
+	activo := true
+	input.Activa = &activo
 
 	errdb := db.Create(&input)
 	if errdb.Error != nil {

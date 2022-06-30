@@ -100,6 +100,16 @@ func signup(c *fiber.Ctx) error {
 	if errdb.Error != nil {
 		return c.JSON(errdb)
 	}
+	///Creacion de cartera
+
+	cartera := gormdb.Carteras{
+		Id_usuario: input.Id,
+	}
+
+	errdb = db.Create(&cartera)
+	if errdb.Error != nil {
+		return c.JSON(errdb)
+	}
 
 	return c.JSON(input)
 }

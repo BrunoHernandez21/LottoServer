@@ -15,8 +15,8 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	v1 := app.Group("/api/compra")
 
-	v1.Post("/compra", isRegister, crear)
-	v1.Delete("/compra", isRegister, eliminar)
+	v1.Post("/compra", isRoot, crear)
+	v1.Delete("/compra", isRoot, eliminar)
 	v1.Get("/compra", isRegister, listar)
 	v1.Post("/checkout", isRegister, checkout)
 }
@@ -43,7 +43,6 @@ func isRegister(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-/*
 func isRoot(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	headers := c.GetReqHeaders()
@@ -69,4 +68,3 @@ func isRoot(c *fiber.Ctx) error {
 	c.Locals("userID", credentials.ID)
 	return c.Next()
 }
-*/
