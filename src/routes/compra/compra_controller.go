@@ -92,8 +92,10 @@ func listar(c *fiber.Ctx) error {
 	db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
 	return c.JSON(input)
 }
+
 func checkout(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
+
 	input := compra.Get_Checkout{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
@@ -102,6 +104,7 @@ func checkout(c *fiber.Ctx) error {
 		m["mensaje"] = "it's empty"
 		return c.Status(500).JSON(m)
 	}
+
 	userID, ok := c.Locals("userID").(uint32)
 	if !ok {
 		m["mensaje"] = "internal error"
@@ -138,6 +141,18 @@ func checkout(c *fiber.Ctx) error {
 		}
 	}
 
-	m["mensaje"] = "su compra esta en Comprobacion"
-	return c.JSON(input)
+	a := fiber.AcquireAgent()
+	req := a.Request()
+	req.Header.SetMethod("POST")
+	a.ContentType("application/json")
+	a.JSON(input)
+	//req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNjU2NzE1NjcxfQ.4bdSgvBkYL_b8N15nUsQz2r5F1ORCHPrsdMcYJVnsBQaqACxgKk0Fa9YWbJvOQ_MTwKX4MTZgLmUzRyBKyE9Zw")
+	req.SetRequestURI("http://187.213.79.204:25565/api/compra/compra")
+	if err := a.Parse(); err != nil {
+		return err
+	}
+	code, body, errs := a.Bytes()
+	m["mensaje"] = string(body)
+	m["errors"] = errs
+	return c.Status(code).JSON(m)
 }

@@ -7,12 +7,95 @@ import (
 )
 
 func crear(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := gormdb.Apuesta_usuario{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
+	userID, ok := c.Locals("userID").(uint32)
+	if !ok {
+		m["mensaje"] = "internal error"
+		return c.Status(500).JSON(m)
+	}
+	cartera := gormdb.Carteras{}
+	errdb := db.Find(&cartera, "Id_usuario = ?", userID)
+	if errdb.Error != nil {
+		return c.JSON(errdb)
+	}
+
 	input.Id = 0
-	errdb := db.Create(&input)
+	activo := true
+	input.Activo = &activo
+	input.Cantidad = 0
+	input.Usuario_id = userID
+	if input.Apuesta_id == 0 {
+		m["mensaje"] = "Apuesta id no puede ser nulo"
+		return c.Status(400).JSON(m)
+	}
+	/// verificacion de apuesta
+	if (input.Apuesta_id == 1) && (input.Vistas == 0) {
+		m["mensaje"] = "Vistas no puede ser null"
+		return c.Status(400).JSON(m)
+	}
+	if (input.Apuesta_id == 2) && (input.Likes == 0) {
+		m["mensaje"] = "Vistas no puede ser null"
+		return c.Status(400).JSON(m)
+	}
+	if (input.Apuesta_id == 3) && (input.Comentarios == 0) {
+		m["mensaje"] = "Vistas no puede ser null"
+		return c.Status(400).JSON(m)
+	}
+	//// verificacion de saldo
+	evento := gormdb.Apuestas{
+		Id: input.Apuesta_id,
+	}
+	errdb = db.Find(&evento)
+	if errdb.Error != nil {
+		return c.JSON(errdb)
+	}
+
+	if (evento.Categoria_apuesta_id == 1) && (cartera.Oportunidades == 0) {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
+	if (evento.Categoria_apuesta_id == 2) && (cartera.Acumulado_alto8am == 0) {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
+	if (evento.Categoria_apuesta_id == 3) && (cartera.Acumulado_bajo8pm == 0) {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
+	if (evento.Categoria_apuesta_id == 4) && (cartera.Aproximacion_alta00am == 0) {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
+	if (evento.Categoria_apuesta_id == 5) && (cartera.Aproximacion_baja == 0) {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
+	/// reducir en cartera
+	if evento.Categoria_apuesta_id == 1 {
+		cartera.Oportunidades -= 1
+	}
+	if evento.Categoria_apuesta_id == 2 {
+		cartera.Acumulado_alto8am -= 1
+	}
+	if evento.Categoria_apuesta_id == 3 {
+		cartera.Acumulado_bajo8pm -= 1
+	}
+	if evento.Categoria_apuesta_id == 4 {
+		cartera.Aproximacion_alta00am -= 1
+	}
+	if evento.Categoria_apuesta_id == 5 {
+		cartera.Aproximacion_baja -= 1
+	}
+
+	errdb = db.Save(cartera)
+	if errdb.Error != nil {
+		return c.JSON(errdb)
+	}
+	errdb = db.Create(&input)
 	if errdb.Error != nil {
 		return c.JSON(errdb)
 	}
@@ -29,45 +112,8 @@ func editar(c *fiber.Ctx) error {
 		m["mensaje"] = "Id no puede ser null"
 		return c.Status(500).JSON(m)
 	}
-	ins := gormdb.Apuesta_usuario{
-		Id: input.Id,
-	}
-	err2 := db.Find(&ins)
-	if err2.Error != nil {
-		m["mensaje"] = "no existe"
-		return c.JSON(m)
-	}
-
-	if input.Activo != nil {
-		ins.Activo = input.Activo
-	}
-	if input.Apuesta != nil {
-		ins.Apuesta = input.Apuesta
-	}
-	if input.Cantidad != 0 {
-		ins.Cantidad = input.Cantidad
-	}
-	if input.Fecha != nil {
-		ins.Fecha = input.Fecha
-	}
-	if input.Likes != nil {
-		ins.Likes = input.Likes
-	}
-	if input.Monto != 0 {
-		ins.Monto = input.Monto
-	}
-	if input.Suscribcion_id != nil {
-		ins.Suscribcion_id = input.Suscribcion_id
-	}
-	if input.Usuario != nil {
-		ins.Usuario = input.Usuario
-	}
-	if input.Vistas != nil {
-		ins.Vistas = input.Vistas
-	}
-
-	db.Save(&ins)
-	return c.JSON(ins)
+	db.Save(&input)
+	return c.JSON(input)
 }
 func byid(c *fiber.Ctx) error {
 	input := gormdb.Apuesta_usuario{}
@@ -91,7 +137,7 @@ func listarTodos(c *fiber.Ctx) error {
 	db.Find(&input)
 	return c.JSON(input)
 }
-func listarActivos(c *fiber.Ctx) error {
+func activosPage(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
 	db.Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)

@@ -15,13 +15,13 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1 := app.Group("/api/apuesta")
 
 	v1.Post("/apuesta", isRegister, crear)
-	v1.Put("/apuesta", isRegister, editar)
-	v1.Get("/apuesta", isRegister, listarTodos)
+	v1.Put("/apuesta", isRoot, editar)
+	v1.Get("/apuesta", isRoot, listarTodos)
 
 	v1.Get("/activos", isRegister, activo)
-	v1.Get("/activos/page/:page", isRegister, listarActivos)
+	v1.Get("/activos/page/:page", isRegister, activosPage)
 
-	v1.Get("/apuesta/:id", isRegister, byid)
+	v1.Get("/apuesta/:id", isRoot, byid)
 	v1.Delete("/apuesta/:id", isRoot, eliminar)
 
 }

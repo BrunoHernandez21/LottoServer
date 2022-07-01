@@ -73,7 +73,7 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listar(c *fiber.Ctx) error {
 	input := []gormdb.Orden{}
-	db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
+	db.Find(&input, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
 	return c.JSON(input)
 }
 func editar(c *fiber.Ctx) error {

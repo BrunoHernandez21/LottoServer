@@ -54,13 +54,13 @@ func editar(c *fiber.Ctx) error {
 	if input.Precio == nil {
 		return c.JSON(m)
 	}
-	if input.Video_id == nil {
+	if input.Video_id == 0 {
 		return c.JSON(m)
 	}
-	if input.Categoria_apuesta_id == nil {
+	if input.Categoria_apuesta_id == 0 {
 		return c.JSON(m)
 	}
-	if input.Tipo_apuesta_id == nil {
+	if input.Tipo_apuesta_id == 0 {
 		return c.JSON(m)
 	}
 
