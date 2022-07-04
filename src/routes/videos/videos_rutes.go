@@ -17,7 +17,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Get("/videos/activo", isRegister, listaractivos)
 
 	v1.Post("/videos", isRoot, crear)
-	v1.Get("/videos", isRoot, listar)
+	v1.Get("/videos", listar)
 	v1.Put("/videos", isRoot, editar)
 	v1.Delete("/videos/:id", isRoot, eliminar)
 }
