@@ -139,11 +139,11 @@ func listarTodos(c *fiber.Ctx) error {
 }
 func activosPage(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
-	db.Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
+	db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)
 }
 func activo(c *fiber.Ctx) error {
 	input := []gormdb.Apuesta_usuario{}
-	db.Find(&input, "Usuario = ? AND Activo = ?", c.Locals("userID"), true)
+	db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
 	return c.JSON(input)
 }
