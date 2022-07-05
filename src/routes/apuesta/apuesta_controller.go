@@ -10,7 +10,8 @@ func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Apuesta_usuario{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	userID, ok := c.Locals("userID").(uint32)
 	if !ok {
@@ -20,7 +21,8 @@ func crear(c *fiber.Ctx) error {
 	cartera := gormdb.Carteras{}
 	errdb := db.Find(&cartera, "Id_usuario = ?", userID)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	input.Id = 0
@@ -51,7 +53,8 @@ func crear(c *fiber.Ctx) error {
 	}
 	errdb = db.Find(&evento)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	if (evento.Categoria_apuesta_id == 1) && (cartera.Oportunidades == 0) {
@@ -93,11 +96,13 @@ func crear(c *fiber.Ctx) error {
 
 	errdb = db.Save(cartera)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	errdb = db.Create(&input)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	return c.JSON(input)
@@ -106,7 +111,8 @@ func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Apuesta_usuario{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	if input.Id == 0 {
 		m["mensaje"] = "Id no puede ser null"
@@ -116,8 +122,13 @@ func editar(c *fiber.Ctx) error {
 	return c.JSON(input)
 }
 func byid(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := gormdb.Apuesta_usuario{}
-	db.Find(&input, "Id = ?", c.Params("id"))
+	errdb := db.Find(&input, "Id = ?", c.Params("id"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 func eliminar(c *fiber.Ctx) error {
@@ -127,23 +138,39 @@ func eliminar(c *fiber.Ctx) error {
 	a := gormdb.Apuesta_usuario{}
 	err := db.Find(&a, "id = ?", c.Params("id")).Delete(&a)
 	if err.Error != nil {
-		return c.JSON(err.Error)
+		m["mensaje"] = err.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 func listarTodos(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Apuesta_usuario{}
-	db.Find(&input)
+	errdb := db.Find(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 func activosPage(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Apuesta_usuario{}
-	db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
+	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 func activo(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Apuesta_usuario{}
-	db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
+	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }

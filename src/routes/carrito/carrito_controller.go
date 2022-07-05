@@ -11,21 +11,22 @@ func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Orden{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	if input.Id_plan == 0 {
 		m["mensaje"] = "Id plna no puede ser null"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 	if input.Cantidad == 0 {
 		m["mensaje"] = "Cantidad no puede ser null o 0"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	if input.Usuario_id == 0 {
 		m["mensaje"] = "Cantidad no puede ser null o 0"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	id, ok := c.Locals("userID").(uint32)
@@ -33,7 +34,7 @@ func crear(c *fiber.Ctx) error {
 		input.Usuario_id = id
 	} else {
 		m["mensaje"] = "error interno"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 	status := "Carrito"
 	fecha := time.Now()
@@ -45,11 +46,13 @@ func crear(c *fiber.Ctx) error {
 
 	errdb := db.Create(&input)
 	if errdb.Error != nil {
-		return c.JSON(errdb.Error)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	errdb = db.Find(&input, "Usuario_id = ? AND Fecha_orden = ?", input.Usuario_id, input.Fecha_orden)
 	if errdb.Error != nil {
-		return c.JSON(errdb.Error)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	return c.JSON(input)
 }
@@ -58,9 +61,10 @@ func eliminar(c *fiber.Ctx) error {
 	param := c.Params("id")
 	//db midelware
 	a := gormdb.Orden{}
-	err := db.Find(&a, "id = ?", param).Delete(&a)
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb := db.Find(&a, "id = ?", param).Delete(&a)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	if a.Id == 0 {
@@ -72,15 +76,21 @@ func eliminar(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 func listar(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Orden{}
-	db.Find(&input, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	errdb := db.Find(&input, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Orden{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	if input.Id == 0 {
 		m["mensaje"] = "El id es necesario"
@@ -95,9 +105,10 @@ func editar(c *fiber.Ctx) error {
 	out.Id_charges = input.Id_charges
 	out.Amount = input.Amount
 
-	er := db.Save(out)
-	if er.Error != nil {
-		return c.JSON(er.Error)
+	errdb := db.Save(out)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	return c.JSON(out)
 }

@@ -22,12 +22,13 @@ func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Videos{}
 	if err := c.BodyParser(&input); err != nil {
+
 		return c.Status(500).JSON(err)
 	}
 	input.Id = 0
 	errdb := db.Create(&input)
 	if errdb.Error != nil {
-		m["mensaje"] = "Error en la base de datos"
+		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	m["mensaje"] = "Creado con exito"
@@ -42,8 +43,8 @@ func eliminar(c *fiber.Ctx) error {
 		m["mensaje"] = "Plan no encontrado"
 		return c.Status(404).JSON(m)
 	}
-	err2 := db.Delete(&a)
-	if err2.Error != nil {
+	errdb := db.Delete(&a)
+	if errdb.Error != nil {
 		m["mensaje"] = "No se pudo acceder a la base de datos"
 		return c.Status(500).JSON(m)
 	}
@@ -55,7 +56,8 @@ func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Videos{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	if input.Id == 0 {
 		m["mensaje"] = "Id no puede ser null"
@@ -64,10 +66,10 @@ func editar(c *fiber.Ctx) error {
 	ins := gormdb.Videos{
 		Id: input.Id,
 	}
-	err2 := db.Find(&ins)
-	if err2.Error != nil {
+	errdb := db.Find(&ins)
+	if errdb.Error != nil {
 		m["mensaje"] = "no existe"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	if input.Activo != nil {
@@ -92,6 +94,10 @@ func editar(c *fiber.Ctx) error {
 		ins.Url_video = input.Url_video
 	}
 
-	db.Save(&ins)
+	errdb = db.Save(&ins)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(ins)
 }

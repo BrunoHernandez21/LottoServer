@@ -27,7 +27,8 @@ func login(c *fiber.Ctx) error {
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "email = ?", input.Username)
 	if errdb.Error != nil {
-		return c.JSON(errdb.Error)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	if a.Id == 0 {
 		m["mensaje"] = "Usuario no registrado"
@@ -59,7 +60,8 @@ func signup(c *fiber.Ctx) error {
 	input := gormdb.Usuarios{}
 	err := c.BodyParser(&input)
 	if err != nil {
-		return c.JSON(err)
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	if (input.Email == nil) || (input.Password == nil) {
 		m["mensaje"] = "Email y contraseña son obligatorios"
@@ -68,7 +70,8 @@ func signup(c *fiber.Ctx) error {
 	out := gormdb.Usuarios{}
 	errdb := db.Find(&out, "email = ?", input.Email)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	if out.Id != 0 {
 		m["mensaje"] = "El usuario ya esta registrado"
@@ -99,7 +102,8 @@ func signup(c *fiber.Ctx) error {
 	}
 	errdb = db.Create(&user_rol)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	///Creacion de cartera
 
@@ -110,7 +114,8 @@ func signup(c *fiber.Ctx) error {
 
 	errdb = db.Create(&cartera)
 	if errdb.Error != nil {
-		return c.JSON(errdb)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	return c.JSON(input)
@@ -120,13 +125,14 @@ func forgetpassword(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := auth.Get_forgetpassword{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "email = ?", input.Email)
 	if errdb.Error != nil {
 		m["mensaje"] = "Usuario no registrado"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	password := utils.UUID()[0:13]
@@ -138,17 +144,20 @@ func forgetpassword(c *fiber.Ctx) error {
 
 	errdb = db.Save(&a)
 	if errdb.Error != nil {
-		return c.JSON(errdb.Error)
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	m["mensaje"] = "Se a enviado un correo a su cuenta"
 	return c.JSON(m)
 }
 
 func infouser(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	a := gormdb.Usuarios{}
-	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
-	if err2.Error != nil {
-		return c.JSON(err2.Error)
+	errdb := db.Find(&a, "id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	return c.JSON(a)
 }
@@ -157,9 +166,10 @@ func deleteuser(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	headers := c.GetReqHeaders()
 	a := gormdb.Usuarios{}
-	err := db.Find(&a, "id = ?", c.Locals("userID"))
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb := db.Find(&a, "id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	if a.Id == 0 {
 		m["mensaje"] = "La cuenta no existe"
@@ -174,14 +184,16 @@ func deleteuser(c *fiber.Ctx) error {
 		return c.JSON(m)
 	}
 	//db midelware
-	err = db.Delete(&a)
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb = db.Delete(&a)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	user_rol := gormdb.Usuarios_roles{}
-	err = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	m["mensaje"] = "Eliminado satisfactoriamente"
@@ -215,44 +227,48 @@ func deleteById(c *fiber.Ctx) error {
 	param := c.Params("id")
 	//db midelware
 	a := gormdb.Usuarios{}
-	err := db.Find(&a, "id = ?", param).Delete(&a)
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb := db.Find(&a, "id = ?", param).Delete(&a)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	user_rol := gormdb.Usuarios_roles{}
-	err = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
-	if err.Error != nil {
-		return c.JSON(err.Error)
+	errdb = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 
 func getById(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	param := c.Params("id")
 	a := gormdb.Usuarios{}
-	err2 := db.Find(&a, "id = ?", param)
-	if err2.Error != nil {
-		return c.JSON(err2.Error)
+	errdb := db.Find(&a, "id = ?", param)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 
 	return c.JSON(a)
 }
 
 func changepassword(c *fiber.Ctx) error {
-
+	m := make(map[string]string)
 	input := auth.Get_ChangePassword{}
 	if err := c.BodyParser(&input); err != nil {
-		m := make(map[string]string)
+
 		m["mensaje"] = "Datos insuficientes"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 	a := gormdb.Usuarios{}
 	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
 	if err2.Error != nil {
-		m := make(map[string]string)
+
 		m["mensaje"] = "Usuario no registrado"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	h := sha1.New()
@@ -261,24 +277,23 @@ func changepassword(c *fiber.Ctx) error {
 	a.Password = &i
 
 	db.Save(&a)
-
-	return c.JSON(auth.Set_ChangePassword{
-		Mensaje: "Contraseña cambiada con exito",
-	})
+	m["mensaje"] = "Contraseña cambiada con exito"
+	return c.JSON(m)
 }
 
 func updateuser(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	a := gormdb.Usuarios{}
-	err2 := db.Find(&a, "id = ?", c.Locals("userID"))
-	if err2.Error != nil {
+	errdb := db.Find(&a, "id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
 		m["mensaje"] = "Usuario no registrado"
-		return c.JSON(m)
+		return c.Status(500).JSON(m)
 	}
 
 	input := gormdb.Usuarios{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	input.Id = a.Id
 	input.Activo = a.Activo
@@ -297,7 +312,11 @@ func updateuser(c *fiber.Ctx) error {
 		input.Nombre = a.Nombre
 	}
 
-	db.Save(&input)
+	errdb = db.Save(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 

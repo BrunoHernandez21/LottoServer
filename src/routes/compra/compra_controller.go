@@ -82,14 +82,20 @@ func eliminar(c *fiber.Ctx) error {
 	a := gormdb.Compra{}
 	err := db.Find(&a, "id = ?", param).Delete(&a)
 	if err.Error != nil {
-		return c.JSON(err.Error)
+		m["mensaje"] = err.Error.Error()
+		return c.Status(500).JSON(m)
 	}
 	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
 func listar(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Compra{}
-	db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
+	errdb := db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
 }
 
@@ -98,7 +104,8 @@ func checkout(c *fiber.Ctx) error {
 
 	input := compra.Get_Checkout{}
 	if err := c.BodyParser(&input); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	if len(input.IDs) == 0 {
 		m["mensaje"] = "it's empty"
@@ -114,7 +121,7 @@ func checkout(c *fiber.Ctx) error {
 	orders := []gormdb.Orden{}
 	errdb := db.Where("id IN ?", input.IDs).Find(&orders)
 	if errdb.Error != nil {
-		m["mensjae"] = "Internal Error"
+		m["mensjae"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	for _, order := range orders {
@@ -136,7 +143,7 @@ func checkout(c *fiber.Ctx) error {
 		order.Orden_status = &comprobacion
 		errdb := db.Save(&order)
 		if errdb.Error != nil {
-			m["mensaje"] = "Error interno"
+			m["mensaje"] = errdb.Error.Error()
 			return c.Status(500).JSON(m)
 		}
 	}
@@ -149,7 +156,8 @@ func checkout(c *fiber.Ctx) error {
 	//req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNjU2NzE1NjcxfQ.4bdSgvBkYL_b8N15nUsQz2r5F1ORCHPrsdMcYJVnsBQaqACxgKk0Fa9YWbJvOQ_MTwKX4MTZgLmUzRyBKyE9Zw")
 	req.SetRequestURI("http://187.213.79.204:25565/api/compra/compra")
 	if err := a.Parse(); err != nil {
-		return err
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
 	code, body, errs := a.Bytes()
 	m["mensaje"] = string(body)
