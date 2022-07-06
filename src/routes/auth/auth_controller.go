@@ -154,7 +154,7 @@ func forgetpassword(c *fiber.Ctx) error {
 func infouser(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	a := gormdb.Usuarios{}
-	errdb := db.Find(&a, "id = ?", c.Locals("userID"))
+	errdb := db.Select("id", "activo", "email").Find(&a, "id = ?", c.Locals("userID"))
 	pass := ""
 	a.Password = &pass
 	if errdb.Error != nil {
