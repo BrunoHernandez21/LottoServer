@@ -2,6 +2,8 @@ package videos
 
 import (
 	"lottomusic/src/models/gormdb"
+	"math"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,9 +15,45 @@ func listar(c *fiber.Ctx) error {
 }
 
 func listaractivos(c *fiber.Ctx) error {
+	m := make(map[string]string)
 	input := []gormdb.Videos{}
-	db.Find(&input, "Activo = ?", true)
+	errdb := db.Find(&input, "Activo = ?", true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	return c.JSON(input)
+}
+func pagelistar(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	resp := make(map[string]interface{})
+	input := []gormdb.Videos{}
+	errdb := db.Find(&input, "Activo = ?", true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
+	resp["pag"] = page
+	init := (page - 1) * sizepage
+	end := (page * sizepage) - 1
+	if int(end) > len(input) {
+		end = uint64(len(input))
+	}
+	if init > end {
+		resp["videos"] = nil
+	} else {
+		resp["videos"] = input[init:end]
+	}
+
+	return c.JSON(resp)
 }
 
 func crear(c *fiber.Ctx) error {
@@ -34,6 +72,12 @@ func crear(c *fiber.Ctx) error {
 	m["mensaje"] = "Creado con exito"
 	return c.JSON(m)
 }
+func listargrupos(c *fiber.Ctx) error {
+	input := []string{}
+	db.Table("Videos").Select("genero").Where("Activo = ?", true).Find(&input)
+	input = uniqueString(input)
+	return c.JSON(input)
+}
 
 func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
@@ -50,6 +94,17 @@ func eliminar(c *fiber.Ctx) error {
 	}
 	m["mensaje"] = "eliminado correctamente"
 	return c.JSON(m)
+}
+
+func activoID(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := []gormdb.Videos{}
+	errdb := db.Find(&input, "id = ? AND Activo = ?", c.Params("id"), true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	return c.JSON(input)
 }
 
 func editar(c *fiber.Ctx) error {
@@ -95,9 +150,22 @@ func editar(c *fiber.Ctx) error {
 	}
 
 	errdb = db.Save(&ins)
+
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	return c.JSON(ins)
+}
+
+func uniqueString(arr []string) []string {
+	result := make([]string, 0, len(arr))
+	encountered := map[string]bool{}
+	for v := range arr {
+		encountered[arr[v]] = true
+	}
+	for key := range encountered {
+		result = append(result, key)
+	}
+	return result
 }

@@ -2,6 +2,8 @@ package evento
 
 import (
 	"lottomusic/src/models/gormdb"
+	"math"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -104,13 +106,34 @@ func listarTodos(c *fiber.Ctx) error {
 }
 func listarActivos(c *fiber.Ctx) error {
 	m := make(map[string]string)
+	resp := make(map[string]interface{})
 	input := []gormdb.Apuestas{}
-	errdb := db.Find(&input, "activo = ?", true)
+	errdb := db.Find(&input, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
+	resp["pag"] = page
+	init := (page - 1) * sizepage
+	end := (page * sizepage) - 1
+	if int(end) > len(input) {
+		end = uint64(len(input))
+	}
+	if init > end {
+		resp["videos"] = nil
+	} else {
+		resp["videos"] = input[init:end]
+	}
+
+	return c.JSON(resp)
 }
 func activo(c *fiber.Ctx) error {
 	m := make(map[string]string)
