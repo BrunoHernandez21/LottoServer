@@ -155,6 +155,8 @@ func infouser(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "id = ?", c.Locals("userID"))
+	pass := ""
+	a.Password = &pass
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
