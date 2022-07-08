@@ -138,6 +138,10 @@ func forgetpassword(c *fiber.Ctx) error {
 		m["mensaje"] = "Usuario no registrado"
 		return c.Status(500).JSON(m)
 	}
+	if a.Id == 0 {
+		m["mensaje"] = "Usuario no registrado"
+		return c.Status(500).JSON(m)
+	}
 
 	password := utils.UUID()[0:13]
 	h := sha1.New()

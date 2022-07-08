@@ -112,10 +112,16 @@ func crear(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 func listargrupos(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
 	input := []string{}
-	db.Table("Videos").Select("genero").Where("Activo = ?", true).Find(&input)
+	errdb := db.Table("Videos").Select("genero").Where("Activo = ?", true).Find(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	input = uniqueString(input)
-	return c.JSON(input)
+	m["grupos"] = input
+	return c.JSON(m)
 }
 
 func listarGruposName(c *fiber.Ctx) error {
