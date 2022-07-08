@@ -24,11 +24,6 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	if input.Usuario_id == 0 {
-		m["mensaje"] = "Cantidad no puede ser null o 0"
-		return c.Status(500).JSON(m)
-	}
-
 	id, ok := c.Locals("userID").(uint32)
 	if ok {
 		input.Usuario_id = id
@@ -43,8 +38,16 @@ func crear(c *fiber.Ctx) error {
 	input.Fecha_orden = &fecha
 	activo := true
 	input.Activa = &activo
+	a := gormdb.Plan{}
+	errdb := db.Table("plan").Find(&a, "id = ?", input.Id_plan)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	amount := *a.Precio * float32(input.Cantidad)
+	input.Amount = &amount
 
-	errdb := db.Create(&input)
+	errdb = db.Create(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -84,6 +87,44 @@ func listar(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	return c.JSON(input)
+}
+func listarWPlan(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	ordenes := []gormdb.Orden{}
+	errdb := db.Find(&ordenes, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	result := make([]uint32, 0, len(ordenes))
+	encountered := map[uint32]bool{}
+	for v := range ordenes {
+		encountered[ordenes[v].Id_plan] = true
+	}
+	for key := range encountered {
+		result = append(result, key)
+	}
+
+	planes := []gormdb.Plan{}
+	errdb = db.Find(&planes, "Id IN ? ", result)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	rp := make([]map[string]interface{}, 0, len(ordenes))
+	for _, a := range ordenes {
+		for _, v := range planes {
+			if a.Id_plan == v.Id {
+				mapa := make(map[string]interface{})
+				mapa["plane"] = v
+				mapa["orden"] = a
+				rp = append(rp, mapa)
+			}
+		}
+	}
+	m["Ordenes"] = rp
+	return c.JSON(m)
 }
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)

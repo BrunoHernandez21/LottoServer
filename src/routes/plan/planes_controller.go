@@ -7,14 +7,16 @@ import (
 )
 
 func lista(c *fiber.Ctx) error {
-	m := make(map[string]string)
+	m := make(map[string]interface{})
 	input := []gormdb.Plan{}
 	errdb := db.Table("plan").Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
+	m["mensaje"] = nil
+	m["planes"] = input
+	return c.JSON(m)
 }
 
 func byname(c *fiber.Ctx) error {

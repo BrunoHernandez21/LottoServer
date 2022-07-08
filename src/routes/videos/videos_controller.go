@@ -14,25 +14,13 @@ func listar(c *fiber.Ctx) error {
 	return c.JSON(input)
 }
 
-func listaractivos(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Videos{}
-	errdb := db.Find(&input, "Activo = ?", true)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
-}
 func pagelistar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	input := []gormdb.Videos{}
-	errdb := db.Find(&input, "Activo = ?", true)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
+
+	a := int64(0)
+	db.Table("Videos").Where("Activo = ?", true).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -40,18 +28,69 @@ func pagelistar(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
-	resp["pag"] = page
+	resp["pags"] = math.Round(float64(a) / float64(sizepage))
+	resp["pag"] = &page
+	resp["sizepage"] = &sizepage
+	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	end := (page * sizepage) - 1
-	if int(end) > len(input) {
-		end = uint64(len(input))
+	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&input, "Activo = ?", true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
-	if init > end {
-		resp["videos"] = nil
-	} else {
-		resp["videos"] = input[init:end]
+	resp["items"] = input
+	return c.JSON(resp)
+}
+func listareventos(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	resp := make(map[string]interface{})
+	videos := []gormdb.Videos{}
+	apuestas := []gormdb.Apuestas{}
+
+	a := int64(0)
+	db.Table("Apuestas").Where("Activo = ?", true).Count(&a)
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
+
+	resp["pags"] = math.Round(float64(a) / float64(sizepage))
+	resp["pag"] = &page
+	resp["sizePage"] = &sizepage
+	resp["totals"] = &a
+	init := (page - 1) * sizepage
+	errdb := db.Table("Apuestas").Offset(int(init)).Limit(int(sizepage)).Find(&apuestas, "Activo = ?", true)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	result := make([]uint32, 0, sizepage)
+	encountered := map[uint32]bool{}
+	for v := range apuestas {
+		encountered[apuestas[v].Video_id] = true
+	}
+	for key := range encountered {
+		result = append(result, key)
+	}
+	errdb = db.Find(&videos, "id IN ?", result)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	rp := make([]map[string]interface{}, 0, sizepage)
+	for _, a := range apuestas {
+		for _, v := range videos {
+			if a.Video_id == v.Id {
+				mapa := make(map[string]interface{})
+				mapa["video"] = v
+				mapa["evento"] = a
+				rp = append(rp, mapa)
+			}
+		}
+	}
+	resp["items"] = &rp
 
 	return c.JSON(resp)
 }
@@ -77,6 +116,35 @@ func listargrupos(c *fiber.Ctx) error {
 	db.Table("Videos").Select("genero").Where("Activo = ?", true).Find(&input)
 	input = uniqueString(input)
 	return c.JSON(input)
+}
+
+func listarGruposName(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	resp := make(map[string]interface{})
+	input := []gormdb.Videos{}
+	genero := c.Params("name")
+
+	a := int64(0)
+	db.Table("Videos").Where("Activo = ? AND genero = ?", true, &genero).Count(&a)
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	resp["pags"] = math.Round(float64(a) / float64(sizepage))
+	resp["pag"] = &page
+	resp["sizepage"] = &sizepage
+	resp["totals"] = &a
+	init := (page - 1) * sizepage
+	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&input, "Activo = ? AND genero = ?", true, &genero)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	resp["videos"] = &input
+	return c.JSON(resp)
 }
 
 func eliminar(c *fiber.Ctx) error {
@@ -169,3 +237,16 @@ func uniqueString(arr []string) []string {
 	}
 	return result
 }
+
+/*
+func uniqueInt(arr []int) []int {
+	result := make([]int, 0, len(arr))
+	encountered := map[int]bool{}
+	for v := range arr {
+		encountered[arr[v]] = true
+	}
+	for key := range encountered {
+		result = append(result, key)
+	}
+	return result
+}*/

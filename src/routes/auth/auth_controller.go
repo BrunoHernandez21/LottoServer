@@ -23,6 +23,10 @@ func login(c *fiber.Ctx) error {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(400).JSON(m)
 	}
+	if (*input.Username == "") || (*input.Password == "") {
+		m["mensaje"] = "informacion insuficiente"
+		return c.Status(400).JSON(m)
+	}
 	//db midelware
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "email = ?", input.Username)
