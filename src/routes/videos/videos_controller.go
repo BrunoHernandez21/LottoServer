@@ -127,29 +127,61 @@ func listargrupos(c *fiber.Ctx) error {
 func listarGruposName(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
-	input := []gormdb.Videos{}
+
 	genero := c.Params("name")
 
 	a := int64(0)
 	db.Table("Videos").Where("Activo = ? AND genero = ?", true, &genero).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	pag, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
-
-	resp["pags"] = math.Round(float64(a) / float64(sizepage))
-	resp["pag"] = &page
-	resp["sizepage"] = &sizepage
+	pags := math.Round(float64(a) / float64(sizepage))
+	if pags < 1 && a > 0 {
+		pags = 1
+	}
+	resp["pags"] = pags
+	resp["pag"] = &pag
+	resp["sizePage"] = &sizepage
 	resp["totals"] = &a
-	init := (page - 1) * sizepage
-	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&input, "Activo = ? AND genero = ?", true, &genero)
+	init := (pag - 1) * sizepage
+
+	video := []gormdb.Videos{}
+	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&video, "Activo = ? AND genero = ?", true, &genero)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	resp["videos"] = &input
+
+	result := make([]uint32, 0, sizepage)
+	encountered := map[uint32]bool{}
+	for v := range video {
+		encountered[video[v].Id] = true
+	}
+	for key := range encountered {
+		result = append(result, key)
+	}
+	apuestas := []gormdb.Apuestas{}
+	errdb = db.Find(&apuestas, "Video_id IN ?", result)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	rp := make([]map[string]interface{}, 0, sizepage)
+	for _, a := range video {
+		for _, v := range apuestas {
+			if a.Id == v.Video_id {
+				mapa := make(map[string]interface{})
+				mapa["evento"] = v
+				mapa["video"] = a
+				rp = append(rp, mapa)
+			}
+		}
+	}
+	resp["items"] = &rp
+
 	return c.JSON(resp)
 }
 

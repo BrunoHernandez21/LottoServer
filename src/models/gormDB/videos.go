@@ -12,6 +12,7 @@ type Videos struct {
 	Titulo      *string    `json:"titulo,omitempty"`
 	Url_video   *string    `json:"url_video,omitempty"`
 	Thumblary   *string    `json:"thumblary,omitempty"`
+	Genero      *string    `json:"genero,omitempty"`
 }
 
 func (product *Videos) TableName() string {
