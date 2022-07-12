@@ -18,7 +18,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Post("/compra", isRegister, crear)
 	v1.Delete("/compra", isRoot, eliminar)
 	v1.Get("/compra", isRegister, listar)
-	v1.Get("/compra/:page/:sizepage", isRegister, listarpaginado)
+	v1.Get("/compra/:pag/:sizepage", isRegister, listarpaginado)
 	v1.Post("/checkout", isRegister, checkout)
 }
 

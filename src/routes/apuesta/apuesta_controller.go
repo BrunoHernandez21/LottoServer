@@ -157,33 +157,33 @@ func listarTodos(c *fiber.Ctx) error {
 	return c.JSON(input)
 }
 func historialPage(c *fiber.Ctx) error {
-	m := make(map[string]string)
+
 	resp := make(map[string]interface{})
-	input := []gormdb.Apuesta_usuario{}
-	errdb := db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
+
+	a := int64(0)
+	userID := c.Locals("userID")
+	db.Table("Apuesta_usuario").Where("Usuario_id = ?", userID).Count(&a)
+
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+
 	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
+		resp["mensaje"] = err.Error()
+		return c.Status(500).JSON(resp)
 	}
 
-	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
-	resp["pag"] = page
+	resp["pags"] = math.Round(float64(a) / float64(sizepage))
+	resp["pag"] = &page
+	resp["sizePage"] = &sizepage
+	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	end := (page * sizepage) - 1
-	if int(end) > len(input) {
-		end = uint64(len(input))
+	apuestasUsuario := []gormdb.Apuesta_usuario{}
+	errdb := db.Table("Apuesta_usuario").Offset(int(init)).Limit(int(sizepage)).Find(&apuestasUsuario, "Usuario_id = ?", userID)
+	if errdb.Error != nil {
+		resp["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(resp)
 	}
-	if init > end {
-		resp["videos"] = nil
-	} else {
-		resp["videos"] = input[init:end]
-	}
+	resp["userEvent"] = apuestasUsuario
 	return c.JSON(resp)
 }
 

@@ -102,35 +102,38 @@ func listar(c *fiber.Ctx) error {
 }
 
 func listarpaginado(c *fiber.Ctx) error {
-	m := make(map[string]string)
+	userID := c.Locals("userID")
 	resp := make(map[string]interface{})
-	input := []gormdb.Compra{}
-	errdb := db.Find(&input, "Usuario_id = ?", c.Locals("userID"))
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+
+	a := int64(0)
+	db.Table("Compra").Where("Usuario_id = ?", userID).Count(&a)
+	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
+		resp["mensaje"] = err.Error()
+		return c.Status(500).JSON(resp)
+	}
+	pags := math.Round(float64(a) / float64(sizepage))
+	if pags < 1 && a > 0 {
+		pags = 1
+	}
+	resp["pags"] = pags
+	resp["pag"] = &pag
+	resp["sizePage"] = &sizepage
+	resp["totals"] = &a
+	init := (pag - 1) * sizepage
+
+	compra := []gormdb.Compra{}
+	errdb := db.Table("Compra").Offset(int(init)).Limit(int(sizepage)).Find(&compra, "Usuario_id = ?", userID)
+	if errdb.Error != nil {
+		resp["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(resp)
 	}
 
-	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
-	resp["pag"] = page
-	init := (page - 1) * sizepage
-	end := (page * sizepage) - 1
-	if int(end) > len(input) {
-		end = uint64(len(input))
-	}
-	if init > end {
-		resp["videos"] = nil
-	} else {
-		resp["videos"] = input[init:end]
-	}
+	resp["compras"] = compra
 
 	return c.JSON(resp)
+
 }
 
 func checkout(c *fiber.Ctx) error {
