@@ -37,7 +37,7 @@ func Send_Recovery_Password(email string, password string) bool {
 
 	// TLS config
 	tlsconfig := &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: false,
 		ServerName:         host,
 	}
 
