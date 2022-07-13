@@ -3,10 +3,10 @@ package config
 var DB = ConfigDB{}
 
 type ConfigDB struct {
-	User      string
-	Password  string
-	Soc       string
-	TableName string
+	User         string
+	Password     string
+	Soc          string
+	DatabaseName string
 }
 
 var Mail = ConfigEmail{}
