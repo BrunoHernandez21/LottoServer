@@ -1,11 +1,6 @@
 package config
 
-var DB = configDB{
-	User:      "root",
-	Password:  "",
-	Soc:       "@tcp(127.0.0.1:3306)/",
-	TableName: "lotto_music",
-}
+var DB configDB = configDB{}
 
 type configDB struct {
 	User      string
@@ -14,12 +9,7 @@ type configDB struct {
 	TableName string
 }
 
-var Mail = configEmail{
-	Email:      "lotto@inclusive.com.mx",
-	ServerName: "mail.inclusive.com.mx:465",
-	Host:       "mail.inclusive.com.mx",
-	Password:   "fayGYp81lRt$",
-}
+var Mail = configEmail{}
 
 type configEmail struct {
 	Email      string

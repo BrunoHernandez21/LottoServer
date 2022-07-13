@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"lottomusic/src/config"
 
 	"lottomusic/src/routes/apuesta"
@@ -21,6 +24,8 @@ import (
 )
 
 func main() {
+	//LoadFiles
+	loadInitialConfig()
 	//mainConfig
 	app := fiber.New(fiber.Config{
 		AppName: "Loto Music",
@@ -66,6 +71,28 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	videos.Init_routes(app, db)
 	utils.Init_routes(app, db)
 
+}
+
+func loadInitialConfig() {
+	db_file, err := ioutil.ReadFile("./conf/db.json")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	errjs := json.Unmarshal(db_file, &config.DB)
+	if errjs != nil {
+		panic(err.Error())
+	}
+	email_file, err := ioutil.ReadFile("./conf/send_mail.json")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	errjs = json.Unmarshal(email_file, &config.Mail)
+	if errjs != nil {
+		panic(err.Error())
+	}
+	fmt.Print(config.DB.User)
 }
 
 /*

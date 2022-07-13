@@ -1,0 +1,7 @@
+{
+	"User":      "root",
+	"Password":  "",
+	"Soc":       "@tcp(127.0.0.1:3306)/",
+	"TableName": "lotto_music"
+}
+
