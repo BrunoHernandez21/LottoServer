@@ -17,3 +17,5 @@ type ConfigEmail struct {
 	Host       string
 	Password   string
 }
+
+var Port = ""

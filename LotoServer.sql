@@ -103,6 +103,9 @@ CREATE TABLE `carteras` (
   KEY `FKm5oo9iahtl1p9bs4dn1ymovlb` (`id_usuario`),
   CONSTRAINT `FKm5oo9iahtl1p9bs4dn1ymovlb` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`)
 );
+LOCK TABLES `carteras` WRITE;
+INSERT INTO `carteras` VALUES (1,0,0,0,0,0,1),(2,0,0,0,0,0,2);
+UNLOCK TABLES;
 
 ##-- Table structure for table `categoria_apuesta`
 DROP TABLE IF EXISTS `categoria_apuesta`;

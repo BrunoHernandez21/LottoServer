@@ -43,7 +43,7 @@ func main() {
 	//instance Ruts
 	rutasMain(app, db)
 	//start Server
-	err2 := app.Listen(":25565")
+	err2 := app.Listen(":" + config.Port)
 	if err2 != nil {
 		panic(err2.Error())
 	}
@@ -84,12 +84,13 @@ func loadInitialConfig() {
 	}
 	config.DB = data.MainDB
 	config.Mail = data.MainMail
-
+	config.Port = data.Port
 }
 
 type ConfigMain struct {
 	MainDB   config.ConfigDB    `json:"db"`
 	MainMail config.ConfigEmail `json:"mail_config"`
+	Port     string             `json:"port"`
 }
 
 /*
