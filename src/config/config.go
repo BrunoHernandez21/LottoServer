@@ -15,10 +15,10 @@ type configDB struct {
 }
 
 var Mail = configEmail{
-	Email:      "ichimar21@gmail.com",
-	ServerName: "smtp.gmail.com:587",
-	Host:       "smtp.gmail.com",
-	Password:   "xpxqhixlrsldedzq",
+	Email:      "lotto@inclusive.com.mx",
+	ServerName: "mail.inclusive.com.mx:465",
+	Host:       "mail.inclusive.com.mx",
+	Password:   "fayGYp81lRt$",
 }
 
 type configEmail struct {
