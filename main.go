@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"lottomusic/src/config"
 
@@ -74,25 +73,23 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 }
 
 func loadInitialConfig() {
-	db_file, err := ioutil.ReadFile("./conf/db.json")
+	db_file, err := ioutil.ReadFile("./conf/conf.json")
 	if err != nil {
 		panic(err.Error())
 	}
-
-	errjs := json.Unmarshal(db_file, &config.DB)
+	data := ConfigMain{}
+	errjs := json.Unmarshal(db_file, &data)
 	if errjs != nil {
 		panic(err.Error())
 	}
-	email_file, err := ioutil.ReadFile("./conf/send_mail.json")
-	if err != nil {
-		panic(err.Error())
-	}
+	config.DB = data.MainDB
+	config.Mail = data.MainMail
 
-	errjs = json.Unmarshal(email_file, &config.Mail)
-	if errjs != nil {
-		panic(err.Error())
-	}
-	fmt.Print(config.DB.User)
+}
+
+type ConfigMain struct {
+	MainDB   config.ConfigDB    `json:"db"`
+	MainMail config.ConfigEmail `json:"mail_config"`
 }
 
 /*

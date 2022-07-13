@@ -1,17 +1,17 @@
 package config
 
-var DB configDB = configDB{}
+var DB = ConfigDB{}
 
-type configDB struct {
+type ConfigDB struct {
 	User      string
 	Password  string
 	Soc       string
 	TableName string
 }
 
-var Mail = configEmail{}
+var Mail = ConfigEmail{}
 
-type configEmail struct {
+type ConfigEmail struct {
 	Email      string
 	ServerName string
 	Host       string

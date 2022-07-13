@@ -1,0 +1,14 @@
+{
+	"db":{
+		"User":      "root",
+		"Password":  "",
+		"Soc":       "@tcp(127.0.0.1:3306)/",
+		"TableName": "lotto_music"
+	},
+	"mail_config":{
+		"Email":      "lotto@inclusive.com.mx",
+		"ServerName": "mail.inclusive.com.mx:465",
+		"Host":       "mail.inclusive.com.mx",
+		"Password":   "fayGYp81lRt$"
+	}
+}
