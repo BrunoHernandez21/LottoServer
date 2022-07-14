@@ -5,5 +5,5 @@ type Hibernate_sequence struct {
 }
 
 func (product *Hibernate_sequence) TableName() string {
-	return "Hibernate_sequence"
+	return "hibernate_sequence"
 }

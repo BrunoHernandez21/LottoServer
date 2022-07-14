@@ -6,5 +6,5 @@ type Tipo_apuesta struct {
 }
 
 func (product *Tipo_apuesta) TableName() string {
-	return "Tipo_apuesta"
+	return "tipo_apuesta"
 }

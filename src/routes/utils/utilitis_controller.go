@@ -20,7 +20,7 @@ func ganador(c *fiber.Ctx) error {
 	resp := make(map[string]interface{})
 
 	a := int64(0)
-	db.Table("Ganador").Where("Id_usuario = ?", userID).Count(&a)
+	db.Table("ganador").Where("Id_usuario = ?", userID).Count(&a)
 	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -38,7 +38,7 @@ func ganador(c *fiber.Ctx) error {
 	init := (pag - 1) * sizepage
 
 	ganador := []gormdb.Ganador{}
-	errdb := db.Table("Ganador").Offset(int(init)).Limit(int(sizepage)).Find(&ganador, "Id_usuario = ?", userID)
+	errdb := db.Table("ganador").Offset(int(init)).Limit(int(sizepage)).Find(&ganador, "Id_usuario = ?", userID)
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(resp)

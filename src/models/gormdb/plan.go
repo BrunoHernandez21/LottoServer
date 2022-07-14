@@ -13,5 +13,5 @@ type Plan struct {
 }
 
 func (product *Plan) TableName() string {
-	return "Plan"
+	return "plan"
 }

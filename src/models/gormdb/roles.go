@@ -6,5 +6,5 @@ type Roles struct {
 }
 
 func (product *Roles) TableName() string {
-	return "Roles"
+	return "roles"
 }

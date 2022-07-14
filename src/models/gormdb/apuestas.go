@@ -13,5 +13,5 @@ type Apuestas struct {
 }
 
 func (product *Apuestas) TableName() string {
-	return "Apuestas"
+	return "apuestas"
 }

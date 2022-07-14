@@ -7,5 +7,5 @@ type Cron_task struct {
 }
 
 func (product *Cron_task) TableName() string {
-	return "Cron_task"
+	return "cron_task"
 }

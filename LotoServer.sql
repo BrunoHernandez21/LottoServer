@@ -1,21 +1,89 @@
+##-- DROP ALL TABLES
+DROP TABLE IF EXISTS `usuarios_roles`;
+DROP TABLE IF EXISTS `suscripciones`;
+DROP TABLE IF EXISTS `roles`;
+DROP TABLE IF EXISTS `results`;
+DROP TABLE IF EXISTS `resultado`;
+DROP TABLE IF EXISTS `pago`;
+DROP TABLE IF EXISTS `orden`;
+DROP TABLE IF EXISTS `hibernate_sequence`;
+DROP TABLE IF EXISTS `ganador`;
+DROP TABLE IF EXISTS `cron_task`;
+DROP TABLE IF EXISTS `compra`;
+DROP TABLE IF EXISTS `plan`;
+DROP TABLE IF EXISTS `carteras`;
 DROP TABLE IF EXISTS `apuesta_usuario`;
-CREATE TABLE `apuesta_usuario` (
+DROP TABLE IF EXISTS `apuestas`;
+DROP TABLE IF EXISTS `tipo_apuesta`;
+DROP TABLE IF EXISTS `categoria_apuesta`;
+DROP TABLE IF EXISTS `videos`;
+DROP TABLE IF EXISTS `usuarios`;
+##-- Table structure for table `usuarios`
+DROP TABLE IF EXISTS `usuarios`;
+CREATE TABLE `usuarios` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL,
-  `cantidad` int NOT NULL DEFAULT 1,
-  `fecha` datetime(6) DEFAULT NULL,
-  `comentarios` bigint DEFAULT NULL,
-  `likes` bigint DEFAULT NULL,
-  `vistas` bigint DEFAULT NULL,
-  `Dislikes` bigint DEFAULT NULL,
-  `usuario_id` bigint DEFAULT NULL,
-  `apuesta_id` bigint DEFAULT NULL,
+  `apellidom` varchar(255) DEFAULT NULL,
+  `apellidop` varchar(255) DEFAULT NULL,
+  `email` varchar(127) NOT NULL,
+  `fecha_nacimiento` datetime(6) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `telefono` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKcj7cb72y8k0doxs7jajmwt0q2` (`apuesta_id`),
-  KEY `FKlln41mrxef4w9oomu5rcbnikj` (`usuario_id`),
-  CONSTRAINT `FKcj7cb72y8k0doxs7jajmwt0q2` FOREIGN KEY (`apuesta_id`) REFERENCES `apuestas` (`id`),
-  CONSTRAINT `FKlln41mrxef4w9oomu5rcbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  UNIQUE KEY `UK_kfsp0s1tflm1cwlj8idhqsad0` (`email`)
 );
+LOCK TABLES `usuarios` WRITE;
+INSERT INTO `usuarios` VALUES (1,true,NULL,NULL,'mezagg@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL),(2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL);
+UNLOCK TABLES;
+
+##--videos
+DROP TABLE IF EXISTS `videos`;
+CREATE TABLE `videos` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `activo` BOOLEAN DEFAULT '1',
+  `artista` varchar(255) DEFAULT NULL,
+  `canal` varchar(255) DEFAULT NULL,
+  `fecha_video` datetime(6) DEFAULT NULL,
+  `id_video` varchar(255) DEFAULT NULL,
+  `thumblary` varchar(255) DEFAULT NULL,
+  `titulo` varchar(255) DEFAULT NULL,
+  `url_video` varchar(255) DEFAULT NULL,
+  `genero` varchar(255) DEFAULT NULL,
+  
+  PRIMARY KEY (`id`)
+);
+LOCK TABLES `videos` WRITE;
+INSERT INTO `videos` VALUES 
+(1,1,'BANDA MS','Lizos Music','2020-10-20 00:00:00.000000','RgxM1Rv7hCs','https://i.ytimg.com/vi/RgxM1Rv7hCs/default.jpg','CERRANDO CICLOS (VIDEO OFICIAL)','https://www.youtube.com/watch?v=RgxM1Rv7hCs','Pop'),
+(2,1,'BANDA MS','Lizos Music','2020-02-28 00:00:00.000000','ova8TGDNvCo','https://i.ytimg.com/vi/ova8TGDNvCo/default.jpg','QUIÉN PIERDE MÁS (VIDEO OFICIAL)','https://www.youtube.com/watch?v=ova8TGDNvCo','Salsa'),
+(3,1,'BANDA MS','Lizos Music','2018-02-13 00:00:00.000000','2mf1Os7dAJI','https://i.ytimg.com/vi/2mf1Os7dAJI/default.jpg','SI CRUZAS LA PUERTA (LETRA)','https://www.youtube.com/watch?v=2mf1Os7dAJI','Cumbia'),
+(4,1,'Christian Nodal','Christian Nodal','2019-12-05 00:00:00.000000','Ax3psz01Q8o','https://i.ytimg.com/vi/Ax3psz01Q8o/default.jpg','Si Te Falta Alguien (Video Oficial)','https://www.youtube.com/watch?v=Ax3psz01Q8o','Banda'),
+(5,1,'Carin Leon','TAMARINDOREKORDSZ','2021-12-12 00:00:00.000000','8Bznc5tTQ9M','https://i.ytimg.com/vi/8Bznc5tTQ9M/default.jpg','Si Una Vez','https://www.youtube.com/watch?v=8Bznc5tTQ9M','Salsa'),
+(6,1,'Grupo Firme','Grupo Firme','2020-07-24 00:00:00.000000','g2BzGJnNvEw','https://i.ytimg.com/vi/g2BzGJnNvEw/default.jpg',' Ya Superame','https://www.youtube.com/watch?v=g2BzGJnNvEw','Banda');
+UNLOCK TABLES;
+
+##-- Table structure for table `categoria_apuesta`
+DROP TABLE IF EXISTS `categoria_apuesta`;
+CREATE TABLE `categoria_apuesta` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ;
+LOCK TABLES `categoria_apuesta` WRITE;
+INSERT INTO `categoria_apuesta` VALUES (1,'Oportunidades'),(2,'Acumulado_alto8am'),(3,'Acumulado_bajo8pm'),(4,'aproximacion_alta00am'),(5,'aproximacion_baja');
+UNLOCK TABLES;
+
+##-- Table structure for table `tipo_apuesta`
+DROP TABLE IF EXISTS `tipo_apuesta`;
+CREATE TABLE `tipo_apuesta` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ;
+LOCK TABLES `tipo_apuesta` WRITE;
+INSERT INTO `tipo_apuesta` VALUES (1,'Views'),(2,'Like'),(3,'comments'),(4,'Dislikes');
+UNLOCK TABLES;
 
 ##-- Table structure for table `apuestas`
 DROP TABLE IF EXISTS `apuestas`;
@@ -89,6 +157,25 @@ INSERT INTO `apuestas` VALUES
 (48,true,'2022-02-22 23:30:00.000000',5000,0,'$5,000',5,4,6);
 UNLOCK TABLES;
 
+DROP TABLE IF EXISTS `apuesta_usuario`;
+CREATE TABLE `apuesta_usuario` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `activo` BOOLEAN NOT NULL,
+  `cantidad` int NOT NULL DEFAULT 1,
+  `fecha` datetime(6) DEFAULT NULL,
+  `comentarios` bigint DEFAULT NULL,
+  `likes` bigint DEFAULT NULL,
+  `vistas` bigint DEFAULT NULL,
+  `Dislikes` bigint DEFAULT NULL,
+  `usuario_id` bigint DEFAULT NULL,
+  `apuesta_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKcj7cb72y8k0doxs7jajmwt0q2` (`apuesta_id`),
+  KEY `FKlln41mrxef4w9oomu5rcbnikj` (`usuario_id`),
+  CONSTRAINT `FKcj7cb72y8k0doxs7jajmwt0q2` FOREIGN KEY (`apuesta_id`) REFERENCES `apuestas` (`id`),
+  CONSTRAINT `FKlln41mrxef4w9oomu5rcbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+);
+
 ##-- Table structure for table `carteras`
 DROP TABLE IF EXISTS `carteras`;
 CREATE TABLE `carteras` (
@@ -107,18 +194,26 @@ LOCK TABLES `carteras` WRITE;
 INSERT INTO `carteras` VALUES (1,0,0,0,0,0,1),(2,0,0,0,0,0,2);
 UNLOCK TABLES;
 
-##-- Table structure for table `categoria_apuesta`
-DROP TABLE IF EXISTS `categoria_apuesta`;
-CREATE TABLE `categoria_apuesta` (
+##-- Table structure for table `plan`
+DROP TABLE IF EXISTS `plan`;
+CREATE TABLE `plan` (
   `id` bigint NOT NULL AUTO_INCREMENT,
+  `activo` BOOLEAN NOT NULL,
+  `acumulado_alto8am` int DEFAULT NULL,
+  `acumulado_bajo8pm` int DEFAULT NULL,
+  `aproximacion_alta00am` int DEFAULT NULL,
+  `aproximacion_baja` int DEFAULT NULL,
   `nombre` varchar(255) DEFAULT NULL,
+  `oportunidades` int DEFAULT NULL,
+  `precio` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ;
-LOCK TABLES `categoria_apuesta` WRITE;
-INSERT INTO `categoria_apuesta` VALUES (1,'Oportunidades'),(2,'Acumulado_alto8am'),(3,'Acumulado_bajo8pm'),(4,'aproximacion_alta00am'),(5,'aproximacion_baja');
+);
+LOCK TABLES `plan` WRITE;
+INSERT INTO `plan` VALUES 
+(1,true,0,0,0,0,'Ordinario',1,50),
+(2,true,0,0,0,1,'Promocional',5,250),
+(3,true,1,1,8,8,'Platinum',36,1630);
 UNLOCK TABLES;
-
-
 
 ##-- Table structure for table `compra`
 DROP TABLE IF EXISTS `compra`;
@@ -175,7 +270,6 @@ LOCK TABLES `hibernate_sequence` WRITE;
 INSERT INTO `hibernate_sequence` VALUES (1);
 UNLOCK TABLES;
 
-
 ##-- Table structure for table `orden`
 DROP TABLE IF EXISTS `orden`;
 CREATE TABLE `orden` (
@@ -211,27 +305,6 @@ CREATE TABLE `pago` (
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `pago` WRITE;
-UNLOCK TABLES;
-
-##-- Table structure for table `plan`
-DROP TABLE IF EXISTS `plan`;
-CREATE TABLE `plan` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN NOT NULL,
-  `acumulado_alto8am` int DEFAULT NULL,
-  `acumulado_bajo8pm` int DEFAULT NULL,
-  `aproximacion_alta00am` int DEFAULT NULL,
-  `aproximacion_baja` int DEFAULT NULL,
-  `nombre` varchar(255) DEFAULT NULL,
-  `oportunidades` int DEFAULT NULL,
-  `precio` double DEFAULT NULL,
-  PRIMARY KEY (`id`)
-);
-LOCK TABLES `plan` WRITE;
-INSERT INTO `plan` VALUES 
-(1,true,0,0,0,0,'Ordinario',1,50),
-(2,true,0,0,0,1,'Promocional',5,250),
-(3,true,1,1,8,8,'Platinum',36,1630);
 UNLOCK TABLES;
 
 ##-- Table structure for table `resultado`
@@ -302,35 +375,7 @@ INSERT INTO `suscripciones` VALUES
 (1,true,1,1,8,8,'2022-04-29 14:36:45.465000',36,3,1);
 UNLOCK TABLES;
 
-##-- Table structure for table `tipo_apuesta`
-DROP TABLE IF EXISTS `tipo_apuesta`;
-CREATE TABLE `tipo_apuesta` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ;
-LOCK TABLES `tipo_apuesta` WRITE;
-INSERT INTO `tipo_apuesta` VALUES (1,'Views'),(2,'Like'),(3,'comments'),(4,'Dislikes');
-UNLOCK TABLES;
 
-##-- Table structure for table `usuarios`
-DROP TABLE IF EXISTS `usuarios`;
-CREATE TABLE `usuarios` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN NOT NULL,
-  `apellidom` varchar(255) DEFAULT NULL,
-  `apellidop` varchar(255) DEFAULT NULL,
-  `email` varchar(127) NOT NULL,
-  `fecha_nacimiento` datetime(6) DEFAULT NULL,
-  `nombre` varchar(255) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `telefono` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `UK_kfsp0s1tflm1cwlj8idhqsad0` (`email`)
-);
-LOCK TABLES `usuarios` WRITE;
-INSERT INTO `usuarios` VALUES (1,true,NULL,NULL,'mezagg@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL);
-UNLOCK TABLES;
 
 ##-- Table structure for table `usuarios_roles`
 DROP TABLE IF EXISTS `usuarios_roles`;
@@ -346,28 +391,3 @@ LOCK TABLES `usuarios_roles` WRITE;
 INSERT INTO `usuarios_roles` VALUES (1,2),(2,2);
 UNLOCK TABLES;
 
-##--videos
-DROP TABLE IF EXISTS `videos`;
-CREATE TABLE `videos` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN DEFAULT '1',
-  `artista` varchar(255) DEFAULT NULL,
-  `canal` varchar(255) DEFAULT NULL,
-  `fecha_video` datetime(6) DEFAULT NULL,
-  `id_video` varchar(255) DEFAULT NULL,
-  `thumblary` varchar(255) DEFAULT NULL,
-  `titulo` varchar(255) DEFAULT NULL,
-  `url_video` varchar(255) DEFAULT NULL,
-  `genero` varchar(255) DEFAULT NULL,
-  
-  PRIMARY KEY (`id`)
-);
-LOCK TABLES `videos` WRITE;
-INSERT INTO `videos` VALUES 
-(1,1,'BANDA MS','Lizos Music','2020-10-20 00:00:00.000000','RgxM1Rv7hCs','https://i.ytimg.com/vi/RgxM1Rv7hCs/default.jpg','CERRANDO CICLOS (VIDEO OFICIAL)','https://www.youtube.com/watch?v=RgxM1Rv7hCs','Pop'),
-(2,1,'BANDA MS','Lizos Music','2020-02-28 00:00:00.000000','ova8TGDNvCo','https://i.ytimg.com/vi/ova8TGDNvCo/default.jpg','QUIÉN PIERDE MÁS (VIDEO OFICIAL)','https://www.youtube.com/watch?v=ova8TGDNvCo','Salsa'),
-(3,1,'BANDA MS','Lizos Music','2018-02-13 00:00:00.000000','2mf1Os7dAJI','https://i.ytimg.com/vi/2mf1Os7dAJI/default.jpg','SI CRUZAS LA PUERTA (LETRA)','https://www.youtube.com/watch?v=2mf1Os7dAJI','Cumbia'),
-(4,1,'Christian Nodal','Christian Nodal','2019-12-05 00:00:00.000000','Ax3psz01Q8o','https://i.ytimg.com/vi/Ax3psz01Q8o/default.jpg','Si Te Falta Alguien (Video Oficial)','https://www.youtube.com/watch?v=Ax3psz01Q8o','Banda'),
-(5,1,'Carin Leon','TAMARINDOREKORDSZ','2021-12-12 00:00:00.000000','8Bznc5tTQ9M','https://i.ytimg.com/vi/8Bznc5tTQ9M/default.jpg','Si Una Vez','https://www.youtube.com/watch?v=8Bznc5tTQ9M','Salsa'),
-(6,1,'Grupo Firme','Grupo Firme','2020-07-24 00:00:00.000000','g2BzGJnNvEw','https://i.ytimg.com/vi/g2BzGJnNvEw/default.jpg',' Ya Superame','https://www.youtube.com/watch?v=g2BzGJnNvEw','Banda');
-UNLOCK TABLES;

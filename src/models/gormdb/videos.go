@@ -16,5 +16,5 @@ type Videos struct {
 }
 
 func (product *Videos) TableName() string {
-	return "Videos"
+	return "videos"
 }

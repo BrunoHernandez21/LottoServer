@@ -20,7 +20,7 @@ func pagelistar(c *fiber.Ctx) error {
 	input := []gormdb.Videos{}
 
 	a := int64(0)
-	db.Table("Videos").Where("Activo = ?", true).Count(&a)
+	db.Table("videos").Where("Activo = ?", true).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -33,7 +33,7 @@ func pagelistar(c *fiber.Ctx) error {
 	resp["sizepage"] = &sizepage
 	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&input, "Activo = ?", true)
+	errdb := db.Table("videos").Offset(int(init)).Limit(int(sizepage)).Find(&input, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -48,7 +48,7 @@ func listareventos(c *fiber.Ctx) error {
 	apuestas := []gormdb.Apuestas{}
 
 	a := int64(0)
-	db.Table("Apuestas").Where("Activo = ?", true).Count(&a)
+	db.Table("apuestas").Where("Activo = ?", true).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -61,7 +61,7 @@ func listareventos(c *fiber.Ctx) error {
 	resp["sizePage"] = &sizepage
 	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	errdb := db.Table("Apuestas").Offset(int(init)).Limit(int(sizepage)).Find(&apuestas, "Activo = ?", true)
+	errdb := db.Table("apuestas").Offset(int(init)).Limit(int(sizepage)).Find(&apuestas, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -114,7 +114,7 @@ func crear(c *fiber.Ctx) error {
 func listargrupos(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []string{}
-	errdb := db.Table("Videos").Select("genero").Where("Activo = ?", true).Find(&input)
+	errdb := db.Table("videos").Select("genero").Where("Activo = ?", true).Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -131,7 +131,7 @@ func listarGruposName(c *fiber.Ctx) error {
 	genero := c.Params("name")
 
 	a := int64(0)
-	db.Table("Videos").Where("Activo = ? AND genero = ?", true, &genero).Count(&a)
+	db.Table("videos").Where("Activo = ? AND genero = ?", true, &genero).Count(&a)
 	pag, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -149,7 +149,7 @@ func listarGruposName(c *fiber.Ctx) error {
 	init := (pag - 1) * sizepage
 
 	video := []gormdb.Videos{}
-	errdb := db.Table("Videos").Offset(int(init)).Limit(int(sizepage)).Find(&video, "Activo = ? AND genero = ?", true, &genero)
+	errdb := db.Table("videos").Offset(int(init)).Limit(int(sizepage)).Find(&video, "Activo = ? AND genero = ?", true, &genero)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

@@ -106,7 +106,7 @@ func listarpaginado(c *fiber.Ctx) error {
 	resp := make(map[string]interface{})
 
 	a := int64(0)
-	db.Table("Compra").Where("Usuario_id = ?", userID).Count(&a)
+	db.Table("compra").Where("Usuario_id = ?", userID).Count(&a)
 	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -124,7 +124,7 @@ func listarpaginado(c *fiber.Ctx) error {
 	init := (pag - 1) * sizepage
 
 	compra := []gormdb.Compra{}
-	errdb := db.Table("Compra").Offset(int(init)).Limit(int(sizepage)).Find(&compra, "Usuario_id = ?", userID)
+	errdb := db.Table("compra").Offset(int(init)).Limit(int(sizepage)).Find(&compra, "Usuario_id = ?", userID)
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(resp)

@@ -14,5 +14,5 @@ type Suscripciones struct {
 }
 
 func (product *Suscripciones) TableName() string {
-	return "Suscripciones"
+	return "suscripciones"
 }
