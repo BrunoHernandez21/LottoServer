@@ -30,7 +30,9 @@ func crear(c *fiber.Ctx) error {
 	input.Id = 0
 	activo := true
 	input.Activo = &activo
-	input.Cantidad = 0
+	if input.Cantidad == 0 {
+		input.Cantidad = 1
+	}
 	input.Usuario_id = userID
 	if input.Apuesta_id == 0 {
 		m["mensaje"] = "Apuesta id no puede ser nulo"
