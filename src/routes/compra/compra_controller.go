@@ -184,20 +184,82 @@ func checkout(c *fiber.Ctx) error {
 			return c.Status(500).JSON(m)
 		}
 	}
-
-	a := fiber.AcquireAgent()
-	req := a.Request()
-	req.Header.SetMethod("POST")
-	a.ContentType("application/json")
-	a.JSON(input)
-	//req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNjU2NzE1NjcxfQ.4bdSgvBkYL_b8N15nUsQz2r5F1ORCHPrsdMcYJVnsBQaqACxgKk0Fa9YWbJvOQ_MTwKX4MTZgLmUzRyBKyE9Zw")
-	req.SetRequestURI("http://187.213.79.204:25565/api/compra/compra")
-	if err := a.Parse(); err != nil {
-		m["mensaje"] = err.Error()
+	/*
+		a := fiber.AcquireAgent()
+		req := a.Request()
+		req.Header.SetMethod("POST")
+		a.ContentType("application/json")
+		a.JSON(input)
+		req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mn0.dzkt3xFC_V-DSxufwf9VsBlMWM2JEeWkLmTLS3Tc6TeyhnodMX4OOIeGcd1SOAj320EUbA7bvIzJ7btAdhU1oA")
+		req.SetRequestURI("http://187.213.77.165:25565/api/compra/compra")
+		if err := a.Parse(); err != nil {
+			m["mensaje"] = err.Error()
+			return c.Status(500).JSON(m)
+		}
+		code, body, errs := a.Bytes()*/
+	m["mensaje"] = devfunc(input.IDs)
+	m["errors"] = nil
+	if m["mensaje"] != "correcto" {
 		return c.Status(500).JSON(m)
 	}
-	code, body, errs := a.Bytes()
-	m["mensaje"] = string(body)
-	m["errors"] = errs
-	return c.Status(code).JSON(m)
+	return c.Status(200).JSON(m)
+}
+
+func devfunc(input []uint32) string {
+
+	orders := []gormdb.Orden{}
+	errdb := db.Where("id IN ?", input).Find(&orders)
+	if errdb.Error != nil {
+
+		return "error"
+	}
+	for _, order := range orders {
+		//retirar del carrtio
+		activo := false
+		order.Activa = &activo
+		finalizado := "finalizado"
+		order.Orden_status = &finalizado
+		errdb := db.Save(&order)
+		if errdb.Error != nil {
+
+			return "error"
+		}
+		//update cartera
+		cartera := gormdb.Carteras{
+			Id: order.Usuario_id,
+		}
+		errdb = db.Find(&cartera)
+		if errdb.Error != nil {
+			return "error"
+		}
+		plan := gormdb.Plan{
+			Id: order.Id_plan,
+		}
+		errdb = db.Find(&plan)
+		if errdb.Error != nil {
+			return "error"
+		}
+		cartera.Acumulado_alto8am += *plan.Acumulado_alto8am
+		cartera.Acumulado_bajo8pm += *plan.Acumulado_bajo8pm
+		cartera.Aproximacion_alta00am += *plan.Aproximacion_alta00am
+		cartera.Aproximacion_baja += *plan.Aproximacion_baja
+		cartera.Oportunidades += *plan.Oportunidades
+
+		db.Save(&cartera)
+		//ADD al registro de compras
+		tiempo := time.Now()
+		compra := gormdb.Compra{
+			Id:           0,
+			Cantidad:     order.Cantidad,
+			Amount:       *order.Amount,
+			Fecha_compra: &tiempo,
+			Usuario_id:   order.Usuario_id,
+			Plan_id:      order.Id_plan,
+		}
+		errdb = db.Create(&compra)
+		if errdb.Error != nil {
+			return "error"
+		}
+	}
+	return "correcto"
 }
