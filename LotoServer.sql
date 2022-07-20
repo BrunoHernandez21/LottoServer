@@ -40,6 +40,7 @@ DROP TABLE IF EXISTS `carrito`;
 DROP TABLE IF EXISTS `planes`;
 DROP TABLE IF EXISTS `payment_method`;
 DROP TABLE IF EXISTS `carteras`;
+DROP TABLE IF EXISTS `referido`;
 DROP TABLE IF EXISTS `direccion`;
 DROP TABLE IF EXISTS `usuarios`;
 
@@ -69,7 +70,7 @@ UNLOCK TABLES;
 CREATE TABLE `direccion` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint DEFAULT NULL,
-  `tipo` BOOLEAN DEFAULT true,
+  `tipo` varchar(255) DEFAULT NULL,
   `pais` varchar(255) DEFAULT NULL,
   `ciudad` varchar(255) DEFAULT NULL,
   `calle` varchar(255) DEFAULT NULL,
@@ -78,6 +79,17 @@ CREATE TABLE `direccion` (
   PRIMARY KEY (`id`),
   KEY `FKk6e2a82e9uvkc8vrnijaj87yt` (`user_id`),
   CONSTRAINT `FKk6e2a82e9uvkc8vrnijaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`)
+);
+
+##-- Table structure for table `direccion`
+CREATE TABLE `referido` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint DEFAULT NULL,
+  `codigo` varchar(255) DEFAULT NULL,
+  `cobrado` BOOLEAN DEFAULT false,
+  PRIMARY KEY (`id`),
+  KEY `FKk6e2a82e9uvkc8vr88jaj87yt` (`user_id`),
+  CONSTRAINT `FKk6e2a82e9uvkc8vr88jaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`)
 );
 
 ##-- Table structure for table `carteras`
