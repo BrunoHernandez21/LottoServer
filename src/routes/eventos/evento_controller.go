@@ -10,7 +10,7 @@ import (
 
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Apuestas{}
+	input := gormdb.Evento{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -26,7 +26,7 @@ func crear(c *fiber.Ctx) error {
 func byid(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	param := c.Params("id")
-	a := gormdb.Apuestas{}
+	a := gormdb.Evento{}
 	errdb := db.Find(&a, "id = ?", param)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -41,31 +41,34 @@ func byid(c *fiber.Ctx) error {
 }
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	m["mensaje"] = "Todas las entradas son nesesarias"
-	input := gormdb.Apuestas{}
+
+	input := gormdb.Evento{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
 	if input.Id == 0 {
+		m["mensaje"] = "Id es requerido"
 		return c.Status(500).JSON(m)
 	}
-	if input.Fechahoraapuesta == nil {
+	if input.Fechahora_evento == nil {
+		m["mensaje"] = "Fechahora_evento es requerido"
 		return c.Status(500).JSON(m)
 	}
-	if input.Premio == nil {
+	if input.Premio_cash == nil && input.Premio_otros == nil {
+		m["mensaje"] = "Premio_cash o Premio_otros es requerido"
 		return c.Status(500).JSON(m)
 	}
-	if input.Precio == nil {
+	if input.Premio_cash == nil && input.Moneda == nil {
+		m["mensaje"] = "moneda no puede ser nul si el premio es cash"
 		return c.Status(500).JSON(m)
 	}
 	if input.Video_id == 0 {
+		m["mensaje"] = "video_id es requerido"
 		return c.Status(500).JSON(m)
 	}
-	if input.Categoria_apuesta_id == 0 {
-		return c.Status(500).JSON(m)
-	}
-	if input.Tipo_apuesta_id == 0 {
+	if input.Categoria_evento_id == 0 {
+		m["mensaje"] = "Categoria_evento_id no puede ser nil"
 		return c.Status(500).JSON(m)
 	}
 
@@ -80,7 +83,7 @@ func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	param := c.Params("id")
 	//db midelware
-	a := gormdb.Apuestas{}
+	a := gormdb.Evento{}
 	errdb := db.Find(&a, "id = ?", param).Delete(&a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -96,7 +99,7 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listarTodos(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Apuestas{}
+	input := []gormdb.Evento{}
 	errdb := db.Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -107,7 +110,7 @@ func listarTodos(c *fiber.Ctx) error {
 func listarActivos(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
-	input := []gormdb.Apuestas{}
+	input := []gormdb.Evento{}
 	errdb := db.Find(&input, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -137,7 +140,7 @@ func listarActivos(c *fiber.Ctx) error {
 }
 func activo(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Apuestas{}
+	input := []gormdb.Evento{}
 	errdb := db.Find(&input, "activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

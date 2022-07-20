@@ -11,7 +11,7 @@ type Evento struct {
 	Premio_otros        *string    `json:"premio_otros,omitempty"`
 	Moneda              *string    `json:"moneda,omitempty"`
 	Categoria_evento_id uint32     `json:"categoria_evento_id,omitempty"`
-	Video_id            *string    `json:"video_id,omitempty"`
+	Video_id            uint32     `json:"video_id,omitempty"`
 }
 
 func (product *Evento) TableName() string {

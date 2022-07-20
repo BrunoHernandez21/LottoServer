@@ -1,4 +1,4 @@
-package apuesta
+package eventousuario
 
 import (
 	"lottomusic/src/models/gormdb"

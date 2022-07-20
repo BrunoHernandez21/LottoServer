@@ -17,26 +17,26 @@ func crear(c *fiber.Ctx) error {
 		return err
 	}
 
-	orders := []gormdb.Orden{}
-	errdb := db.Where("id IN ?", input.IDs).Find(&orders)
+	carritos := []gormdb.Carrito{}
+	errdb := db.Where("id IN ?", input.IDs).Find(&carritos)
 	if errdb.Error != nil {
 		m["mensjae"] = "Internal Error"
 		return c.Status(500).JSON(m)
 	}
-	for _, order := range orders {
+	for _, carrito := range carritos {
 		//retirar del carrtio
 		activo := false
-		order.Activa = &activo
+		carrito.Activo = &activo
 		finalizado := "finalizado"
-		order.Orden_status = &finalizado
-		errdb := db.Save(&order)
+		carrito.Status = &finalizado
+		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 			m["mensaje"] = "Error interno"
 			return c.Status(500).JSON(m)
 		}
 		//update cartera
 		cartera := gormdb.Carteras{
-			Id: order.Usuario_id,
+			Id: carrito.Usuario_id,
 		}
 		errdb = db.Find(&cartera)
 		if errdb.Error != nil {
@@ -44,7 +44,7 @@ func crear(c *fiber.Ctx) error {
 			return c.Status(500).JSON(m)
 		}
 		plan := gormdb.Plan{
-			Id: order.Id_plan,
+			Id: carrito.Plan_id,
 		}
 		errdb = db.Find(&plan)
 		if errdb.Error != nil {
@@ -62,11 +62,9 @@ func crear(c *fiber.Ctx) error {
 		tiempo := time.Now()
 		compra := gormdb.Compra{
 			Id:           0,
-			Cantidad:     order.Cantidad,
-			Amount:       *order.Amount,
-			Fecha_compra: &tiempo,
-			Usuario_id:   order.Usuario_id,
-			Plan_id:      order.Id_plan,
+			Fecha_pagado: &tiempo,
+			Carrito_id:   carrito.Id,
+			Usuario_id:   carrito.Usuario_id,
 		}
 		errdb = db.Create(&compra)
 		if errdb.Error != nil {
@@ -155,30 +153,30 @@ func checkout(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	orders := []gormdb.Orden{}
-	errdb := db.Where("id IN ?", input.IDs).Find(&orders)
+	carritos := []gormdb.Carrito{}
+	errdb := db.Where("id IN ?", input.IDs).Find(&carritos)
 	if errdb.Error != nil {
 		m["mensjae"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	for _, order := range orders {
-		if !*order.Activa {
+	for _, carrito := range carritos {
+		if !*carrito.Activo {
 			m["mensaje"] = "Esta orden ha expirado"
-			m["OrderID"] = order.Id
+			m["OrderID"] = carrito.Id
 			return c.Status(500).JSON(m)
 		}
-		if order.Usuario_id != userID {
+		if carrito.Usuario_id != userID {
 			m["mensaje"] = "Esta orden no te pertenece"
-			m["OrderID"] = order.Id
+			m["OrderID"] = carrito.Id
 			return c.Status(500).JSON(m)
 		}
-		if *order.Orden_status == "comprobación" {
+		if *carrito.Status == "comprobación" {
 			m["mensaje"] = "Esta compra esta en proceso"
 			return c.Status(500).JSON(m)
 		}
 		comprobacion := "comprobación"
-		order.Orden_status = &comprobacion
-		errdb := db.Save(&order)
+		carrito.Status = &comprobacion
+		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 			m["mensaje"] = errdb.Error.Error()
 			return c.Status(500).JSON(m)
@@ -205,35 +203,36 @@ func checkout(c *fiber.Ctx) error {
 	return c.Status(200).JSON(m)
 }
 
+/// pre stripe
 func devfunc(input []uint32) string {
 
-	orders := []gormdb.Orden{}
-	errdb := db.Where("id IN ?", input).Find(&orders)
+	carritos := []gormdb.Carrito{}
+	errdb := db.Where("id IN ?", input).Find(&carritos)
 	if errdb.Error != nil {
 
 		return "error"
 	}
-	for _, order := range orders {
+	for _, carrito := range carritos {
 		//retirar del carrtio
 		activo := false
-		order.Activa = &activo
+		carrito.Activo = &activo
 		finalizado := "finalizado"
-		order.Orden_status = &finalizado
-		errdb := db.Save(&order)
+		carrito.Status = &finalizado
+		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 
 			return "error"
 		}
 		//update cartera
 		cartera := gormdb.Carteras{
-			Id: order.Usuario_id,
+			Id: carrito.Usuario_id,
 		}
 		errdb = db.Find(&cartera)
 		if errdb.Error != nil {
 			return "error"
 		}
 		plan := gormdb.Plan{
-			Id: order.Id_plan,
+			Id: carrito.Plan_id,
 		}
 		errdb = db.Find(&plan)
 		if errdb.Error != nil {
@@ -250,11 +249,9 @@ func devfunc(input []uint32) string {
 		tiempo := time.Now()
 		compra := gormdb.Compra{
 			Id:           0,
-			Cantidad:     order.Cantidad,
-			Amount:       *order.Amount,
-			Fecha_compra: &tiempo,
-			Usuario_id:   order.Usuario_id,
-			Plan_id:      order.Id_plan,
+			Fecha_pagado: &tiempo,
+			Usuario_id:   carrito.Usuario_id,
+			Carrito_id:   carrito.Id,
 		}
 		errdb = db.Create(&compra)
 		if errdb.Error != nil {

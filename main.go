@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"lottomusic/src/config"
-
-	"lottomusic/src/routes/apuesta"
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
 	"lottomusic/src/routes/compra"
 	evento "lottomusic/src/routes/eventos"
+	"lottomusic/src/routes/eventousuario"
 	"lottomusic/src/routes/plan"
 	"lottomusic/src/routes/suscripcion"
 	"lottomusic/src/routes/utils"
@@ -64,7 +63,7 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	plan.Init_routes(app, db)
 	carrito.Init_routes(app, db)
 	compra.Init_routes(app, db)
-	apuesta.Init_routes(app, db)
+	eventousuario.Init_routes(app, db)
 	evento.Init_routes(app, db)
 	suscripcion.Init_routes(app, db)
 	videos.Init_routes(app, db)

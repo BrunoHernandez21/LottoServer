@@ -45,10 +45,10 @@ func listareventos(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	videos := []gormdb.Videos{}
-	apuestas := []gormdb.Apuestas{}
+	eventos := []gormdb.Evento{}
 
 	a := int64(0)
-	db.Table("apuestas").Where("Activo = ?", true).Count(&a)
+	db.Table("evento").Where("Activo = ?", true).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -61,15 +61,15 @@ func listareventos(c *fiber.Ctx) error {
 	resp["sizePage"] = &sizepage
 	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	errdb := db.Table("apuestas").Offset(int(init)).Limit(int(sizepage)).Find(&apuestas, "Activo = ?", true)
+	errdb := db.Table("evento").Offset(int(init)).Limit(int(sizepage)).Find(&eventos, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	result := make([]uint32, 0, sizepage)
 	encountered := map[uint32]bool{}
-	for v := range apuestas {
-		encountered[apuestas[v].Video_id] = true
+	for v := range eventos {
+		encountered[eventos[v].Video_id] = true
 	}
 	for key := range encountered {
 		result = append(result, key)
@@ -80,7 +80,7 @@ func listareventos(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	rp := make([]map[string]interface{}, 0, sizepage)
-	for _, a := range apuestas {
+	for _, a := range eventos {
 		for _, v := range videos {
 			if a.Video_id == v.Id {
 				mapa := make(map[string]interface{})
@@ -163,7 +163,7 @@ func listarGruposName(c *fiber.Ctx) error {
 	for key := range encountered {
 		result = append(result, key)
 	}
-	apuestas := []gormdb.Apuestas{}
+	apuestas := []gormdb.Evento{}
 	errdb = db.Find(&apuestas, "Video_id IN ?", result)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -245,8 +245,8 @@ func editar(c *fiber.Ctx) error {
 	if input.Fecha_video != nil {
 		ins.Fecha_video = input.Fecha_video
 	}
-	if input.Id_video != nil {
-		ins.Id_video = input.Id_video
+	if input.Video_id != nil {
+		ins.Video_id = input.Video_id
 	}
 	if input.Titulo != nil {
 		ins.Titulo = input.Titulo

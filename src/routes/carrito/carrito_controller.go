@@ -9,13 +9,13 @@ import (
 
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Orden{}
+	input := gormdb.Carrito{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
 
-	if input.Id_plan == 0 {
+	if input.Plan_id == 0 {
 		m["mensaje"] = "Id plna no puede ser null"
 		return c.Status(500).JSON(m)
 	}
@@ -34,25 +34,25 @@ func crear(c *fiber.Ctx) error {
 	status := "Carrito"
 	fecha := time.Now()
 	input.Id = 0
-	input.Orden_status = &status
-	input.Fecha_orden = &fecha
+	input.Status = &status
+	input.Fecha_carrito = &fecha
 	activo := true
-	input.Activa = &activo
+	input.Activo = &activo
 	a := gormdb.Plan{}
-	errdb := db.Table("plan").Find(&a, "id = ?", input.Id_plan)
+	errdb := db.Table("plan").Find(&a, "id = ?", input.Plan_id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	amount := *a.Precio * float32(input.Cantidad)
-	input.Amount = &amount
+	input.Total = &amount
 
 	errdb = db.Create(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	errdb = db.Find(&input, "Usuario_id = ? AND Fecha_orden = ?", input.Usuario_id, input.Fecha_orden)
+	errdb = db.Find(&input, "Usuario_id = ? AND Fecha_orden = ?", input.Usuario_id, input.Fecha_carrito)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -63,7 +63,7 @@ func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	param := c.Params("id")
 	//db midelware
-	a := gormdb.Orden{}
+	a := gormdb.Carrito{}
 	errdb := db.Find(&a, "id = ?", param).Delete(&a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -80,7 +80,7 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Orden{}
+	input := []gormdb.Carrito{}
 	errdb := db.Find(&input, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -90,17 +90,17 @@ func listar(c *fiber.Ctx) error {
 }
 func listarWPlan(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	ordenes := []gormdb.Orden{}
-	errdb := db.Find(&ordenes, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	carritos := []gormdb.Carrito{}
+	errdb := db.Find(&carritos, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 
-	result := make([]uint32, 0, len(ordenes))
+	result := make([]uint32, 0, len(carritos))
 	encountered := map[uint32]bool{}
-	for v := range ordenes {
-		encountered[ordenes[v].Id_plan] = true
+	for v := range carritos {
+		encountered[carritos[v].Plan_id] = true
 	}
 	for key := range encountered {
 		result = append(result, key)
@@ -112,10 +112,10 @@ func listarWPlan(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	rp := make([]map[string]interface{}, 0, len(ordenes))
-	for _, a := range ordenes {
+	rp := make([]map[string]interface{}, 0, len(carritos))
+	for _, a := range carritos {
 		for _, v := range planes {
-			if a.Id_plan == v.Id {
+			if a.Plan_id == v.Id {
 				mapa := make(map[string]interface{})
 				mapa["plane"] = v
 				mapa["orden"] = a
@@ -128,7 +128,7 @@ func listarWPlan(c *fiber.Ctx) error {
 }
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Orden{}
+	input := gormdb.Carrito{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -137,14 +137,13 @@ func editar(c *fiber.Ctx) error {
 		m["mensaje"] = "El id es necesario"
 		return c.JSON(m)
 	}
-	out := gormdb.Orden{
+	out := gormdb.Carrito{
 		Id: input.Id,
 	}
 	db.Find(&out)
 	out.Cantidad = input.Cantidad
-	out.Id_plan = input.Id_plan
-	out.Id_charges = input.Id_charges
-	out.Amount = input.Amount
+	out.Plan_id = input.Plan_id
+	out.Total = input.Total
 
 	errdb := db.Save(out)
 	if errdb.Error != nil {

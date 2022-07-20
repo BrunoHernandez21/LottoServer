@@ -112,8 +112,7 @@ func signup(c *fiber.Ctx) error {
 	///Creacion de cartera
 
 	cartera := gormdb.Carteras{
-
-		Id_usuario: input.Id,
+		Usuario_id: input.Id,
 	}
 
 	errdb = db.Create(&cartera)

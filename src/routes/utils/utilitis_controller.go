@@ -65,7 +65,7 @@ func cartera(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	if cartera.Id == 0 {
-		cartera.Id_usuario = userID
+		cartera.Usuario_id = userID
 		errdb = db.Create(&cartera)
 		if errdb.Error != nil {
 			m["mensaje"] = errdb.Error.Error()

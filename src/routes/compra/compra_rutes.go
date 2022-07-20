@@ -20,6 +20,10 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Get("/compra", isRegister, listar)
 	v1.Get("/compra/:pag/:sizepage", isRegister, listarpaginado)
 	v1.Post("/checkout", isRegister, checkout)
+	v1.Post("/payment/method", isRegister, checkout)
+	v1.Put("/payment/method", isRegister, checkout)
+	v1.Delete("/payment/method", isRegister, checkout)
+	v1.Get("/payment/method", isRegister, checkout)
 }
 
 func isRegister(c *fiber.Ctx) error {
