@@ -1,8 +1,8 @@
 package compra
 
 import (
-	"lottomusic/src/models/compra"
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/models/inputs"
 	"math"
 	"strconv"
 	"time"
@@ -12,7 +12,7 @@ import (
 
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	input := compra.Get_Checkout{}
+	input := inputs.Checkout{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func listarpaginado(c *fiber.Ctx) error {
 func checkout(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 
-	input := compra.Get_Checkout{}
+	input := inputs.Checkout{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)

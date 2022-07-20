@@ -1,10 +1,10 @@
 package gormdb
 
-type Categoria_apuesta struct {
+type Categoria_evento struct {
 	Id     uint32  `json:"id"`
 	Nombre *string `json:"nombre,omitempty"`
 }
 
-func (product *Categoria_apuesta) TableName() string {
-	return "categoria_apuesta"
+func (product *Categoria_evento) TableName() string {
+	return "categoria_evento"
 }

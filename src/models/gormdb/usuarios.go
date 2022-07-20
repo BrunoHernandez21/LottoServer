@@ -12,6 +12,7 @@ type Usuarios struct {
 	Nombre           *string    `json:"nombre,omitempty"`
 	Password         *string    `json:"password,omitempty"`
 	Telefono         *string    `json:"telefono,omitempty"`
+	Codigo_referido  *string    `json:"codigo_referido,omitempty"`
 }
 
 func (product *Usuarios) TableName() string {

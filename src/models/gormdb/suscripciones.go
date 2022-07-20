@@ -1,16 +1,19 @@
 package gormdb
 
+import "time"
+
 type Suscripciones struct {
-	Id                    uint32  `json:"id"`
-	Activo                *bool   `json:"activo"`
-	Acumulado_alto8am     *uint32 `json:"acumulado_alto8am,omitempty"`
-	Acumulado_bajo8pm     *uint32 `json:"acumulado_bajo8pm,omitempty"`
-	Aproximacion_alta00am *uint32 `json:"aproximacion_alta00am,omitempty"`
-	Aproximacion_baja     *uint32 `json:"aproximacion_baja,omitempty"`
-	Fecha_inicio          *string `json:"fecha_inicio,omitempty"`
-	Oportunidades         *uint32 `json:"iportunidades,omitempty"`
-	Id_plan               *uint32 `json:"id_plan,omitempty"`
-	Id_usuario            *uint32 `json:"id_usuario,omitempty"`
+	Id            uint32     `json:"id"`
+	Activo        *bool      `json:"activo"`
+	Monto_mensual *float32   `json:"monto_mensual"`
+	Fecha_create  *time.Time `json:"fecha_create"`
+	Fecha_inicio  *time.Time `json:"fecha_inicio"`
+	Fecha_fin     *time.Time `json:"fecha_fin"`
+	Fecha_cobro   *time.Time `json:"fecha_cobro"`
+	Fecha_corte   uint32     `json:"fecha_corte"`
+	Tipo          string     `json:"tipo"`
+	Plan_id       uint32     `json:"plan_id"`
+	Usuario_id    uint32     `json:"usuario_id"`
 }
 
 func (product *Suscripciones) TableName() string {

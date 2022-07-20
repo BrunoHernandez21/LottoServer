@@ -1,4 +1,4 @@
-package auth
+package inputs
 
 type Put_signup struct {
 	Usuario string

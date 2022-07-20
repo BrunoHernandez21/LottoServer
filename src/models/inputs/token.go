@@ -1,4 +1,4 @@
-package auth
+package inputs
 
 type Get_token struct {
 	Username      string

@@ -26,7 +26,13 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-
+	if cartera.Id == 0 {
+		errdb = db.Create(&cartera)
+		if errdb.Error != nil {
+			m["mensaje"] = errdb.Error.Error()
+			return c.Status(500).JSON(m)
+		}
+	}
 	input.Id = 0
 	activo := true
 	input.Activo = &activo

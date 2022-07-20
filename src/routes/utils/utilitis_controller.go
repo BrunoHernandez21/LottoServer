@@ -51,7 +51,13 @@ func ganador(c *fiber.Ctx) error {
 
 func cartera(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	userID := c.Locals("userID")
+	var user = c.Locals("userID")
+	userID, ok := user.(uint32)
+	if !ok {
+		m["mensaje"] = "internal error"
+		return c.Status(500).JSON(m)
+	}
+
 	cartera := gormdb.Carteras{}
 	errdb := db.Find(&cartera, "Id_usuario = ?", userID)
 	if errdb.Error != nil {
@@ -59,7 +65,16 @@ func cartera(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	if cartera.Id == 0 {
-		m["mensaje"] = "cartera no encontrada"
+		cartera.Id_usuario = userID
+		errdb = db.Create(&cartera)
+		if errdb.Error != nil {
+			m["mensaje"] = errdb.Error.Error()
+			return c.Status(500).JSON(m)
+		}
+	}
+	errdb = db.Find(&cartera, "Id_usuario = ?", userID)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	m["cartera"] = cartera

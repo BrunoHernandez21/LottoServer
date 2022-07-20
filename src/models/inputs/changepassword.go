@@ -1,4 +1,4 @@
-package auth
+package inputs
 
 type Set_ChangePassword struct {
 	Mensaje string `json:"mensaje"`

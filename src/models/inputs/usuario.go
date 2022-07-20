@@ -1,4 +1,4 @@
-package auth
+package inputs
 
 type Get_User struct {
 	Id              uint32

@@ -7,7 +7,7 @@ type Carteras struct {
 	Aproximacion_alta00am uint32 `json:"aproximacion_alta00am"`
 	Aproximacion_baja     uint32 `json:"aproximacion_baja"`
 	Oportunidades         uint32 `json:"oportunidades"`
-	Id_usuario            uint32 `json:"id_usuario"`
+	Usuario_id            uint32 `json:"usuario_id"`
 }
 
 func (product *Carteras) TableName() string {

@@ -3,8 +3,8 @@ package auth
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"lottomusic/src/models/auth"
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/models/inputs"
 	"lottomusic/src/modules/email"
 	"lottomusic/src/modules/jwts"
 
@@ -15,7 +15,7 @@ import (
 func login(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	//catch body
-	input := auth.Get_Login{}
+	input := inputs.Get_Login{}
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func login(c *fiber.Ctx) error {
 	//// JWT midelware
 	token, expireAt := jwts.GenerateToken(a.Id)
 	tokentipe := "Bearer"
-	rsponse := auth.Set_login{
+	rsponse := inputs.Set_login{
 		Access_token: token,
 		Token_type:   &tokentipe,
 		Expires_in:   &expireAt,
@@ -127,7 +127,7 @@ func signup(c *fiber.Ctx) error {
 
 func forgetpassword(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := auth.Get_forgetpassword{}
+	input := inputs.Get_forgetpassword{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -219,7 +219,7 @@ func renuevaToken(c *fiber.Ctx) error {
 	}
 	token, expireAt := jwts.GenerateToken(a.Id)
 	tipe := "Bearer"
-	return c.JSON(auth.Set_login{
+	return c.JSON(inputs.Set_login{
 		Access_token: token,
 		Token_type:   &tipe,
 		Expires_in:   &expireAt,
@@ -267,7 +267,7 @@ func getById(c *fiber.Ctx) error {
 
 func changepassword(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := auth.Get_ChangePassword{}
+	input := inputs.Get_ChangePassword{}
 	if err := c.BodyParser(&input); err != nil {
 
 		m["mensaje"] = "Datos insuficientes"
