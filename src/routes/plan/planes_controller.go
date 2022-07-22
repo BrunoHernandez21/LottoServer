@@ -8,8 +8,8 @@ import (
 
 func lista(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	input := []gormdb.Plan{}
-	errdb := db.Table("plan").Find(&input)
+	input := []gormdb.Planes{}
+	errdb := db.Table("planes").Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -21,8 +21,8 @@ func lista(c *fiber.Ctx) error {
 
 func byname(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	a := gormdb.Plan{}
-	errdb := db.Table("plan").Find(&a, "nombre LIKE ?", "%"+c.Params("name")+"%")
+	a := gormdb.Planes{}
+	errdb := db.Table("planes").Find(&a, "nombre LIKE ?", "%"+c.Params("name")+"%")
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -32,8 +32,8 @@ func byname(c *fiber.Ctx) error {
 }
 func byid(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	a := gormdb.Plan{}
-	errdb := db.Table("plan").Find(&a, "id = ?", c.Params("id"))
+	a := gormdb.Planes{}
+	errdb := db.Table("planes").Find(&a, "id = ?", c.Params("id"))
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -42,7 +42,7 @@ func byid(c *fiber.Ctx) error {
 }
 func create(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Plan{}
+	input := gormdb.Planes{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -53,7 +53,7 @@ func create(c *fiber.Ctx) error {
 	}
 
 	input.Id = 0
-	errdb := db.Table("plan").Create(&input)
+	errdb := db.Table("planes").Create(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -65,7 +65,7 @@ func create(c *fiber.Ctx) error {
 func delete(c *fiber.Ctx) error {
 
 	m := make(map[string]string)
-	a := gormdb.Plan{}
+	a := gormdb.Planes{}
 	err := db.Find(&a, "id = ?", c.Params("id"))
 	if (err.Error != nil) || (a.Id == 0) {
 		m["mensaje"] = "Plan no encontrado"
@@ -82,7 +82,7 @@ func delete(c *fiber.Ctx) error {
 }
 func edit(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Plan{}
+	input := gormdb.Planes{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -92,8 +92,8 @@ func edit(c *fiber.Ctx) error {
 		return c.JSON(m)
 	}
 
-	a := gormdb.Plan{}
-	errdb := db.Table("plan").Find(&a, "id = ?", input.Id)
+	a := gormdb.Planes{}
+	errdb := db.Table("planes").Find(&a, "id = ?", input.Id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -120,7 +120,7 @@ func edit(c *fiber.Ctx) error {
 		a.Oportunidades = input.Oportunidades
 	}
 
-	errdb = db.Table("plan").Save(a)
+	errdb = db.Table("plplanesan").Save(a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

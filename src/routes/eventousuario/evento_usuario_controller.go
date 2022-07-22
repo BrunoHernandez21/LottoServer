@@ -42,17 +42,33 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(400).JSON(m)
 	}
 	/// verificacion de apuesta
-	if (input.Shared == nil) &&
-		(input.Views == nil) &&
-		(input.Like == nil) &&
-		(input.Dislikes == nil) &&
-		(input.Saved == nil) {
-		m["mensaje"] = "Vistas no puede ser null"
-		return c.Status(400).JSON(m)
+	var count uint32
+	if input.Shared != nil {
+		count += 1
+	}
+	if input.Views != nil {
+		count += 1
+	}
+	if input.Like != nil {
+		count += 1
+	}
+	if input.Dislikes != nil {
+		count += 1
+	}
+	if input.Saved != nil {
+		count += 1
 	}
 
+	if input.Comments != nil {
+		count += 1
+	}
+
+	if count == 0 {
+		m["mensaje"] = "la apuesta no puede estar vacia"
+		return c.Status(400).JSON(m)
+	}
 	//// verificacion de saldo
-	evento := gormdb.Evento{
+	evento := gormdb.Eventos{
 		Id: input.Evento_id,
 	}
 	errdb = db.Find(&evento)
@@ -61,44 +77,44 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	if (evento.Categoria_evento_id == 1) && (cartera.Oportunidades <= 0) {
-		m["mensaje"] = "No tienes de esta moneda"
-		return c.Status(400).JSON(m)
-	}
-	if (evento.Categoria_evento_id == 2) && (cartera.Acumulado_alto8am <= 0) {
-		m["mensaje"] = "No tienes de esta moneda"
-		return c.Status(400).JSON(m)
-	}
-	if (evento.Categoria_evento_id == 3) && (cartera.Acumulado_bajo8pm <= 0) {
-		m["mensaje"] = "No tienes de esta moneda"
-		return c.Status(400).JSON(m)
-	}
-	if (evento.Categoria_evento_id == 4) && (cartera.Aproximacion_alta00am <= 0) {
-		m["mensaje"] = "No tienes de esta moneda"
-		return c.Status(400).JSON(m)
-	}
-	if (evento.Categoria_evento_id == 5) && (cartera.Aproximacion_baja <= 0) {
-		m["mensaje"] = "No tienes de esta moneda"
-		return c.Status(400).JSON(m)
-	}
-	/// reducir en cartera
 	if evento.Categoria_evento_id == 1 {
-		cartera.Oportunidades -= 1
+		if cartera.Oportunidades < count {
+			m["mensaje"] = "No tienes de esta moneda"
+			return c.Status(400).JSON(m)
+		}
+		cartera.Oportunidades -= count
 	}
 	if evento.Categoria_evento_id == 2 {
-		cartera.Acumulado_alto8am -= 1
+		if cartera.Acumulado_alto8am < count {
+			m["mensaje"] = "No tienes de esta moneda"
+			return c.Status(400).JSON(m)
+		}
+		cartera.Acumulado_alto8am -= count
 	}
 	if evento.Categoria_evento_id == 3 {
-		cartera.Acumulado_bajo8pm -= 1
+		if cartera.Acumulado_bajo8pm < count {
+			m["mensaje"] = "No tienes de esta moneda"
+			return c.Status(400).JSON(m)
+		}
+		cartera.Acumulado_bajo8pm -= count
 	}
 	if evento.Categoria_evento_id == 4 {
-		cartera.Aproximacion_alta00am -= 1
+		if cartera.Aproximacion_alta00am < count {
+			m["mensaje"] = "No tienes de esta moneda"
+			return c.Status(400).JSON(m)
+		}
+		cartera.Aproximacion_alta00am -= count
 	}
 	if evento.Categoria_evento_id == 5 {
-		cartera.Aproximacion_baja -= 1
+		if cartera.Aproximacion_baja < count {
+			m["mensaje"] = "No tienes de esta moneda"
+			return c.Status(400).JSON(m)
+		}
+		cartera.Aproximacion_baja -= count
 	}
+	/// reducir en cartera
 
-	errdb = db.Save(cartera)
+	errdb = db.Save(&cartera)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -218,14 +234,4 @@ func activosPage(c *fiber.Ctx) error {
 		resp["videos"] = input[init:end]
 	}
 	return c.JSON(resp)
-}
-func activo(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Evento_usuario{}
-	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
 }

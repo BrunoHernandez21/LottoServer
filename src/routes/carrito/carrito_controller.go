@@ -1,6 +1,7 @@
 package carrito
 
 import (
+	"lottomusic/src/models/compuestas"
 	"lottomusic/src/models/gormdb"
 	"time"
 
@@ -38,8 +39,8 @@ func crear(c *fiber.Ctx) error {
 	input.Fecha_carrito = &fecha
 	activo := true
 	input.Activo = &activo
-	a := gormdb.Plan{}
-	errdb := db.Table("plan").Find(&a, "id = ?", input.Plan_id)
+	a := gormdb.Planes{}
+	errdb := db.Table("planes").Find(&a, "id = ?", input.Plan_id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -52,7 +53,7 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	errdb = db.Find(&input, "Usuario_id = ? AND Fecha_orden = ?", input.Usuario_id, input.Fecha_carrito)
+	errdb = db.Find(&input, "Usuario_id = ? AND fecha_carrito = ?", input.Usuario_id, input.Fecha_carrito)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -81,7 +82,7 @@ func eliminar(c *fiber.Ctx) error {
 func listar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := []gormdb.Carrito{}
-	errdb := db.Find(&input, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ? ", c.Locals("userID"), true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -90,41 +91,23 @@ func listar(c *fiber.Ctx) error {
 }
 func listarWPlan(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	carritos := []gormdb.Carrito{}
-	errdb := db.Find(&carritos, "Usuario_id = ? AND Activa = ? ", c.Locals("userID"), true)
+	parse := []compuestas.CarritoPlan{}
+	errdb := db.Table("carrito").
+		Select(
+			`carrito.id,carrito.activo,carrito.status,carrito.cantidad,carrito.total,
+			carrito.fecha_carrito,carrito.usuario_id,planes.acumulado_alto8am,
+			planes.acumulado_bajo8pm,planes.aproximacion_alta00am,
+			planes.aproximacion_baja,planes.nombre,planes.oportunidades,planes.precio,
+			planes.suscribcion,planes.pago_unico`).
+		Joins("INNER JOIN planes ON carrito.plan_id = planes.id").
+		Where("Usuario_id = ? AND carrito.Activo = ? ", c.Locals("userID"), true).
+		Find(&parse)
+	//errdb := db.Raw("SELECT * FROM carrito INNER JOIN planes ON carrito.plan_id = planes.id WHERE carrito.usuario_id = 2").Scan(&m)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-
-	result := make([]uint32, 0, len(carritos))
-	encountered := map[uint32]bool{}
-	for v := range carritos {
-		encountered[carritos[v].Plan_id] = true
-	}
-	for key := range encountered {
-		result = append(result, key)
-	}
-
-	planes := []gormdb.Plan{}
-	errdb = db.Find(&planes, "Id IN ? ", result)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	rp := make([]map[string]interface{}, 0, len(carritos))
-	for _, a := range carritos {
-		for _, v := range planes {
-			if a.Plan_id == v.Id {
-				mapa := make(map[string]interface{})
-				mapa["plane"] = v
-				mapa["orden"] = a
-				rp = append(rp, mapa)
-			}
-		}
-	}
-	m["Ordenes"] = rp
-	return c.JSON(m)
+	return c.JSON(parse)
 }
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)

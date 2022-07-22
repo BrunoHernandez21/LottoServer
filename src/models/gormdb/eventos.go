@@ -2,7 +2,7 @@ package gormdb
 
 import "time"
 
-type Evento struct {
+type Eventos struct {
 	Id                  uint32     `json:"id"`
 	Activo              *uint32    `json:"activo,omitempty"`
 	Fechahora_evento    *time.Time `json:"fechahora_evento,omitempty"`
@@ -14,6 +14,6 @@ type Evento struct {
 	Video_id            uint32     `json:"video_id,omitempty"`
 }
 
-func (product *Evento) TableName() string {
-	return "evento"
+func (product *Eventos) TableName() string {
+	return "eventos"
 }

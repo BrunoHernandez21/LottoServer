@@ -3,13 +3,17 @@ package auth
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
+	"lottomusic/src/globals"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
 	"lottomusic/src/modules/email"
 	"lottomusic/src/modules/jwts"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
 )
 
 func login(c *fiber.Ctx) error {
@@ -61,7 +65,7 @@ func login(c *fiber.Ctx) error {
 
 func signup(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Usuarios{}
+	input := inputs.Get_signup{}
 	err := c.BodyParser(&input)
 	if err != nil {
 		m["mensaje"] = err.Error()
@@ -71,8 +75,11 @@ func signup(c *fiber.Ctx) error {
 		m["mensaje"] = "Email y contraseña son obligatorios"
 		return c.Status(400).JSON(m)
 	}
-	out := gormdb.Usuarios{}
-	errdb := db.Find(&out, "email = ?", input.Email)
+
+	out := gormdb.Usuarios{
+		Email: input.Email,
+	}
+	errdb := db.Find(&out, "email = ?", out.Email)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -81,47 +88,40 @@ func signup(c *fiber.Ctx) error {
 		m["mensaje"] = "El usuario ya esta registrado"
 		return c.Status(500).JSON(m)
 	}
-	input.Id = 0
-	activo := true
-	input.Activo = &activo
+
 	h := sha1.New()
 	h.Write([]byte(*input.Password))
 	i := hex.EncodeToString(h.Sum(nil))
-	input.Password = &i
-	errdb = db.Create(&input)
+	var activo bool = true
+	out.Activo = &activo
+	out.Password = &i
+	var unikey string = randomString(10)
+	fmt.Println(unikey)
+	out.Codigo_referido = &unikey
+	errdb = db.Create(&out)
 	if errdb.Error != nil {
 		m["mensaje"] = "Error en la base de datos"
 		return c.Status(500).JSON(m)
 	}
-	errdb = db.Find(&input, "email = ?", input.Email)
+	errdb = db.Find(&out, "email = ?", out.Email)
 	if errdb.Error != nil {
 		m["mensaje"] = "Error en la base de datos"
 		return c.Status(500).JSON(m)
 	}
-	///// Asignacion del UserRol
-
-	user_rol := gormdb.Usuarios_roles{
-		User_id: input.Id,
-		Role_id: 1,
-	}
-	errdb = db.Create(&user_rol)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	///Creacion de cartera
-
-	cartera := gormdb.Carteras{
-		Usuario_id: input.Id,
+	if input.Referido_por != nil {
+		referido := gormdb.Referido{
+			User_id: out.Id,
+			Codigo:  *input.Referido_por,
+			Cobrado: false,
+		}
+		errdb = db.Create(&referido)
+		if errdb.Error != nil {
+			m["mensaje"] = "Error en la base de datos"
+			return c.Status(500).JSON(m)
+		}
 	}
 
-	errdb = db.Create(&cartera)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-
-	return c.JSON(input)
+	return c.JSON(out)
 }
 
 func forgetpassword(c *fiber.Ctx) error {
@@ -134,7 +134,7 @@ func forgetpassword(c *fiber.Ctx) error {
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "email = ?", input.Email)
 	if errdb.Error != nil {
-		m["mensaje"] = "Usuario no registrado"
+		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	if a.Id == 0 {
@@ -142,7 +142,7 @@ func forgetpassword(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	password := utils.UUID()[0:13]
+	password := randomString(12)
 	h := sha1.New()
 	h.Write([]byte(password))
 	i := hex.EncodeToString(h.Sum(nil))
@@ -154,7 +154,7 @@ func forgetpassword(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	m["mensaje"] = "Se a enviado un correo a su cuenta"
+	m["resp"] = "Se a enviado un correo a su cuenta"
 	return c.JSON(m)
 }
 
@@ -268,7 +268,6 @@ func changepassword(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := inputs.Get_ChangePassword{}
 	if err := c.BodyParser(&input); err != nil {
-
 		m["mensaje"] = "Datos insuficientes"
 		return c.Status(500).JSON(m)
 	}
@@ -329,14 +328,103 @@ func updateuser(c *fiber.Ctx) error {
 	return c.JSON(input)
 }
 
-/*
-func randomString(l int) string {
-	bytes := make([]byte, l)
-	for i := 0; i < l; i++ {
-		bytes[i] = byte(randInt(65, 90))
+func createDireccion(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := gormdb.Direccion{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "Datos insuficientes"
+		return c.Status(500).JSON(m)
 	}
-	return string(bytes)
+	input.Id = 0
+	id, ok := c.Locals("userID").(uint32)
+	if ok {
+		input.User_id = &id
+	} else {
+		m["mensaje"] = "error interno"
+		return c.Status(500).JSON(m)
+	}
+	errdb := db.Create(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	return c.JSON(input)
 }
-func randInt(min int, max int) int {
-	return min + rand.Intn(max-min)
-}*/
+
+func updateDireccion(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := gormdb.Direccion{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "Datos insuficientes"
+		return c.Status(500).JSON(m)
+	}
+	userid, ok := c.Locals("userID").(uint32)
+	if !ok {
+		m["mensaje"] = "error interno"
+		return c.Status(500).JSON(m)
+	}
+	compare := gormdb.Direccion{}
+	errdb := db.Find(&compare, "id = ?", input.Id)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	if *compare.User_id != userid {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	} else {
+		db.Save(input)
+	}
+	return c.JSON(input)
+}
+
+func getDireccion(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	outs := []gormdb.Direccion{}
+	errdb := db.Find(&outs, "User_id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["direcciones"] = outs
+	return c.JSON(m)
+}
+
+func deleteDireccion(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	headers := c.GetReqHeaders()
+	var parse string = headers["direccion_id"]
+	intVar, err := strconv.Atoi(parse)
+	if err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	direccion := gormdb.Direccion{
+		Id: uint32(intVar),
+	}
+	db.Find(direccion)
+	userID, ok := c.Locals("userID").(uint32)
+	if !ok {
+		m["mensaje"] = "internal error"
+		return c.Status(500).JSON(m)
+	}
+	if *direccion.User_id != userID {
+		m["mensaje"] = "esta direccion no es tuya"
+		return c.Status(500).JSON(m)
+	}
+	m["resp"] = "esta direccion no es tuya"
+	return c.JSON(m)
+}
+
+func randomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	var acumulado string
+
+	for i := 0; i < length; i++ {
+		acumulado += randInt(0, len(globals.ASCII_imprimibles))
+	}
+	return acumulado
+}
+func randInt(min int, max int) string {
+	return globals.ASCII_imprimibles[rand.Intn(max-min)]
+}

@@ -45,10 +45,10 @@ func listareventos(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	videos := []gormdb.Videos{}
-	eventos := []gormdb.Evento{}
+	eventos := []gormdb.Eventos{}
 
 	a := int64(0)
-	db.Table("evento").Where("Activo = ?", true).Count(&a)
+	db.Table("eventos").Where("Activo = ?", true).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -61,7 +61,7 @@ func listareventos(c *fiber.Ctx) error {
 	resp["sizePage"] = &sizepage
 	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	errdb := db.Table("evento").Offset(int(init)).Limit(int(sizepage)).Find(&eventos, "Activo = ?", true)
+	errdb := db.Table("eventos").Offset(int(init)).Limit(int(sizepage)).Find(&eventos, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -163,7 +163,7 @@ func listarGruposName(c *fiber.Ctx) error {
 	for key := range encountered {
 		result = append(result, key)
 	}
-	apuestas := []gormdb.Evento{}
+	apuestas := []gormdb.Eventos{}
 	errdb = db.Find(&apuestas, "Video_id IN ?", result)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

@@ -18,3 +18,34 @@ type Get_Login struct {
 	Client_id     *string `json:"client_id,omitempty"`
 	Client_secret *string `json:"client_secret,omitempty"`
 }
+type Get_signup struct {
+	Email        *string `json:"email,omitempty"`
+	Password     *string `json:"password,omitempty"`
+	Referido_por *string `json:"referido_por,omitempty"`
+}
+type Get_ChangePassword struct {
+	Password string `json:"password"`
+}
+
+type Get_forgetpassword struct {
+	Email string `json:"email"`
+}
+
+type Get_token struct {
+	Username      string
+	Password      string
+	Grant_type    string
+	Client_id     string
+	Client_secret string
+}
+
+type Get_User struct {
+	Id              uint32
+	Comentarios     uint32
+	Fecha_creacion  string
+	Likes           uint32
+	Vistas          uint32
+	Apuesta         uint32
+	Tipo_apuesta_id uint32
+	Usuario         uint32
+}

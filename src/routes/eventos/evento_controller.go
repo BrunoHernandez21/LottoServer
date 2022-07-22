@@ -10,7 +10,7 @@ import (
 
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Evento{}
+	input := gormdb.Eventos{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -26,7 +26,7 @@ func crear(c *fiber.Ctx) error {
 func byid(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	param := c.Params("id")
-	a := gormdb.Evento{}
+	a := gormdb.Eventos{}
 	errdb := db.Find(&a, "id = ?", param)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -42,7 +42,7 @@ func byid(c *fiber.Ctx) error {
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 
-	input := gormdb.Evento{}
+	input := gormdb.Eventos{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -83,7 +83,7 @@ func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	param := c.Params("id")
 	//db midelware
-	a := gormdb.Evento{}
+	a := gormdb.Eventos{}
 	errdb := db.Find(&a, "id = ?", param).Delete(&a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -99,7 +99,7 @@ func eliminar(c *fiber.Ctx) error {
 }
 func listarTodos(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Evento{}
+	input := []gormdb.Eventos{}
 	errdb := db.Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -110,7 +110,7 @@ func listarTodos(c *fiber.Ctx) error {
 func listarActivos(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
-	input := []gormdb.Evento{}
+	input := []gormdb.Eventos{}
 	errdb := db.Find(&input, "Activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -140,7 +140,7 @@ func listarActivos(c *fiber.Ctx) error {
 }
 func activo(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Evento{}
+	input := []gormdb.Eventos{}
 	errdb := db.Find(&input, "activo = ?", true)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

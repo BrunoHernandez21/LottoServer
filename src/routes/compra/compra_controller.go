@@ -43,7 +43,7 @@ func crear(c *fiber.Ctx) error {
 			m["mensaje"] = "Error interno"
 			return c.Status(500).JSON(m)
 		}
-		plan := gormdb.Plan{
+		plan := gormdb.Planes{
 			Id: carrito.Plan_id,
 		}
 		errdb = db.Find(&plan)
@@ -231,7 +231,7 @@ func devfunc(input []uint32) string {
 		if errdb.Error != nil {
 			return "error"
 		}
-		plan := gormdb.Plan{
+		plan := gormdb.Planes{
 			Id: carrito.Plan_id,
 		}
 		errdb = db.Find(&plan)

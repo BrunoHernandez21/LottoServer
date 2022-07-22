@@ -63,7 +63,7 @@ CREATE TABLE `usuarios` (
 LOCK TABLES `usuarios` WRITE;
 INSERT INTO `usuarios` VALUES 
 (1,true,NULL,NULL,'mezagg@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL,"2Pk6D80@&c"),
-(2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL,"2VksD8o@\c");
+(2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'ff5e774c4f3bc465ee0ca78f5e1fc787e4ea97c1',NULL,"2VksD8o@\c");
 UNLOCK TABLES;
 
 ##-- Table structure for table `direccion`
@@ -78,7 +78,7 @@ CREATE TABLE `direccion` (
   `numero` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKk6e2a82e9uvkc8vrnijaj87yt` (`user_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vrnijaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKk6e2a82e9uvkc8vrnijaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `direccion`
@@ -89,7 +89,7 @@ CREATE TABLE `referido` (
   `cobrado` BOOLEAN DEFAULT false,
   PRIMARY KEY (`id`),
   KEY `FKk6e2a82e9uvkc8vr88jaj87yt` (`user_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vr88jaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKk6e2a82e9uvkc8vr88jaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `carteras`
@@ -103,7 +103,7 @@ CREATE TABLE `carteras` (
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKm5oo9iahtl1p9bs4dn1ymovlb` (`usuario_id`),
-  CONSTRAINT `FKm5oo9iahtl1p9bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKm5oo9iahtl1p9bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `carteras` WRITE;
 INSERT INTO `carteras` VALUES (1,0,0,0,0,0,1),(2,0,0,0,0,0,2);
@@ -123,7 +123,7 @@ CREATE TABLE `payment_method` (
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKdfsg45Tthfi8r4DF43gfd34hF` (`usuario_id`),
-  CONSTRAINT `FKdfsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKdfsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `payment_method` WRITE;
 UNLOCK TABLES;
@@ -131,7 +131,7 @@ UNLOCK TABLES;
 ##-- Table structure for table `planes`
 CREATE TABLE `planes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN NOT NULL,
+  `activo` BOOLEAN NOT NULL default false,
   `acumulado_alto8am` int DEFAULT NULL,
   `acumulado_bajo8pm` int DEFAULT NULL,
   `aproximacion_alta00am` int DEFAULT NULL,
@@ -166,8 +166,8 @@ CREATE TABLE `carrito` (
   PRIMARY KEY (`id`),
   KEY `FKdfsg45Tth5345gDF43gfd34hF` (`usuario_id`),
   KEY `a8sf23R980fsdf09er234gE7R6G` (`plan_id`),
-  CONSTRAINT `FKdfsg45Tth5345gDF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `a8sf23R980fsdf09er234gE7R6G` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`)
+  CONSTRAINT `FKdfsg45Tth5345gDF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `a8sf23R980fsdf09er234gE7R6G` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
 ) ;
 LOCK TABLES `carrito` WRITE;
 UNLOCK TABLES;
@@ -181,8 +181,8 @@ CREATE TABLE `compra` (
   PRIMARY KEY (`id`),
   KEY `FKpsfgo6ayx335hkqudyubw5536` (`usuario_id`),
   KEY `FK1yjtle73so0wuwyiyf7utf49a` (`carrito_id`),
-  CONSTRAINT `FKpsfgo6ayx335hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `FK1yjtle73so0wuwyiyf7utf49a` FOREIGN KEY (`carrito_id`) REFERENCES `carrito` (`id`)
+  CONSTRAINT `FKpsfgo6ayx335hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK1yjtle73so0wuwyiyf7utf49a` FOREIGN KEY (`carrito_id`) REFERENCES `carrito` (`id`) ON DELETE CASCADE
 ) ;
 LOCK TABLES `compra` WRITE;
 UNLOCK TABLES;
@@ -193,14 +193,20 @@ CREATE TABLE `beneficios` (
   `activo` BOOLEAN default true,
   `llave` varchar(255) DEFAULT NULL,
   `tipo` varchar(255) DEFAULT NULL,
-  `moneda` varchar(127) NOT NULL,
+  `moneda` varchar(127) DEFAULT NULL,
   `valor` double DEFAULT NULL,
   `repetido` BOOLEAN NOT NULL,
-  `suscripcion` BOOLEAN NOT NULL,
-  `pago_individual` BOOLEAN NOT NULL,
   `referido` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
 );
+LOCK TABLES `beneficios` WRITE;
+INSERT INTO `beneficios` VALUES 
+(1,true,"7 dias gratis","DIAS",NULL,7,false,false),
+(2,true,"14 dias gratis","DIAS",NULL,7,false,false),
+(3,true,"14 dias gratis","DIAS",NULL,7,true,false),
+(4,true,"Dinero Gratis","CASH","MXN",10,true,false),
+(5,true,"DINERO GRATIS","CASH","USD",10,true,false);
+UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios_usuario`
 CREATE TABLE `beneficios_usuario` (
@@ -215,9 +221,9 @@ CREATE TABLE `beneficios_usuario` (
   KEY `FKpsfgo6447835hkqudyubw5536` (`usuario_id`),
   KEY `FKpsfgo6986335hkqudyubw5536` (`beneficio_id`),
   KEY `FKpsfgo6097235hkqudyubw5536` (`plan_id`),
-  CONSTRAINT `FKpsfgo6447835hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `FKpsfgo6986335hkqudyubw5536` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`),
-  CONSTRAINT `FKpsfgo6097235hkqudyubw5536` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`)
+  CONSTRAINT `FKpsfgo6447835hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKpsfgo6986335hkqudyubw5536` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKpsfgo6097235hkqudyubw5536` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `beneficios_plan`
@@ -229,9 +235,24 @@ CREATE TABLE `beneficios_plan` (
   PRIMARY KEY (`id`),
   KEY `6789s0985thfi8r4DF43gfd34hF` (`beneficio_id`),
   KEY `6789sg45Tth44334DF43gfd34hF` (`plan_id`),
-  CONSTRAINT `6789s0985thfi8r4DF43gfd34hF` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`),
-  CONSTRAINT `6789sg45Tth44334DF43gfd34hF` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`)
+  CONSTRAINT `6789s0985thfi8r4DF43gfd34hF` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `6789sg45Tth44334DF43gfd34hF` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
 );
+LOCK TABLES `beneficios_plan` WRITE;
+INSERT INTO `beneficios_plan` VALUES 
+(1,true,1,1),
+(2,true,2,1),
+(3,true,1,2),
+(4,true,2,2),
+(5,true,1,3),
+(6,true,2,3),
+(7,true,1,4),
+(8,true,2,4),
+(9,true,1,5),
+(10,true,2,5),
+(11,true,1,6),
+(12,true,2,6);
+UNLOCK TABLES;
 
 ##-- Table structure for table `suscripciones`
 CREATE TABLE `suscripciones` (
@@ -249,8 +270,8 @@ CREATE TABLE `suscripciones` (
   PRIMARY KEY (`id`),
   KEY `FK6fcib1tyjrhp8u95q3uhohqc6` (`plan_id`),
   KEY `FKh7go9iahtl5u5bs4dn1ymovlb` (`usuario_id`),
-  CONSTRAINT `FK6fcib1tyjrhp8u95q3uhohqc6` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`),
-  CONSTRAINT `FKh7go9iahtl5u5bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FK6fcib1tyjrhp8u95q3uhohqc6` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKh7go9iahtl5u5bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `suscripciones` WRITE;
 UNLOCK TABLES;
@@ -321,8 +342,8 @@ CREATE TABLE `eventos` (
   PRIMARY KEY (`id`),
   KEY `FKk6e2a82e9uvkc8vrnijajf0c5` (`categoria_evento_id`),
   KEY `FKs87xk1t7ytkg1xw91sntybg6m` (`video_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vrnijajf0c5` FOREIGN KEY (`categoria_evento_id`) REFERENCES `categoria_evento` (`id`),
-  CONSTRAINT `FKs87xk1t7ytkg1xw91sntybg6m` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `FKk6e2a82e9uvkc8vrnijajf0c5` FOREIGN KEY (`categoria_evento_id`) REFERENCES `categoria_evento` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKs87xk1t7ytkg1xw91sntybg6m` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `eventos` WRITE;
 INSERT INTO `eventos` VALUES  
@@ -383,7 +404,7 @@ CREATE TABLE `cron_task` (
   `evento_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKlpl54gp4rwnxqb385ujpojoum` (`evento_id`),
-  CONSTRAINT `FKlpl54gp4rwnxqb385ujpojoum` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`)
+  CONSTRAINT `FKlpl54gp4rwnxqb385ujpojoum` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE
 ) ;
 LOCK TABLES `cron_task` WRITE;
 INSERT INTO `cron_task` VALUES (1,'00 12 05 22 02 *',14),(2,'00 12 05 22 02 *',15),(3,'00 12 05 22 06 *',16),(4,'00 12 05 22 06 *',17),(5,'00 12 05 22 06 *',18),(6,'00 12 05 22 02 *',19),(7,'00 12 05 22 06 *',20);
@@ -405,8 +426,8 @@ CREATE TABLE `evento_usuario` (
   PRIMARY KEY (`id`),
   KEY `FKcj7cb72y8k0doxs7jajmwt0q2` (`evento_id`),
   KEY `FKlln41mrxef4w9oomu5rcbnikj` (`usuario_id`),
-  CONSTRAINT `FKcj7cb72y8k0doxs7jajmwt0q2` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`),
-  CONSTRAINT `FKlln41mrxef4w9oomu5rcbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKcj7cb72y8k0doxs7jajmwt0q2` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKlln41mrxef4w9oomu5rcbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `ganador`
@@ -421,9 +442,9 @@ CREATE TABLE `ganador` (
   KEY `FKcj7cb98dfk0do0092ajmwt0q2` (`evento_id`),
   KEY `FKlln4109plf4w9ooal93cbnikj` (`usuario_id`),
   KEY `FKlln41mrxeld95oom0vm2bnikj` (`evento_usuario_id`),
-  CONSTRAINT `FKcj7cb98dfk0do0092ajmwt0q2` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`),
-  CONSTRAINT `FKlln4109plf4w9ooal93cbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `FKlln41mrxeld95oom0vm2bnikj` FOREIGN KEY (`evento_usuario_id`) REFERENCES `evento_usuario` (`id`)
+  CONSTRAINT `FKcj7cb98dfk0do0092ajmwt0q2` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKlln4109plf4w9ooal93cbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKlln41mrxeld95oom0vm2bnikj` FOREIGN KEY (`evento_usuario_id`) REFERENCES `evento_usuario` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `ganador` WRITE;
 UNLOCK TABLES;
@@ -450,7 +471,7 @@ CREATE TABLE `resultado` (
   `evento_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `16ffsg45Tthfi8r4DF43gfd34hF` (`evento_id`),
-  CONSTRAINT `16ffsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`)
+  CONSTRAINT `16ffsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `resultado` WRITE;
 UNLOCK TABLES;
@@ -474,8 +495,8 @@ CREATE TABLE `usuarios_roles` (
   PRIMARY KEY (`id`),
   KEY `FKisd054ko30hm3j6ljr90asype` (`user_id`),
   KEY `FKihom0uklpkfpffipxpoyf7b74` (`role_id`),
-  CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
-  CONSTRAINT `FKisd054ko30hm3j6ljr90asype` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FKisd054ko30hm3j6ljr90asype` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `usuarios_roles` WRITE;
 INSERT INTO `usuarios_roles` VALUES (1,1,2),(2,2,2);

@@ -1,6 +1,6 @@
 package gormdb
 
-type Plan struct {
+type Planes struct {
 	Id                    uint32   `json:"id"`
 	Activo                *bool    `json:"activo"`
 	Acumulado_alto8am     *uint32  `json:"acumulado_alto8am,omitempty"`
@@ -10,10 +10,10 @@ type Plan struct {
 	Nombre                *string  `json:"nombre,omitempty"`
 	Oportunidades         *uint32  `json:"oportunidades,omitempty"`
 	Precio                *float32 `json:"precio,omitempty"`
-	Suscribcion           *bool    `json:"suscribcion,omitempty"`
-	Pago_unico            *bool    `json:"pago_unico,omitempty"`
+	Suscribcion           bool     `json:"suscribcion,omitempty"`
+	Pago_unico            bool     `json:"pago_unico,omitempty"`
 }
 
-func (product *Plan) TableName() string {
-	return "plan"
+func (product *Planes) TableName() string {
+	return "planes"
 }

@@ -25,6 +25,11 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Put("changepassword", isRegister, changepassword)
 	v1.Get("token", isRegister, renuevaToken)
 
+	v1.Get("direccion", isRegister, getDireccion)
+	v1.Delete("direccion/:direccion_id", isRegister, deleteDireccion)
+	v1.Put("direccion", isRegister, updateDireccion)
+	v1.Post("direccion", isRegister, createDireccion)
+
 	v1.Get("users", isRoot, users)
 	v1.Delete("users/:id", isRoot, deleteById)
 	v1.Get("users/:id", isRoot, getById)
