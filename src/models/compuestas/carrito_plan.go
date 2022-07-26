@@ -5,9 +5,10 @@ import "time"
 type CarritoPlan struct {
 	Id                    uint32     `json:"id"`
 	Activo                *bool      `json:"activo"`
-	Status                *string    `json:"status"`
 	Cantidad              int32      `json:"cantidad"`
-	Total                 *float32   `json:"total"`
+	Total_linea           *float32   `json:"total_linea"`
+	Precio_unitario       *float32   `json:"precio_unitario"`
+	Descuento             *float32   `json:"descuento"`
 	Fecha_carrito         *time.Time `json:"fecha_carrito"`
 	Usuario_id            uint32     `json:"usuario_id"`
 	Acumulado_alto8am     *uint32    `json:"acumulado_alto8am,omitempty"`
@@ -18,7 +19,6 @@ type CarritoPlan struct {
 	Oportunidades         *uint32    `json:"oportunidades,omitempty"`
 	Precio                *float32   `json:"precio,omitempty"`
 	Suscribcion           bool       `json:"suscribcion,omitempty"`
-	Pago_unico            bool       `json:"pago_unico,omitempty"`
 }
 
 func (product *CarritoPlan) TableName() string {

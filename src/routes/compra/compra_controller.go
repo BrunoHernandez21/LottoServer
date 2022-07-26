@@ -27,8 +27,6 @@ func crear(c *fiber.Ctx) error {
 		//retirar del carrtio
 		activo := false
 		carrito.Activo = &activo
-		finalizado := "finalizado"
-		carrito.Status = &finalizado
 		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 			m["mensaje"] = "Error interno"
@@ -170,12 +168,6 @@ func checkout(c *fiber.Ctx) error {
 			m["OrderID"] = carrito.Id
 			return c.Status(500).JSON(m)
 		}
-		if *carrito.Status == "comprobación" {
-			m["mensaje"] = "Esta compra esta en proceso"
-			return c.Status(500).JSON(m)
-		}
-		comprobacion := "comprobación"
-		carrito.Status = &comprobacion
 		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 			m["mensaje"] = errdb.Error.Error()
@@ -216,8 +208,6 @@ func devfunc(input []uint32) string {
 		//retirar del carrtio
 		activo := false
 		carrito.Activo = &activo
-		finalizado := "finalizado"
-		carrito.Status = &finalizado
 		errdb := db.Save(&carrito)
 		if errdb.Error != nil {
 

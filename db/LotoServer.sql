@@ -1,25 +1,3 @@
-##-- DROP ALL TABLES
-##-- Legado
-##-- DROP TABLE IF EXISTS `usuarios_roles`;
-##-- DROP TABLE IF EXISTS `suscripciones`;
-##-- DROP TABLE IF EXISTS `roles`;
-##-- DROP TABLE IF EXISTS `results`;
-##-- DROP TABLE IF EXISTS `resultado`;
-##-- DROP TABLE IF EXISTS `pago`;
-##-- DROP TABLE IF EXISTS `orden`;
-##-- DROP TABLE IF EXISTS `hibernate_sequence`;
-##-- DROP TABLE IF EXISTS `ganador`;
-##-- DROP TABLE IF EXISTS `cron_task`;
-##-- DROP TABLE IF EXISTS `compra`;
-##-- DROP TABLE IF EXISTS `plan`;
-##-- DROP TABLE IF EXISTS `carteras`;
-##-- DROP TABLE IF EXISTS `apuesta_usuario`;
-##-- DROP TABLE IF EXISTS `apuestas`;
-##-- DROP TABLE IF EXISTS `tipo_apuesta`;
-##-- DROP TABLE IF EXISTS `categoria_apuesta`;
-##-- DROP TABLE IF EXISTS `videos`;
-##-- DROP TABLE IF EXISTS `usuarios`;
-##-- Actuales
 DROP TABLE IF EXISTS `usuarios_roles`;
 DROP TABLE IF EXISTS `roles`;
 DROP TABLE IF EXISTS `resultado`;
@@ -35,7 +13,9 @@ DROP TABLE IF EXISTS `suscripciones`;
 DROP TABLE IF EXISTS `beneficios_plan`;
 DROP TABLE IF EXISTS `beneficios_usuario`;
 DROP TABLE IF EXISTS `beneficios`;
-DROP TABLE IF EXISTS `compra`;
+DROP TABLE IF EXISTS `items_orden`;
+DROP TABLE IF EXISTS `pagos`;
+DROP TABLE IF EXISTS `ordenes`;
 DROP TABLE IF EXISTS `carrito`;
 DROP TABLE IF EXISTS `planes`;
 DROP TABLE IF EXISTS `payment_method`;
@@ -43,6 +23,7 @@ DROP TABLE IF EXISTS `carteras`;
 DROP TABLE IF EXISTS `referido`;
 DROP TABLE IF EXISTS `direccion`;
 DROP TABLE IF EXISTS `usuarios`;
+
 
 ##-- Table structure for table `usuarios`
 CREATE TABLE `usuarios` (
@@ -95,18 +76,14 @@ CREATE TABLE `referido` (
 ##-- Table structure for table `carteras`
 CREATE TABLE `carteras` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `acumulado_alto8am` int DEFAULT NULL,
-  `acumulado_bajo8pm` int DEFAULT NULL,
-  `aproximacion_alta00am` int DEFAULT NULL,
-  `aproximacion_baja` int DEFAULT NULL,
-  `oportunidades` int DEFAULT NULL,
+  `cash` int NOT NULL DEFAULT 0,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKm5oo9iahtl1p9bs4dn1ymovlb` (`usuario_id`),
   CONSTRAINT `FKm5oo9iahtl1p9bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `carteras` WRITE;
-INSERT INTO `carteras` VALUES (1,0,0,0,0,0,1),(2,0,0,0,0,0,2);
+INSERT INTO `carteras` VALUES (1,0,1),(2,0,2);
 UNLOCK TABLES;
 
 ##-- Table structure for table `payment_method`
@@ -136,30 +113,30 @@ CREATE TABLE `planes` (
   `acumulado_bajo8pm` int DEFAULT NULL,
   `aproximacion_alta00am` int DEFAULT NULL,
   `aproximacion_baja` int DEFAULT NULL,
-  `nombre` varchar(255) DEFAULT NULL,
   `oportunidades` int DEFAULT NULL,
-  `precio` double DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
+  `precio` float DEFAULT NULL,
   `suscribcion` BOOLEAN NOT NULL DEFAULT false,
-  `pago_unico` BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `planes` WRITE;
 INSERT INTO `planes` VALUES 
-(1,true,1,1,1,1,'Ordinario',4,70,true,false),
-(2,true,5,5,5,5,'Promocional',20,300,true,false),
-(3,true,10,10,10,10,'Platinum',40,500,true,false),
-(4,true,1,1,1,1,'Ordinario',4,70,false,true),
-(5,true,5,5,5,5,'Promocional',20,300,false,true),
-(6,true,10,10,10,10,'Platinum',40,500,false,true);
+(1,true,1,1,1,1,4,'Ordinario',70,true),
+(2,true,5,5,5,5,20,'Promocional',300,true),
+(3,true,10,10,10,10,40,'Platinum',500,true),
+(4,true,1,1,1,1,4,'Ordinario',70,false),
+(5,true,5,5,5,5,20,'Promocional',300,false),
+(6,true,10,10,10,10,40,'Platinum',500,false);
 UNLOCK TABLES;
 
 ##-- Table structure for table `carrito`
 CREATE TABLE `carrito` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL default true,
-  `status` varchar(255) DEFAULT NULL,
   `cantidad` int DEFAULT 1,
-  `total` double DEFAULT NULL,
+  `total_linea` float DEFAULT NULL,
+  `precio_unitario` float DEFAULT NULL,
+  `descuento` float DEFAULT NULL,
   `fecha_carrito` datetime(6) DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
@@ -172,19 +149,51 @@ CREATE TABLE `carrito` (
 LOCK TABLES `carrito` WRITE;
 UNLOCK TABLES;
 
-##-- Table structure for table `compra`
-CREATE TABLE `compra` (
+##-- Table structure for table `orden`
+CREATE TABLE `ordenes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `status` varchar(255) DEFAULT NULL,
+  `fecha_emitido` datetime(6) DEFAULT NULL,
+  `total` double DEFAULT 0,
+  `iva` double DEFAULT 0,
+  `descuento` double DEFAULT 0,
+  `total_iva` double DEFAULT 0,
+  `usuario_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `a8sf99SK80fsdff02l34gE7R6G` (`usuario_id`),
+  CONSTRAINT `a8sf99SK80fsdff02l34gE7R6G` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ;
+LOCK TABLES `ordenes` WRITE;
+UNLOCK TABLES;
+##-- Table structure for table `items_orden`
+CREATE TABLE `items_orden` (
+  `cantidad` int DEFAULT 1,
+  `total_linea` double DEFAULT NULL,
+  `precio_unitario` double DEFAULT NULL,
+  `descuento` double DEFAULT NULL,
+  `plan_id` bigint DEFAULT NULL,
+  `orden_id` bigint DEFAULT NULL,
+  KEY `FKpsPlankey0000000000000004` (`plan_id`),
+  KEY `FK1yOrdenKey000000000000004` (`orden_id`),
+  CONSTRAINT `FKpsPlankey0000000000000004` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK1yOrdenKey000000000000004` FOREIGN KEY (`orden_id`) REFERENCES `ordenes` (`id`) ON DELETE CASCADE
+);
+LOCK TABLES `items_orden` WRITE;
+UNLOCK TABLES;
+##-- Table structure for table `pago`
+CREATE TABLE `pagos` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `fecha_pagado` datetime(6) DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
-  `carrito_id` bigint DEFAULT NULL,
+  `orden_id` bigint DEFAULT NULL,
+  `stripe_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKpsfgo6ayx335hkqudyubw5536` (`usuario_id`),
-  KEY `FK1yjtle73so0wuwyiyf7utf49a` (`carrito_id`),
-  CONSTRAINT `FKpsfgo6ayx335hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `FK1yjtle73so0wuwyiyf7utf49a` FOREIGN KEY (`carrito_id`) REFERENCES `carrito` (`id`) ON DELETE CASCADE
+  KEY `FKdfsg45Tth5666pDF43gfd34hF` (`usuario_id`),
+  KEY `a8sf99SK80fsdf09er234gE7R6G` (`orden_id`),
+  CONSTRAINT `FKdfsg45Tth5666pDF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `a8sf99SK80fsdf09er234gE7R6G` FOREIGN KEY (`orden_id`) REFERENCES `ordenes` (`id`) ON DELETE CASCADE
 ) ;
-LOCK TABLES `compra` WRITE;
+LOCK TABLES `pagos` WRITE;
 UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios`
@@ -194,7 +203,7 @@ CREATE TABLE `beneficios` (
   `llave` varchar(255) DEFAULT NULL,
   `tipo` varchar(255) DEFAULT NULL,
   `moneda` varchar(127) DEFAULT NULL,
-  `valor` double DEFAULT NULL,
+  `valor` float DEFAULT NULL,
   `repetido` BOOLEAN NOT NULL,
   `referido` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
@@ -258,7 +267,7 @@ UNLOCK TABLES;
 CREATE TABLE `suscripciones` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL default true,
-  `monto_mensual` double NOT NULL,
+  `monto_mensual` float NOT NULL,
   `fecha_create` datetime(6) DEFAULT NULL,
   `fecha_inicio` datetime(6) DEFAULT NULL,
   `fecha_fin` datetime(6) DEFAULT NULL,
@@ -333,8 +342,8 @@ CREATE TABLE `eventos` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN DEFAULT true,
   `fechahora_evento` datetime(6) DEFAULT NULL,
-  `premio_cash` double DEFAULT NULL,
-  `acumulado` double DEFAULT NULL,
+  `premio_cash` float DEFAULT NULL,
+  `acumulado` float DEFAULT NULL,
   `premio_otros` varchar(255) DEFAULT NULL,
   `moneda` varchar(255) DEFAULT NULL,
   `categoria_evento_id` bigint DEFAULT NULL,
@@ -415,12 +424,12 @@ CREATE TABLE `evento_usuario` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL,
   `fecha` datetime(6) DEFAULT NULL,
-  `views` bigint DEFAULT NULL,
-  `like` bigint DEFAULT NULL,
-  `comments` bigint DEFAULT NULL,
-  `dislikes` bigint DEFAULT NULL,
-  `saved` bigint DEFAULT NULL,
-  `shared` bigint DEFAULT NULL,
+  `views_count` bigint DEFAULT NULL,
+  `like_count` bigint DEFAULT NULL,
+  `comments_count` bigint DEFAULT NULL,
+  `dislikes_count` bigint DEFAULT NULL,
+  `saved_count` bigint DEFAULT NULL,
+  `shared_count` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
   `evento_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -461,8 +470,8 @@ UNLOCK TABLES;
 CREATE TABLE `resultado` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `hora_resultado` datetime(6) DEFAULT NULL,
-  `like_count` bigint DEFAULT NULL,
   `views_count` bigint DEFAULT NULL,
+  `like_count` bigint DEFAULT NULL,
   `comments_count` bigint DEFAULT NULL,
   `dislikes_count` bigint DEFAULT NULL,
   `saved_count` bigint DEFAULT NULL,
@@ -489,16 +498,14 @@ UNLOCK TABLES;
 
 ##-- Table structure for table `usuarios_roles`
 CREATE TABLE `usuarios_roles` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `role_id` bigint NOT NULL,
-  PRIMARY KEY (`id`),
   KEY `FKisd054ko30hm3j6ljr90asype` (`user_id`),
   KEY `FKihom0uklpkfpffipxpoyf7b74` (`role_id`),
   CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FKisd054ko30hm3j6ljr90asype` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `usuarios_roles` WRITE;
-INSERT INTO `usuarios_roles` VALUES (1,1,2),(2,2,2);
+INSERT INTO `usuarios_roles` VALUES (1,2),(2,2);
 UNLOCK TABLES;
 

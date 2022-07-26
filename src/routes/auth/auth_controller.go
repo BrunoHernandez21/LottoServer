@@ -10,7 +10,6 @@ import (
 	"lottomusic/src/modules/email"
 	"lottomusic/src/modules/jwts"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -391,28 +390,23 @@ func getDireccion(c *fiber.Ctx) error {
 }
 
 func deleteDireccion(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	headers := c.GetReqHeaders()
-	var parse string = headers["direccion_id"]
-	intVar, err := strconv.Atoi(parse)
-	if err != nil {
-		m["mensaje"] = err.Error()
+	m := make(map[string]interface{})
+	direccion := gormdb.Direccion{}
+	errdb := db.Find(&direccion, "id = ? AND user_id = ?", c.Params("id"), c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	direccion := gormdb.Direccion{
-		Id: uint32(intVar),
-	}
-	db.Find(direccion)
-	userID, ok := c.Locals("userID").(uint32)
-	if !ok {
-		m["mensaje"] = "internal error"
+	if direccion.Id == 0 {
+		m["mensaje"] = "esta direccion no es tuya o no existe"
 		return c.Status(500).JSON(m)
 	}
-	if *direccion.User_id != userID {
-		m["mensaje"] = "esta direccion no es tuya"
+	errdb = db.Delete(&direccion)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	m["resp"] = "esta direccion no es tuya"
+	m["resp"] = "eliminado correctamente"
 	return c.JSON(m)
 }
 

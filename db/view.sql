@@ -12,7 +12,7 @@ SELECT
     ORDER BY eventos.fechahora_evento;
 
 CREATE VIEW plan_one AS
-SELECT * FROM planes WHERE planes.pago_unico = TRUE;
+SELECT * FROM planes WHERE planes.suscribcion = FALSE;
 
 CREATE VIEW plan_suscribcion AS
 SELECT * FROM planes WHERE planes.suscribcion = TRUE;
