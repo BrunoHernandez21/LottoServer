@@ -16,12 +16,12 @@ type EventoVideo struct {
 	Fecha_video         *time.Time `json:"fecha_video,omitempty"`
 	Video_id            *string    `json:"video_id,omitempty"`
 	Thumblary           *string    `json:"thumblary,omitempty"`
-	Titulo              *uint32    `json:"titulo,omitempty"`
+	Titulo              *string    `json:"titulo,omitempty"`
 	Url_video           *string    `json:"url_video,omitempty"`
 	Genero              *string    `json:"genero,omitempty"`
 	Proveedor           *string    `json:"proveedor,omitempty"`
 }
 
-func (product *EventoVideo) EventoVideo() string {
+func (product *EventoVideo) TableName() string {
 	return "eventos_videos"
 }

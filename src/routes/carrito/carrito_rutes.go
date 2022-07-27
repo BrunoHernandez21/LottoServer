@@ -19,6 +19,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Get("/carrito", isRegister, listar)
 	v1.Put("/carrito", isRegister, editar)
 	v1.Delete("/carrito/:id", isRegister, eliminar)
+	v1.Delete("/carritos", isRegister, eliminarall)
 
 }
 

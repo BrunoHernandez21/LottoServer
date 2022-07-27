@@ -2,6 +2,7 @@ package videos
 
 import (
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/models/views"
 	"math"
 	"strconv"
 
@@ -14,7 +15,7 @@ func listar(c *fiber.Ctx) error {
 	return c.JSON(input)
 }
 
-func pagelistar(c *fiber.Ctx) error {
+func videos_pag(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	input := []gormdb.Videos{}
@@ -41,14 +42,14 @@ func pagelistar(c *fiber.Ctx) error {
 	resp["items"] = input
 	return c.JSON(resp)
 }
-func listareventos(c *fiber.Ctx) error {
+
+func videos_evento_pag(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
-	videos := []gormdb.Videos{}
-	eventos := []gormdb.Eventos{}
+	items := []views.EventoVideo{}
 
 	a := int64(0)
-	db.Table("eventos").Where("Activo = ?", true).Count(&a)
+	db.Find(&items).Count(&a)
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
@@ -61,36 +62,15 @@ func listareventos(c *fiber.Ctx) error {
 	resp["sizePage"] = &sizepage
 	resp["totals"] = &a
 	init := (page - 1) * sizepage
-	errdb := db.Table("eventos").Offset(int(init)).Limit(int(sizepage)).Find(&eventos, "Activo = ?", true)
+
+	errdb := db.Find(&items).Offset(int(init)).Limit(int(sizepage))
+
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	result := make([]uint32, 0, sizepage)
-	encountered := map[uint32]bool{}
-	for v := range eventos {
-		encountered[eventos[v].Video_id] = true
-	}
-	for key := range encountered {
-		result = append(result, key)
-	}
-	errdb = db.Find(&videos, "id IN ?", result)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	rp := make([]map[string]interface{}, 0, sizepage)
-	for _, a := range eventos {
-		for _, v := range videos {
-			if a.Video_id == v.Id {
-				mapa := make(map[string]interface{})
-				mapa["video"] = v
-				mapa["evento"] = a
-				rp = append(rp, mapa)
-			}
-		}
-	}
-	resp["items"] = &rp
+
+	resp["items"] = &items
 
 	return c.JSON(resp)
 }

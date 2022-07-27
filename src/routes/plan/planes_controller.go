@@ -6,15 +6,28 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func lista(c *fiber.Ctx) error {
+func listar_one(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Planes{}
-	errdb := db.Table("planes").Find(&input)
+	errdb := db.Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	m["mensaje"] = nil
+
+	m["planes"] = input
+	return c.JSON(m)
+}
+
+func lista_suscripcion(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := []gormdb.Planes{}
+	errdb := db.Find(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+
 	m["planes"] = input
 	return c.JSON(m)
 }
@@ -47,7 +60,7 @@ func create(c *fiber.Ctx) error {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
-	if (input.Precio == nil) || (input.Nombre == nil) || (input.Oportunidades == nil) {
+	if (input.Precio == nil) || (input.Nombre == nil) || (input.Cash == nil) {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(500).JSON(m)
 	}
@@ -98,26 +111,14 @@ func edit(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	if input.Acumulado_alto8am != nil {
-		a.Acumulado_alto8am = input.Acumulado_alto8am
-	}
-	if input.Acumulado_bajo8pm != nil {
-		a.Acumulado_bajo8pm = input.Acumulado_bajo8pm
-	}
-	if input.Aproximacion_alta00am != nil {
-		a.Aproximacion_alta00am = input.Aproximacion_alta00am
-	}
-	if input.Aproximacion_baja != nil {
-		a.Aproximacion_baja = input.Aproximacion_baja
+	if input.Cash != nil {
+		a.Cash = input.Cash
 	}
 	if input.Precio != nil {
 		a.Precio = input.Precio
 	}
 	if input.Nombre != nil {
 		a.Nombre = input.Nombre
-	}
-	if input.Oportunidades != nil {
-		a.Oportunidades = input.Oportunidades
 	}
 
 	errdb = db.Table("plplanesan").Save(a)

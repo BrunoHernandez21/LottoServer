@@ -24,7 +24,6 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = "Cantidad no puede ser null o 0"
 		return c.Status(500).JSON(m)
 	}
-
 	id, ok := c.Locals("userID").(uint32)
 	if ok {
 		input.Usuario_id = id
@@ -58,25 +57,39 @@ func crear(c *fiber.Ctx) error {
 	}
 	return c.JSON(input)
 }
+
 func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	param := c.Params("id")
-	//db midelware
 	a := gormdb.Carrito{}
-	errdb := db.Find(&a, "id = ?", param).Delete(&a)
+	errdb := db.Find(&a, "id = ? AND Usuario_id = ?", c.Params("id"), c.Locals("userID"))
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-
 	if a.Id == 0 {
 		m["mensaje"] = "El item no existe"
-	} else {
-		m["mensaje"] = "Eliminado Satisfactoriamente"
+		return c.JSON(m)
 	}
-
+	errdb = db.Delete(&a)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
+
+func eliminarall(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	errdb := db.Table("carrito").Where("Usuario_id = ?", c.Locals("userID")).Update("activo", false)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["mensaje"] = "Eliminado Satisfactoriamente"
+	return c.JSON(m)
+}
+
 func listar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := []gormdb.Carrito{}
@@ -87,27 +100,50 @@ func listar(c *fiber.Ctx) error {
 	}
 	return c.JSON(input)
 }
+
 func listarWPlan(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	parse := []compuestas.CarritoPlan{}
+
 	errdb := db.Table("carrito as c").
-		Select(
-			`c.id,c.activo,c.cantidad,c.total_linea,c.precio_unitario,c.descuento,
-			c.fecha_carrito,p.acumulado_alto8am,
-			p.acumulado_bajo8pm,p.aproximacion_alta00am,
-			p.aproximacion_baja,nombre,p.oportunidades,precio,
-			p.suscribcion`).
+		Select(`c.id, c.cantidad, c.total_linea, c.precio_unitario, c.descuento, c.fecha_carrito, c.plan_id, p.cash, p.nombre, p.precio, p.moneda, p.suscribcion`).
 		Joins("INNER JOIN planes as p ON c.plan_id = p.id").
 		Where("Usuario_id = ? AND c.Activo = ? ", c.Locals("userID"), true).
 		Find(&parse)
-	//errdb := db.Raw("SELECT * FROM carrito INNER JOIN planes ON carrito.plan_id = planes.id WHERE carrito.usuario_id = 2").Scan(&m)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	return c.JSON(parse)
 }
+
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	return c.JSON(m)
+	id, ok := c.Locals("userID").(uint32)
+	if !ok {
+		m["mensaje"] = "error interno"
+		return c.Status(500).JSON(m)
+	}
+	input := gormdb.Carrito{}
+	if err := c.BodyParser(&input); err != nil {
+		return err
+	}
+	errdb := db.Find(&input, "id = ? AND Usuario_id = ?", input.Id, id)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	if input.Id == 0 {
+		m["mensaje"] = "El item no existe"
+		return c.JSON(m)
+	}
+
+	errdb = db.Save(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	return c.JSON(input)
 }

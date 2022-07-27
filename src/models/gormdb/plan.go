@@ -1,17 +1,13 @@
 package gormdb
 
 type Planes struct {
-	Id                    uint32   `json:"id"`
-	Activo                *bool    `json:"activo"`
-	Acumulado_alto8am     *uint32  `json:"acumulado_alto8am,omitempty"`
-	Acumulado_bajo8pm     *uint32  `json:"acumulado_bajo8pm,omitempty"`
-	Aproximacion_alta00am *uint32  `json:"aproximacion_alta00am,omitempty"`
-	Aproximacion_baja     *uint32  `json:"aproximacion_baja,omitempty"`
-	Nombre                *string  `json:"nombre,omitempty"`
-	Oportunidades         *uint32  `json:"oportunidades,omitempty"`
-	Precio                *float32 `json:"precio,omitempty"`
-	Suscribcion           bool     `json:"suscribcion,omitempty"`
-	Pago_unico            bool     `json:"pago_unico,omitempty"`
+	Id          uint32   `json:"id"`
+	Activo      *bool    `json:"activo"`
+	Cash        *uint32  `json:"cash"`
+	Nombre      *string  `json:"nombre"`
+	Precio      *float32 `json:"precio"`
+	Moneda      string   `json:"moneda,omitempty"`
+	Suscribcion bool     `json:"suscribcion"`
 }
 
 func (product *Planes) TableName() string {

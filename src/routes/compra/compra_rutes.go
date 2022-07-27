@@ -14,16 +14,21 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 
 	v1 := app.Group("/api/compra")
+	//TODO esto deberia ser root
 
-	v1.Post("/compra", isRegister, crear)
 	v1.Delete("/compra", isRoot, eliminar)
+
+	v1.Post("/verifica", isRegister, verifica)
 	v1.Get("/compra", isRegister, listar)
 	v1.Get("/compra/:pag/:sizepage", isRegister, listarpaginado)
 	v1.Post("/checkout", isRegister, checkout)
-	v1.Post("/payment/method", isRegister, checkout)
-	v1.Put("/payment/method", isRegister, checkout)
-	v1.Delete("/payment/method", isRegister, checkout)
-	v1.Get("/payment/method", isRegister, checkout)
+
+	v1.Post("/payment/method", isRegister, createTarjeta)
+	v1.Put("/payment/method", isRegister, editTarjeta)
+	v1.Delete("/payment/method/:id", isRegister, deleteTarjeta)
+	v1.Get("/payment/method", isRegister, listarTarjeta)
+
+	v1.Get("/ordens/status", isRegister, listarOrdenes)
 }
 
 func isRegister(c *fiber.Ctx) error {

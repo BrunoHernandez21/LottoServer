@@ -14,8 +14,8 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 	v1 := app.Group("/api/videos")
 
-	v1.Get("/activo/:page/:sizepage", pagelistar)
-	v1.Get("/eventos/:page/:sizepage", listareventos)
+	v1.Get("/activo/:page/:sizepage", videos_pag)
+	v1.Get("/eventos/:page/:sizepage", videos_evento_pag)
 	v1.Get("/grupos", listargrupos)
 	v1.Get("/grupos/:page/:sizepage/:name", listarGruposName)
 	v1.Get("/videos/:id", activoID)

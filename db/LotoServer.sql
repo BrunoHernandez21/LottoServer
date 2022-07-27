@@ -88,7 +88,7 @@ UNLOCK TABLES;
 
 ##-- Table structure for table `payment_method`
 CREATE TABLE `payment_method` (
-  `id` bigint NOT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL,
   `type` varchar(255) DEFAULT NULL,
   `card_number` varchar(255) DEFAULT NULL,
@@ -109,24 +109,21 @@ UNLOCK TABLES;
 CREATE TABLE `planes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL default false,
-  `acumulado_alto8am` int DEFAULT NULL,
-  `acumulado_bajo8pm` int DEFAULT NULL,
-  `aproximacion_alta00am` int DEFAULT NULL,
-  `aproximacion_baja` int DEFAULT NULL,
-  `oportunidades` int DEFAULT NULL,
+  `cash` int DEFAULT NULL,
   `nombre` varchar(255) DEFAULT NULL,
   `precio` float DEFAULT NULL,
+  `moneda` varchar(10),  
   `suscribcion` BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `planes` WRITE;
 INSERT INTO `planes` VALUES 
-(1,true,1,1,1,1,4,'Ordinario',70,true),
-(2,true,5,5,5,5,20,'Promocional',300,true),
-(3,true,10,10,10,10,40,'Platinum',500,true),
-(4,true,1,1,1,1,4,'Ordinario',70,false),
-(5,true,5,5,5,5,20,'Promocional',300,false),
-(6,true,10,10,10,10,40,'Platinum',500,false);
+(1,true,4,'Ordinario',70,'MXN',true),
+(2,true,20,'Promocional',300,'MXN',true),
+(3,true,40,'Platinum',500,'MXN',true),
+(4,true,4,'Ordinario',70,'MXN',false),
+(5,true,20,'Promocional',300,'MXN',false),
+(6,true,40,'Platinum',500,'MXN',false);
 UNLOCK TABLES;
 
 ##-- Table structure for table `carrito`
@@ -170,6 +167,7 @@ CREATE TABLE `items_orden` (
   `cantidad` int DEFAULT 1,
   `total_linea` double DEFAULT NULL,
   `precio_unitario` double DEFAULT NULL,
+  `moneda` varchar(10),
   `descuento` double DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
   `orden_id` bigint DEFAULT NULL,
@@ -204,17 +202,17 @@ CREATE TABLE `beneficios` (
   `tipo` varchar(255) DEFAULT NULL,
   `moneda` varchar(127) DEFAULT NULL,
   `valor` float DEFAULT NULL,
-  `repetido` BOOLEAN NOT NULL,
+  `max_catch` int,
   `referido` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `beneficios` WRITE;
 INSERT INTO `beneficios` VALUES 
-(1,true,"7 dias gratis","DIAS",NULL,7,false,false),
-(2,true,"14 dias gratis","DIAS",NULL,7,false,false),
-(3,true,"14 dias gratis","DIAS",NULL,7,true,false),
-(4,true,"Dinero Gratis","CASH","MXN",10,true,false),
-(5,true,"DINERO GRATIS","CASH","USD",10,true,false);
+(1,true,"7 dias gratis","DIAS",NULL,7,1,false),
+(2,true,"14 dias gratis","DIAS",NULL,14,1,false),
+(3,true,"14 dias gratis","DIAS",NULL,14,1,false),
+(4,true,"Dinero Gratis","CASH","MXN",10,1,false),
+(5,true,"DINERO GRATIS","CASH","USD",10,1,false);
 UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios_usuario`

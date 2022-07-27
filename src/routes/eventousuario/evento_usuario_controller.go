@@ -76,41 +76,24 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-
+	if cartera.Cash < count {
+		m["mensaje"] = "No tienes de esta moneda"
+		return c.Status(400).JSON(m)
+	}
 	if evento.Categoria_evento_id == 1 {
-		if cartera.Oportunidades < count {
-			m["mensaje"] = "No tienes de esta moneda"
-			return c.Status(400).JSON(m)
-		}
-		cartera.Oportunidades -= count
+		cartera.Cash -= count
 	}
 	if evento.Categoria_evento_id == 2 {
-		if cartera.Acumulado_alto8am < count {
-			m["mensaje"] = "No tienes de esta moneda"
-			return c.Status(400).JSON(m)
-		}
-		cartera.Acumulado_alto8am -= count
+		cartera.Cash -= count
 	}
 	if evento.Categoria_evento_id == 3 {
-		if cartera.Acumulado_bajo8pm < count {
-			m["mensaje"] = "No tienes de esta moneda"
-			return c.Status(400).JSON(m)
-		}
-		cartera.Acumulado_bajo8pm -= count
+		cartera.Cash -= count
 	}
 	if evento.Categoria_evento_id == 4 {
-		if cartera.Aproximacion_alta00am < count {
-			m["mensaje"] = "No tienes de esta moneda"
-			return c.Status(400).JSON(m)
-		}
-		cartera.Aproximacion_alta00am -= count
+		cartera.Cash -= count
 	}
 	if evento.Categoria_evento_id == 5 {
-		if cartera.Aproximacion_baja < count {
-			m["mensaje"] = "No tienes de esta moneda"
-			return c.Status(400).JSON(m)
-		}
-		cartera.Aproximacion_baja -= count
+		cartera.Cash -= count
 	}
 	/// reducir en cartera
 
