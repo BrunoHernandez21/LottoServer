@@ -172,14 +172,23 @@ func historialPage(c *fiber.Ctx) error {
 		resp["mensaje"] = err.Error()
 		return c.Status(500).JSON(resp)
 	}
-
-	resp["pags"] = math.Round(float64(a) / float64(sizepage))
-	resp["pag"] = &page
-	resp["sizePage"] = &sizepage
-	resp["totals"] = &a
+	pags := uint64(a) / sizepage
+	residuo := uint64(a) % sizepage
+	if residuo != 0 {
+		pags += 1
+	}
+	resp["pags"] = pags
+	resp["pag"] = page
+	resp["sizePage"] = sizepage
+	resp["totals"] = a
 	init := (page - 1) * sizepage
 	apuestasUsuario := []gormdb.Evento_usuario{}
-	errdb := db.Table("apuesta_usuario").Offset(int(init)).Limit(int(sizepage)).Find(&apuestasUsuario, "Usuario_id = ?", userID)
+	errdb := db.
+		Table("apuesta_usuario").
+		Where("Usuario_id = ?", userID).
+		Offset(int(init)).
+		Limit(int(sizepage)).
+		Find(&apuestasUsuario)
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(resp)

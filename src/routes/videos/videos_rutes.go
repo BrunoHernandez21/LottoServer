@@ -14,16 +14,16 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 	v1 := app.Group("/api/videos")
 
-	v1.Get("/activo/:page/:sizepage", videos_pag)
-	v1.Get("/eventos/:page/:sizepage", videos_evento_pag)
-	v1.Get("/grupos", listargrupos)
-	v1.Get("/grupos/:page/:sizepage/:name", listarGruposName)
-	v1.Get("/videos/:id", activoID)
-
+	v1.Get("/video/:id", activoID)
+	v1.Get("/videos/:page/:sizepage", videos_pag)
 	v1.Post("/videos", isRoot, crear)
-	v1.Get("/videos", isRoot, listar)
 	v1.Put("/videos", isRoot, editar)
 	v1.Delete("/videos/:id", isRoot, eliminar)
+
+	v1.Get("/grupos", listargrupos)
+	v1.Get("/grupos/:page/:sizepage/:name", listarGruposName)
+
+	v1.Get("/eventos/:page/:sizepage", videos_evento_pag)
 }
 
 func isRoot(c *fiber.Ctx) error {

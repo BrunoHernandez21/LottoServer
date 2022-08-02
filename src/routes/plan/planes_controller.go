@@ -9,7 +9,7 @@ import (
 func listar_one(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Planes{}
-	errdb := db.Find(&input)
+	errdb := db.Table("plan_one").Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -22,7 +22,7 @@ func listar_one(c *fiber.Ctx) error {
 func lista_suscripcion(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Planes{}
-	errdb := db.Find(&input)
+	errdb := db.Table("plan_suscripcion").Find(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

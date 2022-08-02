@@ -4,7 +4,6 @@ import (
 	"lottomusic/src/models/compuestas"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
-	"math"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -64,9 +63,10 @@ func listarpaginado(c *fiber.Ctx) error {
 		resp["mensaje"] = err.Error()
 		return c.Status(500).JSON(resp)
 	}
-	pags := math.Round(float64(a) / float64(sizepage))
-	if pags < 1 && a > 0 {
-		pags = 1
+	pags := uint64(a) / sizepage
+	residuo := uint64(a) % sizepage
+	if residuo != 0 {
+		pags += 1
 	}
 	resp["pags"] = pags
 	resp["pag"] = &pag

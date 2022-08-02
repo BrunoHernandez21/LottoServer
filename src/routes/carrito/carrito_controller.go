@@ -44,6 +44,9 @@ func crear(c *fiber.Ctx) error {
 	}
 	amount := *a.Precio * float32(input.Cantidad)
 	input.Total_linea = &amount
+	input.Precio_unitario = a.Precio
+	var descuento float32 = 0
+	input.Descuento = &descuento
 
 	errdb = db.Create(&input)
 	if errdb.Error != nil {
@@ -114,7 +117,8 @@ func listarWPlan(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(parse)
+	m["items_carrito"] = parse
+	return c.JSON(m)
 }
 
 func editar(c *fiber.Ctx) error {

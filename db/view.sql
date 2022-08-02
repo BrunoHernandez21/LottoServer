@@ -1,6 +1,7 @@
 DROP VIEW IF EXISTS `eventos_videos`;
 DROP VIEW IF EXISTS `plan_one`;
 DROP VIEW IF EXISTS `plan_suscribcion`;
+DROP VIEW IF EXISTS `plan_suscripcion`;
 
 CREATE VIEW eventos_videos AS
 SELECT 
@@ -9,10 +10,11 @@ SELECT
      videos.artista,videos.canal,videos.fecha_video,videos.video_id,videos.thumblary,videos.titulo,videos.url_video,videos.genero,videos.proveedor
     FROM eventos 
     INNER JOIN videos ON eventos.video_id = videos.id 
+    WHERE eventos.activo=true
     ORDER BY eventos.fechahora_evento;
 
 CREATE VIEW plan_one AS
 SELECT * FROM planes WHERE planes.suscribcion = FALSE;
 
-CREATE VIEW plan_suscribcion AS
+CREATE VIEW plan_suscripcion AS
 SELECT * FROM planes WHERE planes.suscribcion = TRUE;

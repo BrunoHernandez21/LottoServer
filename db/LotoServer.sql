@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS `payment_method`;
 DROP TABLE IF EXISTS `carteras`;
 DROP TABLE IF EXISTS `referido`;
 DROP TABLE IF EXISTS `direccion`;
+DROP TABLE IF EXISTS `propiedades_usuarios`;
 DROP TABLE IF EXISTS `usuarios`;
 
 
@@ -47,10 +48,22 @@ INSERT INTO `usuarios` VALUES
 (2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'ff5e774c4f3bc465ee0ca78f5e1fc787e4ea97c1',NULL,"2VksD8o@\c");
 UNLOCK TABLES;
 
+##-- Table structure for table `usuarios`
+CREATE TABLE `propiedades_usuarios` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nivel_acceso` varchar(60) DEFAULT 'default',
+  `fecha_inicio` datetime(6) DEFAULT NULL,
+  `fecha_fin` datetime(6) DEFAULT NULL,
+  `usuario_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_key_for_property_user` (`usuario_id`),
+  CONSTRAINT `FK_key_for_property_user` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+);
+
 ##-- Table structure for table `direccion`
 CREATE TABLE `direccion` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint DEFAULT NULL,
+  `usuario_id` bigint DEFAULT NULL,
   `tipo` varchar(255) DEFAULT NULL,
   `pais` varchar(255) DEFAULT NULL,
   `ciudad` varchar(255) DEFAULT NULL,
@@ -58,32 +71,34 @@ CREATE TABLE `direccion` (
   `cp` varchar(255) DEFAULT NULL,
   `numero` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKk6e2a82e9uvkc8vrnijaj87yt` (`user_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vrnijaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+  KEY `FKk6e2a82e9uvkc8vrnijaj87yt` (`usuario_id`),
+  CONSTRAINT `FKk6e2a82e9uvkc8vrnijaj87yt` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `direccion`
 CREATE TABLE `referido` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint DEFAULT NULL,
+  `usuario_id` bigint DEFAULT NULL,
   `codigo` varchar(255) DEFAULT NULL,
   `cobrado` BOOLEAN DEFAULT false,
   PRIMARY KEY (`id`),
-  KEY `FKk6e2a82e9uvkc8vr88jaj87yt` (`user_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vr88jaj87yt` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+  KEY `FKk6e2a82e9uvkc8vr88jaj87yt` (`usuario_id`),
+  CONSTRAINT `FKk6e2a82e9uvkc8vr88jaj87yt` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `carteras`
 CREATE TABLE `carteras` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `cash` int NOT NULL DEFAULT 0,
+  `puntos` int NOT NULL DEFAULT 0,
+  `saldo_mxn` int NOT NULL DEFAULT 0,
+  `saldo_usd` int NOT NULL DEFAULT 0,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKm5oo9iahtl1p9bs4dn1ymovlb` (`usuario_id`),
   CONSTRAINT `FKm5oo9iahtl1p9bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `carteras` WRITE;
-INSERT INTO `carteras` VALUES (1,0,1),(2,0,2);
+INSERT INTO `carteras` VALUES (1,0,0,0,1),(2,0,0,0,2);
 UNLOCK TABLES;
 
 ##-- Table structure for table `payment_method`
@@ -91,6 +106,7 @@ CREATE TABLE `payment_method` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL,
   `type` varchar(255) DEFAULT NULL,
+  `sub_type` varchar(255) DEFAULT NULL,
   `card_number` varchar(255) DEFAULT NULL,
   `cvc` int NOT NULL,
   `default_payment` BOOLEAN NOT NULL,
@@ -109,21 +125,28 @@ UNLOCK TABLES;
 CREATE TABLE `planes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN NOT NULL default false,
-  `cash` int DEFAULT NULL,
+  `puntos` int DEFAULT NULL,
   `nombre` varchar(255) DEFAULT NULL,
-  `precio` float DEFAULT NULL,
-  `moneda` varchar(10),  
+  `precio` double DEFAULT 0,
+  `moneda` varchar(10),
+  `descuento_item` double NOT NULL DEFAULT 0,
+  'impuesto' double NOT NULL DEFAULT 0,
+  `precio_total` double NOT NULL DEFAULT 0,
+  `duracion_dias` double NOT NULL DEFAULT 0,
   `suscribcion` BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `planes` WRITE;
 INSERT INTO `planes` VALUES 
-(1,true,4,'Ordinario',70,'MXN',true),
-(2,true,20,'Promocional',300,'MXN',true),
-(3,true,40,'Platinum',500,'MXN',true),
-(4,true,4,'Ordinario',70,'MXN',false),
-(5,true,20,'Promocional',300,'MXN',false),
-(6,true,40,'Platinum',500,'MXN',false);
+(1,true,4,'Ordinario'     ,70,  'MXN',0,0,70, 360,true),
+(2,true,20,'Promocional'  ,300, 'MXN',0,0,300,360,true),
+(3,true,40,'Platinum'     ,500, 'MXN',0,0,500,360,true),
+(4,true,4,'Ordinario'     ,70,  'MXN',0,0,70, 360,false),
+(5,true,20,'Promocional'  ,300, 'MXN',0,0,300,360,false),
+(6,true,40,'Platinum'     ,500, 'MXN',0,0,500,360,false),
+(7,true,4,'Ordinario'     ,70,  'MXN',10,0,60, 360,false),
+(8,true,20,'Promocional'  ,300, 'MXN',50,0,250,360,false),
+(9,true,40,'Platinum'     ,500, 'MXN',100,0,400,360,false);
 UNLOCK TABLES;
 
 ##-- Table structure for table `carrito`
@@ -151,10 +174,10 @@ CREATE TABLE `ordenes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `status` varchar(255) DEFAULT NULL,
   `fecha_emitido` datetime(6) DEFAULT NULL,
-  `total` double DEFAULT 0,
-  `iva` double DEFAULT 0,
-  `descuento` double DEFAULT 0,
-  `total_iva` double DEFAULT 0,
+  'impuesto' double NOT NULL DEFAULT 0,
+  `sub_total` double NOT NULL DEFAULT 0,
+  `descuento_orden` double DEFAULT 0,
+  `total` double NOT NULL DEFAULT 0,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `a8sf99SK80fsdff02l34gE7R6G` (`usuario_id`),
@@ -164,11 +187,11 @@ LOCK TABLES `ordenes` WRITE;
 UNLOCK TABLES;
 ##-- Table structure for table `items_orden`
 CREATE TABLE `items_orden` (
-  `cantidad` int DEFAULT 1,
-  `total_linea` double DEFAULT NULL,
+  `cantidad` int NOT NULL DEFAULT 1,
+  `total_linea` double NOT NULL DEFAULT NULL,
   `precio_unitario` double DEFAULT NULL,
   `moneda` varchar(10),
-  `descuento` double DEFAULT NULL,
+  `descuento_items` double NOT NULL DEFAULT 0,
   `plan_id` bigint DEFAULT NULL,
   `orden_id` bigint DEFAULT NULL,
   KEY `FKpsPlankey0000000000000004` (`plan_id`),
@@ -198,39 +221,36 @@ UNLOCK TABLES;
 CREATE TABLE `beneficios` (
   `id` bigint AUTO_INCREMENT,
   `activo` BOOLEAN default true,
-  `llave` varchar(255) DEFAULT NULL,
+  `llave` varchar(255) DEFAULT NULL, ##-- titulo
   `tipo` varchar(255) DEFAULT NULL,
   `moneda` varchar(127) DEFAULT NULL,
   `valor` float DEFAULT NULL,
-  `max_catch` int,
+  `max_get` int DEFAULT NULL,
   `referido` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
 );
+
 LOCK TABLES `beneficios` WRITE;
 INSERT INTO `beneficios` VALUES 
-(1,true,"7 dias gratis","DIAS",NULL,7,1,false),
-(2,true,"14 dias gratis","DIAS",NULL,14,1,false),
-(3,true,"14 dias gratis","DIAS",NULL,14,1,false),
-(4,true,"Dinero Gratis","CASH","MXN",10,1,false),
-(5,true,"DINERO GRATIS","CASH","USD",10,1,false);
+(1,true,"7 dias info","DIAS_INFO",NULL,7,1,false),
+(2,true,"30 dias info","DIAS_INFO",NULL,30,1,false),
+(3,true,"Mes info","MES_INFO",NULL,1,1,false),
+(4,true,"Puntos extra","POINTS",NULL,4,1,true),
+(5,true,"Puntos extra","POINTS",NULL,20,1,false),
+(6,true,"Dinero Gratis","CASH","MXN",10,1,false),
+(7,true,"DINERO GRATIS","CASH","USD",10,1,false);
 UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios_usuario`
 CREATE TABLE `beneficios_usuario` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN NOT NULL,
-  `fecha_inicio` datetime(6) DEFAULT NULL,
-  `fecha_fin` datetime(6) DEFAULT NULL,
   `usuario_id` bigint NOT NULL,
   `beneficio_id` bigint NOT NULL,
-  `plan_id` bigint NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FKpsfgo6447835hkqudyubw5536` (`usuario_id`),
   KEY `FKpsfgo6986335hkqudyubw5536` (`beneficio_id`),
-  KEY `FKpsfgo6097235hkqudyubw5536` (`plan_id`),
   CONSTRAINT `FKpsfgo6447835hkqudyubw5536` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `FKpsfgo6986335hkqudyubw5536` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `FKpsfgo6097235hkqudyubw5536` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
+  CONSTRAINT `FKpsfgo6986335hkqudyubw5536` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`) ON DELETE CASCADE
 );
 
 ##-- Table structure for table `beneficios_plan`
@@ -248,17 +268,16 @@ CREATE TABLE `beneficios_plan` (
 LOCK TABLES `beneficios_plan` WRITE;
 INSERT INTO `beneficios_plan` VALUES 
 (1,true,1,1),
-(2,true,2,1),
-(3,true,1,2),
+(2,true,1,2),
+(3,true,1,3),
 (4,true,2,2),
-(5,true,1,3),
-(6,true,2,3),
-(7,true,1,4),
-(8,true,2,4),
-(9,true,1,5),
-(10,true,2,5),
-(11,true,1,6),
-(12,true,2,6);
+(5,true,3,3),
+(6,true,3,4),
+(7,true,3,5),
+(8,true,3,6),
+(9,true,1,4),
+(10,true,1,5),
+(11,true,1,6);
 UNLOCK TABLES;
 
 ##-- Table structure for table `suscripciones`
@@ -270,7 +289,7 @@ CREATE TABLE `suscripciones` (
   `fecha_inicio` datetime(6) DEFAULT NULL,
   `fecha_fin` datetime(6) DEFAULT NULL,
   `fecha_cobro` datetime(6) DEFAULT NULL,
-  `fecha_corte` int DEFAULT NULL,
+  `dia_corte` int DEFAULT NULL,
   `tipo` varchar(255) DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
@@ -313,13 +332,15 @@ UNLOCK TABLES;
 CREATE TABLE `categoria_evento` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) DEFAULT NULL,
+  `costo` INT NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`)
-) ;
+);
 LOCK TABLES `categoria_evento` WRITE;
-INSERT INTO `categoria_evento` VALUES (1,'Oportunidades'),(2,'Acumulado_alto8am'),(3,'Acumulado_bajo8pm'),(4,'aproximacion_alta00am'),(5,'aproximacion_baja');
+INSERT INTO `categoria_evento` VALUES (1,'Oportunidades',1),(2,'Acumulado_alto8am',3),(3,'Acumulado_bajo8pm',1),(4,'aproximacion_alta00am',2),(5,'aproximacion_baja',1);
 UNLOCK TABLES;
 
 ##-- Table structure for table `tipo_evento`
+##-- Esta tabla es meramente informativa
 CREATE TABLE `tipo_evento` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) DEFAULT NULL,
@@ -354,54 +375,54 @@ CREATE TABLE `eventos` (
 );
 LOCK TABLES `eventos` WRITE;
 INSERT INTO `eventos` VALUES  
-(1,false,'2022-02-14 00:00:00.000000',null,0,null,'USD',4,6),
-(2,true,'2022-02-14 00:30:00.000000',5000,0,null,'USD',5,5),
-(3,true,'2022-02-14 01:00:00.000000',5000,0,null,'USD',5,4),
-(4,true,'2022-02-14 01:30:00.000000',5000,0,null,'USD',5,3),
-(5,true,'2022-02-14 02:00:00.000000',5000,0,null,'USD',5,2),
-(6,true,'2022-02-14 02:30:00.000000',5000,0,null,'USD',5,1),
-(7,true,'2022-02-16 03:00:00.000000',null,0,'iPhone 13X ','USD',1,1),
-(8,true,'2022-02-14 03:30:00.000000',5000,0,null,'USD',5,6),
-(9,true,'2022-02-17 04:00:00.000000',5000,0,null,'USD',5,5),
-(10,true,'2022-02-17 04:30:00.000000',5000,0,null,'USD',5,4),
-(11,true,'2022-02-17 05:00:00.000000',5000,0,null,'USD',5,3),
-(12,true,'2022-02-17 05:30:00.000000',5000,0,null,'USD',5,2),
-(13,true,'2022-05-12 06:00:00.000000',null,0,'iPhone 13X','USD',1,1),
-(14,true,'2022-02-22 06:30:00.000000',5000,0,null,'USD',5,6),
-(15,true,'2022-02-22 07:00:00.000000',5000,0,null,'USD',5,6),
-(16,true,'2022-06-22 07:30:00.000000',5000,0,null,'USD',5,6),
-(17,true,'2022-06-22 08:00:00.000000',100000,0,'$100,000','USD',2,6),
-(18,true,'2022-06-22 08:30:00.000000',5000,0,null,'USD',5,6),
-(19,true,'2022-02-22 09:00:00.000000',5000,0,null,'USD',5,6),
-(20,true,'2022-06-22 09:30:00.000000',null,0,'iPhone 13X','USD',1,6),
-(21,true,'2022-02-22 10:00:00.000000',5000,0,null,'USD',5,6),
-(22,true,'2022-02-22 10:30:00.000000',5000,0,null,'USD',5,6),
-(23,true,'2022-02-22 11:00:00.000000',5000,0,null,'USD',5,6),
-(24,true,'2022-02-22 11:30:00.000000',5000,0,null,'USD',5,6),
-(25,false,'2022-02-22 12:00:00.000000',null,0,'Carrito','USD',3,6),
-(26,true,'2022-02-22 12:30:00.000000',5000,0,null,'USD',5,6),
-(27,true,'2022-02-22 13:00:00.000000',5000,0,null,'USD',5,6),
-(28,true,'2022-02-22 13:30:00.000000',5000,0,null,'USD',5,6),
-(29,true,'2022-02-22 14:00:00.000000',5000,0,null,'USD',5,6),
-(30,true,'2022-02-22 14:30:00.000000',5000,0,null,'USD',5,6),
-(31,true,'2022-02-22 15:00:00.000000',null,0,'iPhone 13X','USD',1,6),
-(32,true,'2022-02-22 15:30:00.000000',5000,0,null,'USD',5,6),
-(33,true,'2022-02-22 16:00:00.000000',5000,0,null,'USD',5,6),
-(34,true,'2022-02-22 16:30:00.000000',5000,0,null,'USD',5,6),
-(35,true,'2022-02-22 17:00:00.000000',5000,0,null,'USD',5,6),
-(36,true,'2022-02-22 17:30:00.000000',5000,0,null,'USD',5,6),
-(37,true,'2022-02-22 18:00:00.000000',null,0,'iPhone 13X','USD',1,6),
-(38,true,'2022-02-22 18:30:00.000000',5000,0,null,'USD',5,6),
-(39,true,'2022-02-22 19:00:00.000000',5000,0,null,'USD',5,6),
-(40,true,'2022-02-22 19:30:00.000000',5000,0,null,'USD',5,6),
-(41,true,'2022-02-22 20:00:00.000000',70000,0,'$70,000','USD',3,6),
-(42,true,'2022-02-22 20:30:00.000000',5000,0,null,'USD',5,6),
-(43,true,'2022-02-22 21:00:00.000000',5000,0,null,'USD',5,6),
-(44,true,'2022-02-22 21:30:00.000000',null,0,'iPhone 13X','USD',1,6),
-(45,true,'2022-02-22 22:00:00.000000',5000,0,null,'USD',5,6),
-(46,true,'2022-02-22 22:30:00.000000',5000,0,null,'USD',5,6),
-(47,true,'2022-02-22 23:00:00.000000',5000,0,null,'USD',5,6),
-(48,true,'2022-02-22 23:30:00.000000',5000,0,null,'USD',5,6);
+(1,false,'2022-06-14 00:00:00.000000',null,0,null,'USD',4,6),
+(2,true,'2022-06-14 00:30:00.000000',5000,0,null,'USD',5,5),
+(3,true,'2022-06-14 01:00:00.000000',5000,0,null,'USD',5,4),
+(4,true,'2022-06-14 01:30:00.000000',5000,0,null,'USD',5,3),
+(5,true,'2022-06-14 02:00:00.000000',5000,0,null,'USD',5,2),
+(6,true,'2022-06-14 02:30:00.000000',5000,0,null,'USD',5,1),
+(7,true,'2022-06-14 03:00:00.000000',null,0,'iPhone 13X ','USD',1,1),
+(8,true,'2022-06-14 03:30:00.000000',5000,0,null,'USD',5,6),
+(9,true,'2022-06-14 04:00:00.000000',5000,0,null,'USD',5,5),
+(10,true,'2022-06-14 04:30:00.000000',5000,0,null,'USD',5,4),
+(11,true,'2022-06-14 05:00:00.000000',5000,0,null,'USD',5,3),
+(12,true,'2022-06-14 05:30:00.000000',5000,0,null,'USD',5,2),
+(13,true,'2022-06-14 06:00:00.000000',null,0,'iPhone 13X','USD',1,1),
+(14,true,'2022-06-14 06:30:00.000000',5000,0,null,'USD',5,6),
+(15,true,'2022-06-14 07:00:00.000000',5000,0,null,'USD',5,6),
+(16,true,'2022-06-14 07:30:00.000000',5000,0,null,'USD',5,6),
+(17,true,'2022-06-14 08:00:00.000000',100000,0,'$100,000','USD',2,6),
+(18,true,'2022-06-14 08:30:00.000000',5000,0,null,'USD',5,6),
+(19,true,'2022-06-14 09:00:00.000000',5000,0,null,'USD',5,6),
+(20,true,'2022-06-14 09:30:00.000000',null,0,'iPhone 13X','USD',1,6),
+(21,true,'2022-06-14 10:00:00.000000',5000,0,null,'USD',5,6),
+(22,true,'2022-06-14 10:30:00.000000',5000,0,null,'USD',5,6),
+(23,true,'2022-06-14 11:00:00.000000',5000,0,null,'USD',5,6),
+(24,true,'2022-06-14 11:30:00.000000',5000,0,null,'USD',5,6),
+(25,false,'2022-06-14 12:00:00.000000',null,0,'Carrito','USD',3,6),
+(26,true,'2022-06-14 12:30:00.000000',5000,0,null,'USD',5,6),
+(27,true,'2022-06-14 13:00:00.000000',5000,0,null,'USD',5,6),
+(28,true,'2022-06-14 13:30:00.000000',5000,0,null,'USD',5,6),
+(29,true,'2022-06-14 14:00:00.000000',5000,0,null,'USD',5,6),
+(30,true,'2022-06-14 14:30:00.000000',5000,0,null,'USD',5,6),
+(31,true,'2022-06-14 15:00:00.000000',null,0,'iPhone 13X','USD',1,6),
+(32,true,'2022-06-14 15:30:00.000000',5000,0,null,'USD',5,6),
+(33,true,'2022-06-14 16:00:00.000000',5000,0,null,'USD',5,6),
+(34,true,'2022-06-14 16:30:00.000000',5000,0,null,'USD',5,6),
+(35,true,'2022-06-14 17:00:00.000000',5000,0,null,'USD',5,6),
+(36,true,'2022-06-14 17:30:00.000000',5000,0,null,'USD',5,6),
+(37,true,'2022-06-14 18:00:00.000000',null,0,'iPhone 13X','USD',1,6),
+(38,true,'2022-06-14 18:30:00.000000',5000,0,null,'USD',5,6),
+(39,true,'2022-06-14 19:00:00.000000',5000,0,null,'USD',5,6),
+(40,true,'2022-06-14 19:30:00.000000',5000,0,null,'USD',5,6),
+(41,true,'2022-06-14 20:00:00.000000',70000,0,'$70,000','USD',3,6),
+(42,true,'2022-06-14 20:30:00.000000',5000,0,null,'USD',5,6),
+(43,true,'2022-06-14 21:00:00.000000',5000,0,null,'USD',5,6),
+(44,true,'2022-06-14 21:30:00.000000',null,0,'iPhone 13X','USD',1,6),
+(45,true,'2022-06-14 22:00:00.000000',5000,0,null,'USD',5,6),
+(46,true,'2022-06-14 22:30:00.000000',5000,0,null,'USD',5,6),
+(47,true,'2022-06-14 23:00:00.000000',5000,0,null,'USD',5,6),
+(48,true,'2022-06-14 23:30:00.000000',5000,0,null,'USD',5,6);
 UNLOCK TABLES;
 
 ##-- Table structure for table `cron_task`
@@ -506,4 +527,47 @@ CREATE TABLE `usuarios_roles` (
 LOCK TABLES `usuarios_roles` WRITE;
 INSERT INTO `usuarios_roles` VALUES (1,2),(2,2);
 UNLOCK TABLES;
+descuento_item
+descuento_items
+##-- Table structure for table `descuento_plan`
+CREATE TABLE `descuento_item` (
+  `activo` BOOLEAN NOT NULL default TRUE,
+  `cantidad` bigint NOT NULL,
+  `plan_id` bigint NOT NULL,
+  KEY `FKisd054ko30hm3j6ljr90asype` (`plan_id`)
+  CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
+);
 
+##-- Table structure for table `descuento_planes`
+CREATE TABLE `descuento_items` (
+  `activo` BOOLEAN NOT NULL default TRUE,
+  `cantidad` bigint NOT NULL,
+  `plan_id` bigint NOT NULL,
+  `custom_attributes` varchar default NULL,
+  KEY `FKisd054ko30hm3j6ljr90asype` (`plan_id`)
+  CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
+);
+
+##-- Table structure for table `descuento_orden`
+CREATE TABLE `descuento_orden` (
+  `activo` BOOLEAN NOT NULL default TRUE,
+  `cantidad` bigint NOT NULL default 0,
+  `usuarios` bigint NOT NULL,
+  `custom_attributes` varchar default NULL,
+  KEY `FKisd054ko30hm3j6ljr90asype` (`plan_id`)
+  CONSTRAINT `FKihom0uklpkfpffipxpoyf7b74` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
+);
+
+##-- Table structure for table `descuento_orden`
+CREATE TABLE `cupones` (
+  `activo` BOOLEAN NOT NULL default TRUE,
+  `key_cupon` varchar(255) NOT NULL,
+  `custom_attributes` varchar default NULL,
+);
+
+##-- Table structure for table `descuento_orden`
+CREATE TABLE `promociones` (
+  `activo` BOOLEAN NOT NULL default TRUE,
+  `key_promotion` varchar(255) NOT NULL,
+  `custom_attributes` varchar default NULL,
+);

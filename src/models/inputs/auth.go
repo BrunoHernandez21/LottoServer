@@ -12,7 +12,7 @@ type Set_login struct {
 }
 
 type Get_Login struct {
-	Username      *string `json:"username,omitempty"`
+	Email         *string `json:"email,omitempty"`
 	Password      *string `json:"password,omitempty"`
 	Grant_type    *string `json:"grant_type,omitempty"`
 	Client_id     *string `json:"client_id,omitempty"`

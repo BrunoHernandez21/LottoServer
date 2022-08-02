@@ -22,17 +22,17 @@ func login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
-	if (input.Username == nil) || (input.Password == nil) {
+	if (input.Email == nil) || (input.Password == nil) {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(400).JSON(m)
 	}
-	if (*input.Username == "") || (*input.Password == "") {
+	if (*input.Email == "") || (*input.Password == "") {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(400).JSON(m)
 	}
 	//db midelware
 	a := gormdb.Usuarios{}
-	errdb := db.Find(&a, "email = ?", input.Username)
+	errdb := db.Find(&a, "email = ?", input.Email)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -102,7 +102,7 @@ func signup(c *fiber.Ctx) error {
 		m["mensaje"] = "Error en la base de datos"
 		return c.Status(500).JSON(m)
 	}
-	errdb = db.Find(&out, "email = ?", out.Email)
+	errdb = db.Where("email = ?", input.Email).Find(&out)
 	if errdb.Error != nil {
 		m["mensaje"] = "Error en la base de datos"
 		return c.Status(500).JSON(m)

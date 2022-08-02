@@ -2,7 +2,6 @@ package utils
 
 import (
 	"lottomusic/src/models/gormdb"
-	"math"
 	"strconv"
 	"time"
 
@@ -20,16 +19,17 @@ func ganador(c *fiber.Ctx) error {
 	resp := make(map[string]interface{})
 
 	a := int64(0)
-	db.Table("ganador").Where("Id_usuario = ?", userID).Count(&a)
+	db.Table("ganador").Where("Usuario_id = ?", userID).Count(&a)
 	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
 	if err != nil || err2 != nil {
 		resp["mensaje"] = err.Error()
 		return c.Status(500).JSON(resp)
 	}
-	pags := math.Round(float64(a) / float64(sizepage))
-	if pags < 1 && a > 0 {
-		pags = 1
+	pags := uint64(a) / sizepage
+	residuo := uint64(a) % sizepage
+	if residuo != 0 {
+		pags += 1
 	}
 	resp["pags"] = pags
 	resp["pag"] = &pag
@@ -38,7 +38,12 @@ func ganador(c *fiber.Ctx) error {
 	init := (pag - 1) * sizepage
 
 	ganador := []gormdb.Ganador{}
-	errdb := db.Table("ganador").Offset(int(init)).Limit(int(sizepage)).Find(&ganador, "Id_usuario = ?", userID)
+	errdb := db.
+		Table("ganador").
+		Where("Usuario_id = ?", userID).
+		Offset(int(init)).
+		Limit(int(sizepage)).
+		Find(&ganador)
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(resp)
@@ -59,7 +64,7 @@ func cartera(c *fiber.Ctx) error {
 	}
 
 	cartera := gormdb.Carteras{}
-	errdb := db.Find(&cartera, "Id_usuario = ?", userID)
+	errdb := db.Find(&cartera, "Usuario_id = ?", userID)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -72,11 +77,11 @@ func cartera(c *fiber.Ctx) error {
 			return c.Status(500).JSON(m)
 		}
 	}
-	errdb = db.Find(&cartera, "Id_usuario = ?", userID)
+	errdb = db.Find(&cartera, "Usuario_id = ?", userID)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	m["cartera"] = cartera
-	return c.JSON(m)
+
+	return c.JSON(cartera)
 }

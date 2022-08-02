@@ -5,7 +5,7 @@ import "time"
 type EventoVideo struct {
 	Id                  uint32     `json:"id"`
 	Activo              *bool      `json:"activo"`
-	Fechahora_evento    *time.Time `json:"status"`
+	Fechahora_evento    *time.Time `json:"fechahora_evento"`
 	Premio_cash         *float32   `json:"premio_cash"`
 	Acumulado           *float32   `json:"acumulado"`
 	Premio_otros        *string    `json:"premio_otros"`
