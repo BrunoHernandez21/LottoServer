@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
 	"lottomusic/src/globals"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
@@ -95,23 +94,19 @@ func signup(c *fiber.Ctx) error {
 	out.Activo = &activo
 	out.Password = &i
 	var unikey string = randomString(10)
-	fmt.Println(unikey)
 	out.Codigo_referido = &unikey
 	errdb = db.Create(&out)
 	if errdb.Error != nil {
 		m["mensaje"] = "Error en la base de datos"
 		return c.Status(500).JSON(m)
 	}
-	errdb = db.Where("email = ?", input.Email).Find(&out)
-	if errdb.Error != nil {
-		m["mensaje"] = "Error en la base de datos"
-		return c.Status(500).JSON(m)
-	}
+	/*TODO: creacion de referido
+	Esto tambien deberian encargarse la base de datos ?*/
 	if input.Referido_por != nil {
 		referido := gormdb.Referido{
-			User_id: out.Id,
-			Codigo:  *input.Referido_por,
-			Cobrado: false,
+			Usuario_id: out.Id,
+			Codigo:     *input.Referido_por,
+			Cobrado:    false,
 		}
 		errdb = db.Create(&referido)
 		if errdb.Error != nil {
@@ -119,7 +114,7 @@ func signup(c *fiber.Ctx) error {
 			return c.Status(500).JSON(m)
 		}
 	}
-
+	out.Password = nil
 	return c.JSON(out)
 }
 
@@ -197,12 +192,6 @@ func deleteuser(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	user_rol := gormdb.Usuarios_roles{}
-	errdb = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
 
 	m["mensaje"] = "Eliminado satisfactoriamente"
 	return c.JSON(m)
@@ -236,12 +225,6 @@ func deleteById(c *fiber.Ctx) error {
 	//db midelware
 	a := gormdb.Usuarios{}
 	errdb := db.Find(&a, "id = ?", param).Delete(&a)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	user_rol := gormdb.Usuarios_roles{}
-	errdb = db.Find(&user_rol, "User_id = ?", a.Id).Delete(&user_rol)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -324,6 +307,7 @@ func updateuser(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
+	input.Password = nil
 	return c.JSON(input)
 }
 
@@ -337,7 +321,7 @@ func createDireccion(c *fiber.Ctx) error {
 	input.Id = 0
 	id, ok := c.Locals("userID").(uint32)
 	if ok {
-		input.User_id = &id
+		input.Usuario_id = &id
 	} else {
 		m["mensaje"] = "error interno"
 		return c.Status(500).JSON(m)
@@ -357,18 +341,20 @@ func updateDireccion(c *fiber.Ctx) error {
 		m["mensaje"] = "Datos insuficientes"
 		return c.Status(500).JSON(m)
 	}
+
 	userid, ok := c.Locals("userID").(uint32)
 	if !ok {
 		m["mensaje"] = "error interno"
 		return c.Status(500).JSON(m)
 	}
+	input.Usuario_id = &userid
 	compare := gormdb.Direccion{}
 	errdb := db.Find(&compare, "id = ?", input.Id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	if *compare.User_id != userid {
+	if *compare.Usuario_id != userid {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	} else {
@@ -380,7 +366,7 @@ func updateDireccion(c *fiber.Ctx) error {
 func getDireccion(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	outs := []gormdb.Direccion{}
-	errdb := db.Find(&outs, "User_id = ?", c.Locals("userID"))
+	errdb := db.Find(&outs, "Usuario_id = ?", c.Locals("userID"))
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -392,7 +378,7 @@ func getDireccion(c *fiber.Ctx) error {
 func deleteDireccion(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	direccion := gormdb.Direccion{}
-	errdb := db.Find(&direccion, "id = ? AND user_id = ?", c.Params("id"), c.Locals("userID"))
+	errdb := db.Find(&direccion, "id = ? AND Usuario_id = ?", c.Params("id"), c.Locals("userID"))
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

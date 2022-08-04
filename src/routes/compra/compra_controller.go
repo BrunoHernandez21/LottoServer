@@ -140,13 +140,18 @@ func editTarjeta(c *fiber.Ctx) error {
 		m["mensaje"] = "internal error"
 		return c.Status(500).JSON(m)
 	}
-	errdb := db.Find(&compare, "Id = ? AND Usuario_id = ?", input.Id, userID)
+	input.Usuario_id = userID
+	errdb := db.Find(&compare, "Id = ? ", input.Id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	if compare.Id == 0 {
-		m["mensaje"] = "no te pertenece el plan"
+		m["mensaje"] = "No exite la tarjeta"
+		return c.Status(500).JSON(m)
+	}
+	if compare.Id != input.Id {
+		m["mensaje"] = "No te pertenece la tarjeta"
 		return c.Status(500).JSON(m)
 	}
 
@@ -186,14 +191,15 @@ func deleteTarjeta(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 func listarTarjeta(c *fiber.Ctx) error {
-	m := make(map[string]string)
+	m := make(map[string]interface{})
 	input := []gormdb.Payment_method{}
 	errdb := db.Find(&input, "usuario_id = ?", c.Locals("userID"))
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
+	m["tarjetas"] = input
+	return c.JSON(m)
 
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"lottomusic/src/config"
+	"lottomusic/src/modules/midelware"
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
 	"lottomusic/src/routes/compra"
@@ -59,6 +60,7 @@ func conexionDB() (conexiones *gorm.DB) {
 }
 
 func rutasMain(app *fiber.App, db *gorm.DB) {
+	midelware.Init_state(db)
 	auth.Init_routes(app, db)
 	plan.Init_routes(app, db)
 	carrito.Init_routes(app, db)

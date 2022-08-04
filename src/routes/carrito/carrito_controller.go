@@ -42,7 +42,7 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	amount := *a.Precio * float32(input.Cantidad)
+	amount := *a.Precio_total * float32(input.Cantidad)
 	input.Total_linea = &amount
 	input.Precio_unitario = a.Precio
 	var descuento float32 = 0
@@ -109,7 +109,7 @@ func listarWPlan(c *fiber.Ctx) error {
 	parse := []compuestas.CarritoPlan{}
 
 	errdb := db.Table("carrito as c").
-		Select(`c.id, c.cantidad, c.total_linea, c.precio_unitario, c.descuento, c.fecha_carrito, c.plan_id, p.cash, p.nombre, p.precio, p.moneda, p.suscribcion`).
+		Select(`c.id, c.cantidad, c.total_linea, c.precio_unitario, c.descuento, c.fecha_carrito, c.plan_id, p.puntos, p.nombre, p.precio, p.moneda, p.duracion_dias, p.suscribcion`).
 		Joins("INNER JOIN planes as p ON c.plan_id = p.id").
 		Where("Usuario_id = ? AND c.Activo = ? ", c.Locals("userID"), true).
 		Find(&parse)

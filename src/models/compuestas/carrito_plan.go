@@ -10,10 +10,11 @@ type CarritoPlan struct {
 	Descuento       *float32   `json:"descuento"`
 	Fecha_carrito   *time.Time `json:"fecha_carrito"`
 	Plan_id         uint32     `json:"plan_id"`
-	Cash            uint32     `json:"cash"`
+	Puntos          uint32     `json:"puntos"`
 	Nombre          *string    `json:"nombre,omitempty"`
 	Precio          *float32   `json:"precio,omitempty"`
 	Moneda          string     `json:"moneda,omitempty"`
+	Duracion_dias   int32      `json:"duracion_dias,omitempty"`
 	Suscribcion     bool       `json:"suscribcion,omitempty"`
 }
 

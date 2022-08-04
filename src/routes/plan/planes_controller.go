@@ -60,7 +60,7 @@ func create(c *fiber.Ctx) error {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
-	if (input.Precio == nil) || (input.Nombre == nil) || (input.Cash == nil) {
+	if (input.Precio == nil) || (input.Nombre == nil) || (input.Puntos == 0) {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(500).JSON(m)
 	}
@@ -111,8 +111,8 @@ func edit(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	if input.Cash != nil {
-		a.Cash = input.Cash
+	if input.Puntos != 0 {
+		a.Puntos = input.Puntos
 	}
 	if input.Precio != nil {
 		a.Precio = input.Precio
