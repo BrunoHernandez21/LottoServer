@@ -21,7 +21,7 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	cartera := gormdb.Carteras{}
-	errdb := db.Find(&cartera, "Id_usuario = ?", userID)
+	errdb := db.Find(&cartera, "usuario_id = ?", userID)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -42,25 +42,29 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(400).JSON(m)
 	}
 	/// verificacion de apuesta
+	var costo_unitario uint32
+	db.
+		Raw("SELECT costo from categoria_evento WHERE id = (SELECT categoria_evento_id from eventos WHERE id = ?);", input.Evento_id).
+		Scan(&costo_unitario)
 	var count uint32
-	if input.Shared != nil {
-		count += 1
+	if input.Saved_count != nil {
+		count += costo_unitario
 	}
-	if input.Views != nil {
-		count += 1
+	if input.Views_count != nil {
+		count += costo_unitario
 	}
-	if input.Like != nil {
-		count += 1
+	if input.Like_count != nil {
+		count += costo_unitario
 	}
-	if input.Dislikes != nil {
-		count += 1
+	if input.Dislikes_count != nil {
+		count += costo_unitario
 	}
-	if input.Saved != nil {
-		count += 1
+	if input.Saved_count != nil {
+		count += costo_unitario
 	}
 
-	if input.Comments != nil {
-		count += 1
+	if input.Comments_count != nil {
+		count += costo_unitario
 	}
 
 	if count == 0 {
@@ -68,33 +72,11 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(400).JSON(m)
 	}
 	//// verificacion de saldo
-	evento := gormdb.Eventos{
-		Id: input.Evento_id,
-	}
-	errdb = db.Find(&evento)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	if cartera.Cash < count {
-		m["mensaje"] = "No tienes de esta moneda"
+	if count > cartera.Puntos {
+		m["mensaje"] = "No tienes suficientes puntos"
 		return c.Status(400).JSON(m)
 	}
-	if evento.Categoria_evento_id == 1 {
-		cartera.Cash -= count
-	}
-	if evento.Categoria_evento_id == 2 {
-		cartera.Cash -= count
-	}
-	if evento.Categoria_evento_id == 3 {
-		cartera.Cash -= count
-	}
-	if evento.Categoria_evento_id == 4 {
-		cartera.Cash -= count
-	}
-	if evento.Categoria_evento_id == 5 {
-		cartera.Cash -= count
-	}
+	cartera.Puntos -= count
 	/// reducir en cartera
 
 	errdb = db.Save(&cartera)
@@ -163,7 +145,7 @@ func historialPage(c *fiber.Ctx) error {
 
 	a := int64(0)
 	userID := c.Locals("userID")
-	db.Table("apuesta_usuario").Where("Usuario_id = ?", userID).Count(&a)
+	db.Table("evento_usuario").Where("Usuario_id = ?", userID).Count(&a)
 
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
 	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
@@ -184,7 +166,7 @@ func historialPage(c *fiber.Ctx) error {
 	init := (page - 1) * sizepage
 	apuestasUsuario := []gormdb.Evento_usuario{}
 	errdb := db.
-		Table("apuesta_usuario").
+		Table("evento_usuario").
 		Where("Usuario_id = ?", userID).
 		Offset(int(init)).
 		Limit(int(sizepage)).

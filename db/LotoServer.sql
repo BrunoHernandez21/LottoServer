@@ -190,7 +190,7 @@ CREATE TABLE `ordenes` (
   PRIMARY KEY (`id`),
   KEY `a8sf99SK80fsdff02l34gE7R6G` (`usuario_id`),
   KEY `a8sf99SK80fsdff02l34gCR76G` (`payment_method_id`),
-  CONSTRAINT `a8sf99SK80fsdff02l34gE7R6G` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+  CONSTRAINT `a8sf99SK80fsdff02l34gE7R6G` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `a8sf99SK80fsdff02l34gCR76G` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_method` (`id`) ON DELETE CASCADE
 ) ;
 ##-- Table structure for table `items_orden`

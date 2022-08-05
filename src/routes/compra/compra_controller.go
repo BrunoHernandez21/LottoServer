@@ -77,7 +77,7 @@ func listarpaginado(c *fiber.Ctx) error {
 	compra := []compuestas.Pagos_orden{}
 	errdb := db.
 		Table("pagos as p").
-		Select(`p.id, p.fecha_pagado, p.orden_id,	p.stripe_id, o.status, o.Fecha_emitido, o.Total, o.Iva, o.Descuento, o.Total_iva`).
+		Select("p.id, p.fecha_pagado, p.stripe_id, o.status, o.fecha_emitido, o.impuesto, o.sub_total, o.descuento_orden, o.total, o.payment_method_id  ").
 		Joins("JOIN ordenes as o ON p.orden_id = o.id").
 		Offset(int(init)).
 		Limit(int(sizepage)).
