@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"lottomusic/src/config"
 	"lottomusic/src/modules/midelware"
+	"lottomusic/src/modules/websoc"
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
 	"lottomusic/src/routes/compra"
@@ -14,6 +15,7 @@ import (
 	"lottomusic/src/routes/suscripcion"
 	"lottomusic/src/routes/utils"
 	"lottomusic/src/routes/videos"
+	socrute "lottomusic/src/routes/websoc"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -38,12 +40,14 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           1800,
 	}))
+
 	//instance DB
 	db := conexionDB()
 	//instance Ruts
+	app.Static("/pagina/web", "./home.html")
 	rutasMain(app, db)
 	//start Server
-	err2 := app.Listen(":" + config.Port)
+	err2 := app.Listen(":" + config.Rest_Port)
 	if err2 != nil {
 		panic(err2.Error())
 	}
@@ -70,6 +74,8 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	suscripcion.Init_routes(app, db)
 	videos.Init_routes(app, db)
 	utils.Init_routes(app, db)
+	go websoc.InitState(config.Soc_Port)
+	socrute.Init_routes(app, db)
 
 }
 
@@ -85,13 +91,15 @@ func loadInitialConfig() {
 	}
 	config.DB = data.MainDB
 	config.Mail = data.MainMail
-	config.Port = data.Port
+	config.Rest_Port = data.Rest_Port
+	config.Soc_Port = data.Soc_Port
 }
 
 type ConfigMain struct {
-	MainDB   config.ConfigDB    `json:"db"`
-	MainMail config.ConfigEmail `json:"mail_config"`
-	Port     string             `json:"port"`
+	MainDB    config.ConfigDB    `json:"db"`
+	MainMail  config.ConfigEmail `json:"mail_config"`
+	Rest_Port string             `json:"port_rest"`
+	Soc_Port  string             `json:"port_soc"`
 }
 
 /*

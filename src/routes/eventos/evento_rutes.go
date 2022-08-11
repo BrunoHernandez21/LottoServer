@@ -1,6 +1,7 @@
 package evento
 
 import (
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/modules/jwts"
 
@@ -12,7 +13,7 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api/evento")
+	v1 := app.Group("/api" + config.Rest_version + "evento")
 
 	v1.Post("/evento", isRoot, crear)
 	v1.Put("/evento", isRoot, editar)

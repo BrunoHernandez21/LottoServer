@@ -1,6 +1,7 @@
 package compra
 
 import (
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/modules/jwts"
 
@@ -13,7 +14,7 @@ var db *gorm.DB
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 
-	v1 := app.Group("/api/compra")
+	v1 := app.Group("/api" + config.Rest_version + "compra")
 	//TODO esto deberia ser root
 
 	v1.Delete("/compra", isRoot, eliminar)

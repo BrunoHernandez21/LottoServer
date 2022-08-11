@@ -1,6 +1,7 @@
 package carrito
 
 import (
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/modules/jwts"
 
@@ -12,7 +13,7 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api/carrito")
+	v1 := app.Group("/api" + config.Rest_version + "carrito")
 
 	v1.Post("/carrito", isRegister, crear)
 	v1.Get("/carrito/plan", isRegister, listarWPlan)

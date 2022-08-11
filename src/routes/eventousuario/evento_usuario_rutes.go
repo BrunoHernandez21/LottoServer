@@ -1,6 +1,7 @@
 package eventousuario
 
 import (
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/modules/jwts"
 
@@ -12,7 +13,7 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api/usuario")
+	v1 := app.Group("/api" + config.Rest_version + "usuario")
 
 	v1.Post("/evento", isRegister, crear)
 	v1.Get("/evento/:page/:sizepage", isRegister, historialPage)

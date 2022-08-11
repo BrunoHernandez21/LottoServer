@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/modules/jwts"
 
@@ -12,7 +13,7 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api/utils")
+	v1 := app.Group("/api" + config.Rest_version + "utils")
 	v1.Get("/oclock", oclock)
 	v1.Get("/wins/:pag/:sizepage", isRegister, ganador)
 	v1.Get("/cartera", isRegister, cartera)

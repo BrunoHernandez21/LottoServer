@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"lottomusic/src/config"
 	mi "lottomusic/src/modules/midelware"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,7 +12,8 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api/auth/")
+
+	v1 := app.Group("/api" + config.Rest_version + "auth/")
 	//v2.Get("logout", logout)
 
 	v1.Post("login", login)

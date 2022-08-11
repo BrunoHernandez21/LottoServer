@@ -4,6 +4,7 @@ import (
 	"lottomusic/src/models/gormdb"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -37,6 +38,8 @@ func crear(c *fiber.Ctx) error {
 	activo := true
 	input.Activo = &activo
 	input.Usuario_id = userID
+	fecha := time.Now()
+	input.Fecha = &fecha
 	if input.Evento_id == 0 {
 		m["mensaje"] = "Apuesta id no puede ser nulo"
 		return c.Status(400).JSON(m)

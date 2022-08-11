@@ -1,45 +1,43 @@
 DROP PROCEDURE IF EXISTS `genera_orden`;
 delimiter $$
-CREATE PROCEDURE genera_orden(IN user_id int) 
+CREATE PROCEDURE genera_orden(IN user_id int,IN card_id int) 
 begin
     DECLARE time_Now datetime;
     DECLARE orden_id bigint;
     DECLARE resp varchar(40);
     set time_Now = now();
-    IF ((SELECT count(id) from carrito WHERE carrito.usuario_id = user_id AND activo = TRUE)=0) THEN 
-        SET resp = "carrito vacio";
-    ELSE
-        INSERT INTO ordenes ( ordenes.status, fecha_emitido, total,iva,descuento,total_iva,usuario_id)
-            SELECT 	"proceso",
-                    time_Now,
-                    SUM(total_linea),
-                    10 as iva,
-                    10 as descuento,
-                    (SUM(total_linea)*.90)*1.1,
-                    user_id 
-            from carrito 
-            WHERE carrito.usuario_id = user_id AND activo = TRUE;
+
+   INSERT INTO ordenes ( ordenes.status, fecha_emitido, impuesto,sub_total,descuento_orden,total,usuario_id,payment_method_id)
+        SELECT 	"proceso",
+                time_Now,
+                0,
+                SUM(total_linea),
+                0,
+                SUM(total_linea)+0-0,
+                user_id,
+                card_id
+        from carrito 
+        WHERE carrito.usuario_id = user_id AND activo = TRUE;
 
         SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now);
                 
-        INSERT INTO items_orden ( cantidad, total_linea, precio_unitario,descuento,plan_id,orden_id)
-            SELECT 	cantidad,
-                    total_linea,
-                    precio_unitario,
-                    descuento,
-                    plan_id,
-                    orden_id 
-            from carrito 
-            WHERE carrito.usuario_id = user_id AND activo = TRUE;
+    INSERT INTO items_orden ( cantidad, total_linea, precio_unitario,moneda,descuento_items,plan_id,orden_id)
+        SELECT 	cantidad,
+                total_linea,
+                precio_unitario,
+                (SELECT planes.moneda from planes WHERE id = carrito.plan_id),
+                descuento,
+                plan_id,
+                orden_id 
+        from carrito 
+        WHERE carrito.usuario_id = user_id AND activo = TRUE;
 
         UPDATE carrito SET activo = false WHERE carrito.usuario_id = user_id;
         SET resp = "finalizado correctamente";
-    END IF;
     SELECT resp;
 end
 $$
 delimiter ;
-
 
 
 DROP PROCEDURE IF EXISTS `pagos_realizado`;

@@ -18,4 +18,8 @@ type ConfigEmail struct {
 	Password   string
 }
 
-var Port = ""
+var Rest_Port = ""
+var Soc_Port = ""
+
+const Rest_version string = "/v3/"
+const Soc_version string = "/v1/"
