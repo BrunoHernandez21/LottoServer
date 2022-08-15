@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"lottomusic/src/config"
 	"lottomusic/src/modules/midelware"
-	"lottomusic/src/modules/websoc"
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
 	"lottomusic/src/routes/compra"
@@ -15,7 +14,6 @@ import (
 	"lottomusic/src/routes/suscripcion"
 	"lottomusic/src/routes/utils"
 	"lottomusic/src/routes/videos"
-	socrute "lottomusic/src/routes/websoc"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -74,8 +72,6 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	suscripcion.Init_routes(app, db)
 	videos.Init_routes(app, db)
 	utils.Init_routes(app, db)
-	go websoc.InitState(config.Soc_Port)
-	socrute.Init_routes(app, db)
 
 }
 

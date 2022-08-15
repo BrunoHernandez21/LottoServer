@@ -2,8 +2,7 @@ package videos
 
 import (
 	"lottomusic/src/config"
-	"lottomusic/src/models/gormdb"
-	"lottomusic/src/modules/jwts"
+	mi "lottomusic/src/modules/midelware"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -17,38 +16,17 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	v1.Get("/video/:id", activoID)
 	v1.Get("/videos/:page/:sizepage", videos_pag)
-	v1.Post("/videos", isRoot, crear)
-	v1.Put("/videos", isRoot, editar)
-	v1.Delete("/videos/:id", isRoot, eliminar)
+	v1.Post("/videos", mi.IsRoot, crear)
+	v1.Put("/videos", mi.IsRoot, editar)
+	v1.Delete("/videos/:id", mi.IsRoot, eliminar)
 
 	v1.Get("/grupos", listargrupos)
 	v1.Get("/grupos/:page/:sizepage/:name", listarGruposName)
 
 	v1.Get("/eventos/:page/:sizepage", videos_evento_pag)
-}
 
-func isRoot(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	headers := c.GetReqHeaders()
-	_, credentials, err := jwts.ValidateToken(headers["Authorization"])
-	if err != nil {
-		m["mensaje"] = "Token invalido"
-		return c.Status(500).JSON(m)
-	}
-	user_rol := gormdb.Usuarios_roles{}
-	errdb := db.Find(&user_rol, "User_id = ?", credentials.ID)
-	if errdb.Error != nil {
-		m["mensaje"] = "internal error"
-		return c.Status(500).JSON(m)
-	}
-	if user_rol.User_id == 0 {
-		m["mensaje"] = "Usuario no registado"
-		return c.Status(500).JSON(m)
-	}
-	if user_rol.Role_id != 2 {
-		m["mensaje"] = "Unauthorized"
-		return c.Status(401).JSON(m)
-	}
-	c.Locals("userID", credentials.ID)
-	return c.Next()
+	v1.Get("/videos/:page/:sizepage", videos_pag)
+	v1.Post("/videos", mi.IsRoot, crear)
+	v1.Put("/videos", mi.IsRoot, editar)
+	v1.Delete("/videos/:id", mi.IsRoot, eliminar)
 }
