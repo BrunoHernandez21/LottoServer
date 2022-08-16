@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS `cron_task`;
 DROP TABLE IF EXISTS `eventos`;
 DROP TABLE IF EXISTS `tipo_evento`;
 DROP TABLE IF EXISTS `categoria_evento`;
+DROP TABLE IF EXISTS `videos_estadisticas`;
 DROP TABLE IF EXISTS `videos`;
 DROP TABLE IF EXISTS `suscripciones`;
 DROP TABLE IF EXISTS `beneficios_plan`;
@@ -30,7 +31,6 @@ DROP TABLE IF EXISTS `propiedades_usuarios`;
 DROP TABLE IF EXISTS `usuarios`;
 DROP TABLE IF EXISTS `promociones`;
 DROP TABLE IF EXISTS `cupones`;
-
 
 ##-- Table structure for table `usuarios`
 CREATE TABLE `usuarios` (
@@ -336,6 +336,22 @@ INSERT INTO `videos` VALUES
 (5,1,'Carin Leon','TAMARINDOREKORDSZ','2021-12-12 00:00:00.000000','8Bznc5tTQ9M','https://i.ytimg.com/vi/8Bznc5tTQ9M/default.jpg','Si Una Vez','https://www.youtube.com/watch?v=8Bznc5tTQ9M','Salsa','Youtube'),
 (6,1,'Grupo Firme','Grupo Firme','2020-07-24 00:00:00.000000','g2BzGJnNvEw','https://i.ytimg.com/vi/g2BzGJnNvEw/default.jpg',' Ya Superame','https://www.youtube.com/watch?v=g2BzGJnNvEw','Banda','Youtube');
 UNLOCK TABLES;
+
+##--videos
+CREATE TABLE `videos_estadisticas` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `video_id` bigint NOT NULL,
+  `fecha` datetime(6) DEFAULT NULL,  
+  `views_count` bigint DEFAULT NULL,
+  `like_count` bigint DEFAULT NULL,
+  `comments_count` bigint DEFAULT NULL,
+  `dislikes_count` bigint DEFAULT NULL,
+  `saved_count` bigint DEFAULT NULL,
+  `shared_count` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKs87xk1t7ytkg1xw9doomybg6m` (`video_id`),
+  CONSTRAINT `FKs87xk1t7ytkg1xw9doomybg6m` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+);
 
 ##-- Table structure for table `categoria_evento`
 CREATE TABLE `categoria_evento` (

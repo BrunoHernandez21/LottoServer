@@ -1,50 +1,16 @@
 package videos
 
 import (
+	"lottomusic/src/helpers"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func videos_pag(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	resp := make(map[string]interface{})
-	input := []gormdb.Videos{}
-
-	a := int64(0)
-	db.Table("videos").Where("Activo = ?", true).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
-	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
-	}
-	pags := uint64(a) / sizepage
-	residuo := uint64(a) % sizepage
-	if residuo != 0 {
-		pags += 1
-	}
-	resp["pags"] = pags
-	resp["pag"] = page
-	resp["sizepage"] = sizepage
-	resp["totals"] = a
-	init := (page - 1) * sizepage
-	errdb := db.
-		Table("videos").
-		Where("Activo = ?", true).
-		Offset(int(init)).
-		Limit(int(sizepage)).
-		Find(&input)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	resp["items"] = input
-	return c.JSON(resp)
-}
-
+//////// Eventos video paginado
 func videos_evento_pag(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
@@ -85,6 +51,44 @@ func videos_evento_pag(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+///////// Videos
+func videos_pag(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	resp := make(map[string]interface{})
+	input := []gormdb.Videos{}
+
+	a := int64(0)
+	db.Table("videos").Where("Activo = ?", true).Count(&a)
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	pags := uint64(a) / sizepage
+	residuo := uint64(a) % sizepage
+	if residuo != 0 {
+		pags += 1
+	}
+	resp["pags"] = pags
+	resp["pag"] = page
+	resp["sizepage"] = sizepage
+	resp["totals"] = a
+	init := (page - 1) * sizepage
+	errdb := db.
+		Table("videos").
+		Where("Activo = ?", true).
+		Offset(int(init)).
+		Limit(int(sizepage)).
+		Find(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	resp["items"] = input
+	return c.JSON(resp)
+}
+
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Videos{}
@@ -101,65 +105,13 @@ func crear(c *fiber.Ctx) error {
 	m["mensaje"] = "Creado con exito"
 	return c.JSON(m)
 }
-func listargrupos(c *fiber.Ctx) error {
-	m := make(map[string]interface{})
-	input := []string{}
-	errdb := db.Table("videos").Select("genero").Where("Activo = ?", true).Find(&input)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	input = uniqueString(input)
-	m["grupos"] = input
-	return c.JSON(m)
-}
-
-func listarGruposName(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	resp := make(map[string]interface{})
-	items := []views.EventoVideo{}
-	genero := c.Params("name")
-	a := int64(0)
-	db.Find(&items).Where("genero = ?", genero).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
-	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
-	}
-	pags := uint64(a) / sizepage
-	residuo := uint64(a) % sizepage
-	if residuo != 0 {
-		pags += 1
-	}
-	resp["pags"] = pags
-	resp["pag"] = page
-	resp["sizePage"] = sizepage
-	resp["totals"] = a
-	init := (page - 1) * sizepage
-
-	errdb := db.
-		Table("eventos_videos").
-		Where("genero = ?", genero).
-		Offset(int(init)).
-		Limit(int(sizepage)).
-		Find(&items)
-
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-
-	resp["items"] = &items
-	return c.JSON(resp)
-}
 
 func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	a := gormdb.Videos{}
 	err := db.Find(&a, "id = ?", c.Params("id"))
 	if (err.Error != nil) || (a.Id == 0) {
-		m["mensaje"] = "Plan no encontrado"
+		m["mensaje"] = "Video no encontrado"
 		return c.Status(404).JSON(m)
 	}
 	errdb := db.Delete(&a)
@@ -233,27 +185,146 @@ func editar(c *fiber.Ctx) error {
 	return c.JSON(ins)
 }
 
-func uniqueString(arr []string) []string {
-	result := make([]string, 0, len(arr))
-	encountered := map[string]bool{}
-	for v := range arr {
-		encountered[arr[v]] = true
+////////////// Grupos
+func listargrupos(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := []string{}
+	errdb := db.Table("videos").Select("genero").Where("Activo = ?", true).Find(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
 	}
-	for key := range encountered {
-		result = append(result, key)
-	}
-	return result
+	input = helpers.UniqueString(input)
+	m["grupos"] = input
+	return c.JSON(m)
 }
 
-/*
-func uniqueInt(arr []int) []int {
-	result := make([]int, 0, len(arr))
-	encountered := map[int]bool{}
-	for v := range arr {
-		encountered[arr[v]] = true
+func listarGruposName(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	resp := make(map[string]interface{})
+	items := []views.EventoVideo{}
+	genero := c.Params("name")
+	a := int64(0)
+	db.Find(&items).Where("genero = ?", genero).Count(&a)
+	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	if err != nil || err2 != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
 	}
-	for key := range encountered {
-		result = append(result, key)
+	pags := uint64(a) / sizepage
+	residuo := uint64(a) % sizepage
+	if residuo != 0 {
+		pags += 1
 	}
-	return result
-}*/
+	resp["pags"] = pags
+	resp["pag"] = page
+	resp["sizePage"] = sizepage
+	resp["totals"] = a
+	init := (page - 1) * sizepage
+
+	errdb := db.
+		Table("eventos_videos").
+		Where("genero = ?", genero).
+		Offset(int(init)).
+		Limit(int(sizepage)).
+		Find(&items)
+
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	resp["items"] = &items
+	return c.JSON(resp)
+}
+
+/////////////// Estadisticas
+
+func get_statistics(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := []gormdb.VideosEstadisticas{}
+
+	err := db.Order("Video_id DESC").Find(&input)
+	if err.Error != nil {
+		m["mensaje"] = err.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["items"] = input
+	return c.JSON(m)
+}
+func get_st_byID(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := gormdb.VideosEstadisticas{}
+
+	err := db.Where("Video_id = ?", c.Params("id")).Order("Video_id ASC").Find(&input)
+	if err.Error != nil {
+		m["mensaje"] = err.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	if input.Id == 0 {
+		m["mensaje"] = "No hay estadisticas del video"
+		return c.JSON(m)
+	}
+	return c.JSON(input)
+}
+func create_statistics(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := gormdb.VideosEstadisticas{}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(500).JSON(err)
+	}
+	if input.Video_id == 0 {
+		m["mensaje"] = "requieres incertar el video ID"
+		return c.Status(400).JSON(m)
+	}
+	fecha := time.Now()
+	input.Fecha = fecha
+	errdb := db.Create(&input)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["mensaje"] = "Creado con exito"
+	m["fecha"] = fecha.String()
+	return c.JSON(time.Now())
+}
+
+//TODO incompleto
+func delete_statistics(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	a := gormdb.VideosEstadisticas{}
+	err := db.Find(&a, "Video_id = ?", c.Params("id"))
+	if (err.Error != nil) || (a.Video_id == 0) {
+		m["mensaje"] = "Video no encontrado"
+		return c.Status(404).JSON(m)
+	}
+	errdb := db.Delete(&a)
+	if errdb.Error != nil {
+		m["mensaje"] = "No se pudo acceder a la base de datos"
+		return c.Status(500).JSON(m)
+	}
+	m["mensaje"] = "eliminado correctamente"
+	return c.JSON(m)
+}
+
+func edit_statistics(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := gormdb.VideosEstadisticas{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	if input.Video_id == 0 {
+		m["mensaje"] = "Id no puede ser null"
+		return c.Status(500).JSON(m)
+	}
+
+	errdb := db.Table("videos_estadisticas").Where("Video_id = ?", input.Video_id).Save(&input)
+
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	return c.JSON(input)
+}

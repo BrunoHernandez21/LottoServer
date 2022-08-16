@@ -8,9 +8,9 @@ type Resultado struct {
 	Like_count     *uint32   `json:"like_count,omitempty"`
 	Views_count    *uint32   `json:"view_count,omitempty"`
 	Comments_count *uint32   `json:"comments_count,omitempty"`
-	Dislikes_count *uint32   `json:"Dislikes,omitempty"`
-	Saved_count    *uint32   `json:"saved,omitempty"`
-	Shared_count   *uint32   `json:"shared,omitempty"`
+	Dislikes_count *uint32   `json:"dislikes,omitempty"`
+	Saved_count    *uint32   `json:"saved_count,omitempty"`
+	Shared_count   *uint32   `json:"shared_count,omitempty"`
 	Evento_id      *uint32   `json:"evento_id,omitempty"`
 	Video_id       *uint32   `json:"video_id,omitempty"`
 }
