@@ -23,3 +23,32 @@ end
 $$
 delimiter ;
 
+
+
+
+
+
+    ##--incertamos los beneficios de dias del plan
+    INSERT INTO beneficios_usuario ( activo, fecha_inicio, fecha_fin,usuario_id,beneficio_id,plan_id)
+		SELECT 	true,
+        		now(),
+                DATE_ADD(now(), INTERVAL b.valor DAY),
+                user_id,
+                b.id,
+                i.plan_id 
+        from items_orden i 
+        JOIN beneficios_plan bp ON i.plan_id = bp.plan_id 
+    	JOIN beneficios b ON b.id = bp.beneficio_id 
+        WHERE b.tipo = "DIAS" AND i.orden_id = iorden_id;
+    ##--incertamos los beneficios de dias del plan
+    INSERT INTO beneficios_usuario ( activo, fecha_inicio, fecha_fin,usuario_id,beneficio_id,plan_id)
+		SELECT 	true,
+        		now(),
+                DATE_ADD(now(), INTERVAL b.valor DAY),
+                user_id,
+                b.id,
+                i.plan_id 
+        from items_orden i 
+        JOIN beneficios_plan bp ON i.plan_id = bp.plan_id 
+    	JOIN beneficios b ON b.id = bp.beneficio_id 
+        WHERE b.tipo = "CASH" AND i.orden_id = iorden_id;

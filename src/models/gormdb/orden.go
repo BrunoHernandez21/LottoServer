@@ -6,10 +6,8 @@ type Ordenes struct {
 	Id                uint32     `json:"id"`
 	Status            string     `json:"status"`
 	Fecha_emitido     *time.Time `json:"fecha_emitido"`
-	Total             int32      `json:"total"`
-	Iva               *float32   `json:"iva"`
-	Descuento         *float32   `json:"descuento"`
-	Total_iva         *float32   `json:"total_iva"`
+	Precio_total      int32      `json:"precio_total"`
+	Puntos_total      int32      `json:"puntos_total"`
 	Usuario_id        uint32     `json:"usuario_id"`
 	Payment_method_id uint32     `json:"payment_method_id"`
 }

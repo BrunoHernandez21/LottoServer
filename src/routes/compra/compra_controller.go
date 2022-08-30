@@ -9,6 +9,23 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func checkout(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := inputs.Checkout{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	if input.Card_id == 0 {
+		m["mensaje"] = "Card no puede ser nulo o 0"
+		return c.Status(500).JSON(m)
+	}
+	var resp string
+	db.Raw("CALL genera_orden(?,?)", c.Locals("userID"), input.Card_id).Scan(&resp)
+	m["resp"] = resp
+	return c.Status(200).JSON(m)
+}
+
 func verifica(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := inputs.Get_Stripe{}
@@ -21,19 +38,8 @@ func verifica(c *fiber.Ctx) error {
 	m["resp"] = resp
 	return c.Status(200).JSON(m)
 }
-func eliminar(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	param := c.Params("id")
-	//db midelware
-	a := gormdb.Pagos{}
-	err := db.Find(&a, "id = ?", param).Delete(&a)
-	if err.Error != nil {
-		m["mensaje"] = err.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	m["mensaje"] = "Eliminado Satisfactoriamente"
-	return c.JSON(m)
-}
+
+////// Historial
 func listar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	compra := []compuestas.Pagos_orden{}
@@ -95,13 +101,19 @@ func listarpaginado(c *fiber.Ctx) error {
 
 }
 
-func checkout(c *fiber.Ctx) error {
-	m := make(map[string]interface{})
-	var resp string
-	db.Raw("CALL genera_orden(?)", c.Locals("userID")).Scan(&resp)
-	m["resp"] = resp
-	return c.Status(200).JSON(m)
+/// listar otdenes
+func listarOrdenes(c *fiber.Ctx) error {
+	m := make(map[string]string)
+	input := []gormdb.Ordenes{}
+	errdb := db.Find(&input, "usuario_id = ? AND status = ?", c.Locals("userID"), "proceso")
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	return c.JSON(input)
 }
+
+////// Tarjetas
 
 func createTarjeta(c *fiber.Ctx) error {
 	m := make(map[string]string)
@@ -190,6 +202,7 @@ func deleteTarjeta(c *fiber.Ctx) error {
 	m["mensaje"] = "Eliminado con exito"
 	return c.JSON(m)
 }
+
 func listarTarjeta(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Payment_method{}
@@ -203,14 +216,17 @@ func listarTarjeta(c *fiber.Ctx) error {
 
 }
 
-func listarOrdenes(c *fiber.Ctx) error {
+////// ROOT
+func eliminar(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := []gormdb.Ordenes{}
-	errdb := db.Find(&input, "usuario_id = ? AND status = ?", c.Locals("userID"), "proceso")
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
+	param := c.Params("id")
+	//db midelware
+	a := gormdb.Pagos{}
+	err := db.Find(&a, "id = ?", param).Delete(&a)
+	if err.Error != nil {
+		m["mensaje"] = err.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
-
+	m["mensaje"] = "Eliminado Satisfactoriamente"
+	return c.JSON(m)
 }

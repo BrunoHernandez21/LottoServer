@@ -1,7 +1,7 @@
 package inputs
 
 type Checkout struct {
-	IDs []uint32 `json:"IDs"`
+	Card_id uint32 `json:"card_id"`
 }
 
 type Get_Stripe struct {

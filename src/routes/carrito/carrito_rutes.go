@@ -15,10 +15,12 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1 := app.Group("/api" + config.Rest_version + "carrito")
 
 	v1.Post("/carrito", mi.IsRegister, crear)
-	v1.Get("/carrito/plan", mi.IsRegister, listarWPlan)
-	v1.Get("/carrito", mi.IsRegister, listar)
-	v1.Put("/carrito", mi.IsRegister, editar)
 	v1.Delete("/carrito/:id", mi.IsRegister, eliminar)
+	v1.Get("/carrito/plan", mi.IsRegister, listarWPlan)
+
+	//TODO no se utilizan aun
+	v1.Get("/carrito", mi.IsRegister, listar)
+	//v1.Put("/carrito", mi.IsRegister, editar)
 	v1.Delete("/carritos", mi.IsRegister, eliminarall)
 
 }

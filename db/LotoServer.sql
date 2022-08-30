@@ -1,36 +1,31 @@
-DROP TABLE IF EXISTS `usuarios_roles`;
-DROP TABLE IF EXISTS `roles`;
-DROP TABLE IF EXISTS `resultado`;
-DROP TABLE IF EXISTS `hibernate_sequence`;
-DROP TABLE IF EXISTS `ganador`;
-DROP TABLE IF EXISTS `evento_usuario`;
-DROP TABLE IF EXISTS `cron_task`;
-DROP TABLE IF EXISTS `eventos`;
-DROP TABLE IF EXISTS `tipo_evento`;
-DROP TABLE IF EXISTS `categoria_evento`;
-DROP TABLE IF EXISTS `videos_estadisticas`;
-DROP TABLE IF EXISTS `videos`;
-DROP TABLE IF EXISTS `suscripciones`;
-DROP TABLE IF EXISTS `beneficios_plan`;
-DROP TABLE IF EXISTS `beneficios_usuario`;
-DROP TABLE IF EXISTS `beneficios`;
-DROP TABLE IF EXISTS `items_orden`;
-DROP TABLE IF EXISTS `pagos`;
-DROP TABLE IF EXISTS `ordenes`;
-DROP TABLE IF EXISTS `carrito`;
-DROP TABLE IF EXISTS `usuarios_descuento`;
-DROP TABLE IF EXISTS `descuento_orden`;
-DROP TABLE IF EXISTS `descuento_item`;
-DROP TABLE IF EXISTS `descuento_items`;
-DROP TABLE IF EXISTS `planes`;
-DROP TABLE IF EXISTS `payment_method`;
-DROP TABLE IF EXISTS `carteras`;
-DROP TABLE IF EXISTS `referido`;
-DROP TABLE IF EXISTS `direccion`;
-DROP TABLE IF EXISTS `propiedades_usuarios`;
-DROP TABLE IF EXISTS `usuarios`;
-DROP TABLE IF EXISTS `promociones`;
-DROP TABLE IF EXISTS `cupones`;
+  DROP TABLE IF EXISTS `usuarios_roles`;
+  DROP TABLE IF EXISTS `roles`;
+  DROP TABLE IF EXISTS `resultado`;
+  DROP TABLE IF EXISTS `ganador`;
+  DROP TABLE IF EXISTS `evento_usuario`;
+  DROP TABLE IF EXISTS `eventos`;
+  DROP TABLE IF EXISTS `tipo_evento`;
+  DROP TABLE IF EXISTS `categoria_evento`;
+  DROP TABLE IF EXISTS `videos_estadisticas`;
+  DROP TABLE IF EXISTS `videos`;
+  DROP TABLE IF EXISTS `suscripciones`;
+  DROP TABLE IF EXISTS `beneficios_plan`;
+  DROP TABLE IF EXISTS `beneficios_usuario`;
+  DROP TABLE IF EXISTS `beneficios_referido`;
+  DROP TABLE IF EXISTS `beneficios`;
+  DROP TABLE IF EXISTS `items_orden`;
+  DROP TABLE IF EXISTS `pagos`;
+  DROP TABLE IF EXISTS `ordenes`;
+  DROP TABLE IF EXISTS `carrito`;
+  DROP TABLE IF EXISTS `planes`;
+  DROP TABLE IF EXISTS `payment_method`;
+  DROP TABLE IF EXISTS `carteras`;
+  DROP TABLE IF EXISTS `referido`;
+  DROP TABLE IF EXISTS `direccion`;
+  DROP TABLE IF EXISTS `propiedades_usuarios`;
+  DROP TABLE IF EXISTS `acces`;
+  DROP TABLE IF EXISTS `level`;
+  DROP TABLE IF EXISTS `usuarios`;  
 
 ##-- Table structure for table `usuarios`
 CREATE TABLE `usuarios` (
@@ -51,19 +46,44 @@ CREATE TABLE `usuarios` (
 LOCK TABLES `usuarios` WRITE;
 INSERT INTO `usuarios` VALUES 
 (1,true,NULL,NULL,'mezagg@gmail.com',NULL,NULL,'$2a$10$59tlZW6RvpCSnPwfKGxpR.55WwSGMQRi9Gq.2D43Nd8tZcxvQbt02',NULL,"2Pk6D80@&c"),
-(2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'ff5e774c4f3bc465ee0ca78f5e1fc787e4ea97c1',NULL,"2VksD8o@\c");
+(2,true,NULL,NULL,'ichimar21@gmail.com',NULL,NULL,'93ac34edd54c8c52ea15b6026e50435bf2e6a91f',NULL,"2VksD8o@\c");
+UNLOCK TABLES;
+##-- Table structure for table `level`
+CREATE TABLE `level` (
+  `level` varchar(64) Not null,
+  UNIQUE KEY `UK_levelAccesApp0001` (`level`)
+);
+LOCK TABLES `level` WRITE;
+INSERT INTO `level` VALUES ('0'),('1'),('2'),('3');
+UNLOCK TABLES;
+
+##-- Table structure for table `acces`
+CREATE TABLE `acces` (
+  `level_id` varchar(64) Not null,
+  `description` varchar(64) Not null,
+  CONSTRAINT `UK_accesLevelrelacion0001` FOREIGN KEY (`level_id`) REFERENCES `level` (`level`) ON DELETE CASCADE
+);
+LOCK TABLES `acces` WRITE;
+INSERT INTO `acces` VALUES 
+('0','estadisticas'),
+('0','estadisticas_long'),
+('1','estadisticas'),
+('2','nada'),
+('3','nada');
 UNLOCK TABLES;
 
 ##-- Table structure for table `usuarios`
 CREATE TABLE `propiedades_usuarios` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `nivel_acceso` varchar(60) DEFAULT 'default',
+  `nivel_acceso` varchar(60) DEFAULT '3',
   `custom_attributes` varchar(1024) DEFAULT null,
   `fecha_inicio` datetime(6) DEFAULT NULL,
   `fecha_fin` datetime(6) DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_key_for_property_user` (`usuario_id`),
+  KEY `UK_usuario_nivel00001` (`nivel_acceso`),
+  CONSTRAINT `UK_usuario_nivel00001` FOREIGN KEY (`nivel_acceso`) REFERENCES `level` (`level`) ON DELETE CASCADE,
   CONSTRAINT `FK_key_for_property_user` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 
@@ -125,45 +145,41 @@ CREATE TABLE `payment_method` (
   KEY `FKdfsg45Tthfi8r4DF43gfd34hF` (`usuario_id`),
   CONSTRAINT `FKdfsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
-LOCK TABLES `payment_method` WRITE;
-UNLOCK TABLES;
 
 ##-- Table structure for table `planes`
 CREATE TABLE `planes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN   NOT NULL default true,
+  `titulo` varchar(60) DEFAULT NULL,
+  `descripcion` varchar(256) DEFAULT NULL,
+  `pre_puntos` int DEFAULT NULL,
   `puntos` int DEFAULT NULL,
-  `nombre` varchar(255) DEFAULT NULL,
-  `precio` double DEFAULT 0,
-  `moneda` varchar(10),
-  `descuento_item` double NOT NULL DEFAULT 0,
-  `impuesto` double NOT NULL DEFAULT 0,
-  `precio_total` double NOT NULL DEFAULT 0,
-  `duracion_dias` double NOT NULL DEFAULT 0,
+  `pre_precio` double DEFAULT 0,
+  `precio` double NOT NULL DEFAULT 0,
+  `moneda` varchar(8),
   `suscribcion` BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (`id`)
 );
 LOCK TABLES `planes` WRITE;
 INSERT INTO `planes` VALUES 
-(1,true,4,'Ordinario'     ,70,  'MXN',0,0,70, 360,true),
-(2,true,20,'Promocional'  ,300, 'MXN',0,0,300,360,true),
-(3,true,40,'Platinum'     ,500, 'MXN',0,0,500,360,true),
-(4,true,4,'Ordinario'     ,70,  'MXN',0,0,70, 360,false),
-(5,true,20,'Promocional'  ,300, 'MXN',0,0,300,360,false),
-(6,true,40,'Platinum'     ,500, 'MXN',0,0,500,360,false),
-(7,true,4,'Ordinario'     ,70,  'MXN',10,0,60, 360,false),
-(8,true,20,'Promocional'  ,300, 'MXN',50,0,250,360,false),
-(9,true,40,'Platinum'     ,500, 'MXN',100,0,400,360,false);
+(1,true,'Ordinario'   ,'Algo Sencillo'   ,null,4 ,null,70 ,'MXN',false),
+(2,true,'Promocional' ,'Un buen comienzo',null,20,300,250 ,'MXN',false),
+(3,true,'Platinum'    ,'Para Pro players',40  ,50,null,500,'MXN',false),
+(4,true,'Ordinario'   ,'Algo Sencillo'   ,null,4 ,null,70 ,'MXN',true),
+(5,true,'Promocional' ,'Un buen comienzo',null,20,300,250 ,'MXN',true),
+(6,true,'Platinum'    ,'Para Pro players',40  ,50,null,500,'MXN',true);
 UNLOCK TABLES;
 
 ##-- Table structure for table `carrito`
 CREATE TABLE `carrito` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `activo` BOOLEAN  NOT NULL default true,
-  `cantidad` int DEFAULT 1,
-  `total_linea` float DEFAULT NULL,
+  `cantidad` int NOT NULL DEFAULT 1,
   `precio_unitario` float DEFAULT NULL,
-  `descuento` float DEFAULT NULL,
+  `total_linea` double NOT NULL DEFAULT 0,
+  `puntos_unitario` float DEFAULT NULL,
+  `puntos_linea` double NOT NULL DEFAULT 0,
+  `moneda` varchar(10),
   `fecha_carrito` datetime(6) DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
@@ -173,18 +189,14 @@ CREATE TABLE `carrito` (
   CONSTRAINT `FKdfsg45Tth5345gDF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `a8sf23R980fsdf09er234gE7R6G` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
 ) ;
-LOCK TABLES `carrito` WRITE;
-UNLOCK TABLES;
 
 ##-- Table structure for table `orden`
 CREATE TABLE `ordenes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `status` varchar(255) DEFAULT NULL,
   `fecha_emitido` datetime(6) DEFAULT NULL,
-  `impuesto` double NOT NULL DEFAULT 0,
-  `sub_total` double NOT NULL DEFAULT 0,
-  `descuento_orden` double DEFAULT 0,
-  `total` double NOT NULL DEFAULT 0,
+  `precio_total` double NOT NULL DEFAULT 0,
+  `puntos_total` double NOT NULL DEFAULT 0,
   `usuario_id` bigint DEFAULT NULL,
   `payment_method_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -197,9 +209,8 @@ CREATE TABLE `ordenes` (
 CREATE TABLE `items_orden` (
   `cantidad` int NOT NULL DEFAULT 1,
   `total_linea` double NOT NULL DEFAULT 0,
-  `precio_unitario` double NOT NULL DEFAULT 0,
+  `puntos_linea` double NOT NULL DEFAULT 0,
   `moneda` varchar(10),
-  `descuento_items` double NOT NULL DEFAULT 0,
   `plan_id` bigint DEFAULT NULL,
   `orden_id` bigint DEFAULT NULL,
   KEY `FKpsPlankey0000000000000004` (`plan_id`),
@@ -207,8 +218,7 @@ CREATE TABLE `items_orden` (
   CONSTRAINT `FKpsPlankey0000000000000004` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FK1yOrdenKey000000000000004` FOREIGN KEY (`orden_id`) REFERENCES `ordenes` (`id`) ON DELETE CASCADE
 );
-LOCK TABLES `items_orden` WRITE;
-UNLOCK TABLES;
+
 ##-- Table structure for table `pago`
 CREATE TABLE `pagos` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -222,31 +232,40 @@ CREATE TABLE `pagos` (
   CONSTRAINT `FKdfsg45Tth5666pDF43gfd34hF` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `a8sf99SK80fsdf09er234gE7R6G` FOREIGN KEY (`orden_id`) REFERENCES `ordenes` (`id`) ON DELETE CASCADE
 ) ;
-LOCK TABLES `pagos` WRITE;
-UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios`
 CREATE TABLE `beneficios` (
   `id` bigint AUTO_INCREMENT,
-  `activo` BOOLEAN  default true,
   `llave` varchar(255) DEFAULT NULL, ##-- titulo
   `tipo` varchar(255) DEFAULT NULL,
-  `moneda` varchar(127) DEFAULT NULL,
+  `moneda` varchar(16) DEFAULT NULL,
   `valor` float DEFAULT NULL,
+  `dias` int DEFAULT NULL,
+  `acces_id` varchar(64) DEFAULT NULL,
   `max_get` int DEFAULT NULL,
-  `referido` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
 );
 
 LOCK TABLES `beneficios` WRITE;
 INSERT INTO `beneficios` VALUES 
-(1,true,"7 dias info","DIAS_INFO",NULL,7,1,false),
-(2,true,"30 dias info","DIAS_INFO",NULL,30,1,false),
-(3,true,"Mes info","MES_INFO",NULL,1,1,false),
-(4,true,"Puntos extra","POINTS",NULL,4,1,true),
-(5,true,"Puntos extra","POINTS",NULL,20,1,false),
-(6,true,"Dinero Gratis","CASH","MXN",10,1,false),
-(7,true,"DINERO GRATIS","CASH","USD",10,1,false);
+(1,"7 dias de estadisticas" ,"ACCES_LEVEL",NULL ,null  ,7   ,'0' ,null),
+(2,"30 dias de estadisticas","ACCES_LEVEL",NULL ,null  ,30  ,'0' ,null),
+(3,"31 dias de estadisticas","ACCES_LEVEL",NULL ,null  ,31  ,'0' ,null),
+(4,"Puntos extra"           ,"POINTS"     ,NULL ,4     ,null,null,null),
+(5,"Puntos extra"           ,"POINTS"     ,NULL ,20    ,null,null,null),
+(6,"Dinero Gratis"          ,"CASH"       ,"MXN",10    ,null,null,null),
+(7,"Dinero Gratis"          ,"CASH"       ,"USD",10    ,null,null,null);
+UNLOCK TABLES;
+
+##-- Table structure for table `beneficios_referido`
+CREATE TABLE `beneficios_referido` (
+  `activo` BOOLEAN NOT NULL default false,
+  `beneficio_id` bigint NOT NULL,
+  KEY `FK_beneficio_referido0001` (`beneficio_id`),
+  CONSTRAINT `FK_beneficio_referido0001` FOREIGN KEY (`beneficio_id`) REFERENCES `beneficios` (`id`) ON DELETE CASCADE
+);
+LOCK TABLES `beneficios_referido` WRITE;
+INSERT INTO `beneficios_referido` VALUES (true,3),(true,6);
 UNLOCK TABLES;
 
 ##-- Table structure for table `beneficios_usuario`
@@ -292,14 +311,12 @@ UNLOCK TABLES;
 ##-- Table structure for table `suscripciones`
 CREATE TABLE `suscripciones` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN  NOT NULL default true,
   `monto_mensual` float NOT NULL,
-  `fecha_create` datetime(6) DEFAULT NULL,
+  `fecha_creado` datetime(6) DEFAULT NULL,
   `fecha_inicio` datetime(6) DEFAULT NULL,
   `fecha_fin` datetime(6) DEFAULT NULL,
   `fecha_cobro` datetime(6) DEFAULT NULL,
   `dia_corte` int DEFAULT NULL,
-  `tipo` varchar(255) DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -308,9 +325,6 @@ CREATE TABLE `suscripciones` (
   CONSTRAINT `FK6fcib1tyjrhp8u95q3uhohqc6` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FKh7go9iahtl5u5bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
-LOCK TABLES `suscripciones` WRITE;
-UNLOCK TABLES;
-
 
 ##--videos
 CREATE TABLE `videos` (
@@ -450,19 +464,6 @@ INSERT INTO `eventos` VALUES
 (48,true,'2022-06-14 23:30:00.000000',5000,0,null,'USD',5,6);
 UNLOCK TABLES;
 
-##-- Table structure for table `cron_task`
-CREATE TABLE `cron_task` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `tarea_cron` varchar(255) DEFAULT NULL,
-  `evento_id` bigint DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FKlpl54gp4rwnxqb385ujpojoum` (`evento_id`),
-  CONSTRAINT `FKlpl54gp4rwnxqb385ujpojoum` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE
-) ;
-LOCK TABLES `cron_task` WRITE;
-INSERT INTO `cron_task` VALUES (1,'00 12 05 22 02 *',14),(2,'00 12 05 22 02 *',15),(3,'00 12 05 22 06 *',16),(4,'00 12 05 22 06 *',17),(5,'00 12 05 22 06 *',18),(6,'00 12 05 22 02 *',19),(7,'00 12 05 22 06 *',20);
-UNLOCK TABLES;
-
 ##-- Table structure for table `evento_usuario`
 CREATE TABLE `evento_usuario` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -499,16 +500,6 @@ CREATE TABLE `ganador` (
   CONSTRAINT `FKlln4109plf4w9ooal93cbnikj` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FKlln41mrxeld95oom0vm2bnikj` FOREIGN KEY (`evento_usuario_id`) REFERENCES `evento_usuario` (`id`) ON DELETE CASCADE
 );
-LOCK TABLES `ganador` WRITE;
-UNLOCK TABLES;
-
-##-- Table structure for table `hibernate_sequence`
-CREATE TABLE `hibernate_sequence` (
-  `next_val` bigint DEFAULT NULL
-);
-LOCK TABLES `hibernate_sequence` WRITE;
-INSERT INTO `hibernate_sequence` VALUES (1);
-UNLOCK TABLES;
 
 ##-- Table structure for table `resultado`
 CREATE TABLE `resultado` (
@@ -526,8 +517,6 @@ CREATE TABLE `resultado` (
   KEY `16ffsg45Tthfi8r4DF43gfd34hF` (`evento_id`),
   CONSTRAINT `16ffsg45Tthfi8r4DF43gfd34hF` FOREIGN KEY (`evento_id`) REFERENCES `eventos` (`id`) ON DELETE CASCADE
 );
-LOCK TABLES `resultado` WRITE;
-UNLOCK TABLES;
 
 ##-- Table structure for table `roles`
 CREATE TABLE `roles` (
@@ -552,45 +541,3 @@ CREATE TABLE `usuarios_roles` (
 LOCK TABLES `usuarios_roles` WRITE;
 INSERT INTO `usuarios_roles` VALUES (1,2),(2,2);
 UNLOCK TABLES;
-
-
-##-- Table structure for table `descuento_items`
-CREATE TABLE `descuento_items` (
-  `activo` BOOLEAN  NOT NULL default TRUE,
-  `cantidad` bigint NOT NULL,
-  `plan_id` bigint NOT NULL,
-  KEY `FKisd054ko30927j6ljr90asype` (`plan_id`),
-  CONSTRAINT `FKisd054ko30927j6ljr90asype` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
-);
-
-##-- Table structure for table `descuento_orden`
-CREATE TABLE `usuarios_descuento` (
-  `key_descuento` bigint NOT NULL,
-  `activo` BOOLEAN  NOT NULL default TRUE,
-  `usuarios_id` bigint NOT NULL,
-  KEY `FKisd054ko30927j6ljr3399ype` (`usuarios_id`),
-  CONSTRAINT `FKisd054ko30927j6ljr3399ype` FOREIGN KEY (`usuarios_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-);
-
-##-- Table structure for table `descuento_orden`
-CREATE TABLE `descuento_orden` (
-  `activo` BOOLEAN  NOT NULL default TRUE,
-  `cantidad` bigint NOT NULL default 0,
-  `usuarios_descuento_id` bigint NOT NULL,
-  `custom_attributes` varchar(1024) default NULL
-);
-
-##-- Table structure for table `descuento_orden`
-CREATE TABLE `cupones` (
-  `activo` BOOLEAN  NOT NULL default TRUE,
-  `key_cupon` bigint NOT NULL,
-  `custom_attributes` varchar(1024) default NULL,
-  UNIQUE KEY `UK_kfsp0s1tflm1cwlj8idhqsad0` (`key_cupon`)
-);
-
-##-- Table structure for table `descuento_orden`
-CREATE TABLE `promociones` (
-  `activo` BOOLEAN  NOT NULL default TRUE,
-  `key_promotion` varchar(255) NOT NULL,
-  `custom_attributes` varchar(1024) default NULL
-);

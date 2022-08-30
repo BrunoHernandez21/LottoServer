@@ -60,7 +60,7 @@ func create(c *fiber.Ctx) error {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
-	if (input.Precio == nil) || (input.Nombre == nil) || (input.Puntos == 0) {
+	if (input.Precio == nil) || (input.Titulo == nil) || (input.Puntos == 0) {
 		m["mensaje"] = "informacion insuficiente"
 		return c.Status(500).JSON(m)
 	}
@@ -117,8 +117,8 @@ func edit(c *fiber.Ctx) error {
 	if input.Precio != nil {
 		a.Precio = input.Precio
 	}
-	if input.Nombre != nil {
-		a.Nombre = input.Nombre
+	if input.Titulo != nil {
+		a.Titulo = input.Titulo
 	}
 
 	errdb = db.Table("plplanesan").Save(a)

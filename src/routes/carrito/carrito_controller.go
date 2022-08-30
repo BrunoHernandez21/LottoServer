@@ -25,12 +25,11 @@ func crear(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	id, ok := c.Locals("userID").(uint32)
-	if ok {
-		input.Usuario_id = id
-	} else {
-		m["mensaje"] = "error interno"
+	if !ok {
+		m["mensaje"] = "error interno tokenError"
 		return c.Status(500).JSON(m)
 	}
+	input.Usuario_id = id
 	fecha := time.Now()
 	input.Id = 0
 	input.Fecha_carrito = &fecha
@@ -42,11 +41,16 @@ func crear(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	amount := *a.Precio_total * float32(input.Cantidad)
+	amount := *a.Precio * float32(input.Cantidad)
+	puntosLines := a.Puntos * input.Cantidad
+	// Dinero
 	input.Total_linea = &amount
 	input.Precio_unitario = a.Precio
-	var descuento float32 = 0
-	input.Descuento = &descuento
+	// Puntos
+	input.Puntos_linea = &puntosLines
+	input.Puntos_unitario = &a.Puntos
+	// moneda de intercambio
+	input.Moneda = &a.Moneda
 
 	errdb = db.Create(&input)
 	if errdb.Error != nil {
@@ -109,7 +113,7 @@ func listarWPlan(c *fiber.Ctx) error {
 	parse := []compuestas.CarritoPlan{}
 
 	errdb := db.Table("carrito as c").
-		Select(`c.id, c.cantidad, c.total_linea, c.precio_unitario, c.descuento, c.fecha_carrito, c.plan_id, p.puntos, p.nombre, p.precio, p.moneda, p.duracion_dias, p.suscribcion`).
+		Select(`c.id, c.cantidad, c.total_linea, c.puntos_linea, c.fecha_carrito, c.plan_id, p.titulo,p.descripcion, p.moneda, p.suscribcion`).
 		Joins("INNER JOIN planes as p ON c.plan_id = p.id").
 		Where("Usuario_id = ? AND c.Activo = ? ", c.Locals("userID"), true).
 		Find(&parse)
@@ -121,6 +125,7 @@ func listarWPlan(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 
+/*
 func editar(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	id, ok := c.Locals("userID").(uint32)
@@ -151,3 +156,4 @@ func editar(c *fiber.Ctx) error {
 
 	return c.JSON(input)
 }
+*/
