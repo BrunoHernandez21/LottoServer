@@ -19,7 +19,6 @@ type ConfigEmail struct {
 }
 
 var Rest_Port = ""
-var Soc_Port = ""
+var JwtKey = []byte("TestForFasthttpWithJWT")
 
 const Rest_version string = "/v3/"
-const Soc_version string = "/v1/"

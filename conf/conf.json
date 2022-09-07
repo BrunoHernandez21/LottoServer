@@ -11,5 +11,6 @@
 		"Host":       "mail.inclusive.com.mx",
 		"Password":   "fayGYp81lRt$"
 	},
-	"port_rest":"25566"
+	"port_rest":"25566",
+	"jwtKey":"TestForFasthttpWithJWT"
 }

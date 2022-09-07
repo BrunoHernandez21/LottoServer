@@ -88,14 +88,14 @@ func loadInitialConfig() {
 	config.DB = data.MainDB
 	config.Mail = data.MainMail
 	config.Rest_Port = data.Rest_Port
-	config.Soc_Port = data.Soc_Port
+	config.JwtKey = []byte(data.JwtKey)
 }
 
 type ConfigMain struct {
 	MainDB    config.ConfigDB    `json:"db"`
 	MainMail  config.ConfigEmail `json:"mail_config"`
 	Rest_Port string             `json:"port_rest"`
-	Soc_Port  string             `json:"port_soc"`
+	JwtKey    string             `json:"jwtKey"`
 }
 
 /*
