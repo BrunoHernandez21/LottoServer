@@ -151,7 +151,7 @@ func historialPage(c *fiber.Ctx) error {
 	db.Table("evento_usuario").Where("Usuario_id = ?", userID).Count(&a)
 
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 
 	if err != nil || err2 != nil {
 		resp["mensaje"] = err.Error()
@@ -191,8 +191,8 @@ func activosPage(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)

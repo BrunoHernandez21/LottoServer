@@ -20,5 +20,6 @@ type ConfigEmail struct {
 
 var Rest_Port = ""
 var JwtKey = []byte("TestForFasthttpWithJWT")
+var YTestadistics = ""
 
 const Rest_version string = "/v3/"

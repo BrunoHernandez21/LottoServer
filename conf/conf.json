@@ -12,5 +12,6 @@
 		"Password":   "fayGYp81lRt$"
 	},
 	"port_rest":"25566",
-	"jwtKey":"TestForFasthttpWithJWT"
+	"jwtKey":"TestForFasthttpWithJWT",
+	"ytKey":"AIzaSyDJGZnO3AZ2fkYOctsTClRVuShJWRMpCt8"
 }

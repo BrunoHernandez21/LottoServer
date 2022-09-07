@@ -20,8 +20,8 @@ func ganador(c *fiber.Ctx) error {
 
 	a := int64(0)
 	db.Table("ganador").Where("Usuario_id = ?", userID).Count(&a)
-	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	pag, err := strconv.ParseUint(c.Params("pag"), 10, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		resp["mensaje"] = err.Error()
 		return c.Status(500).JSON(resp)

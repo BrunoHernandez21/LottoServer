@@ -18,8 +18,8 @@ func videos_evento_pag(c *fiber.Ctx) error {
 
 	a := int64(0)
 	db.Find(&items).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -59,8 +59,8 @@ func videos_pag(c *fiber.Ctx) error {
 
 	a := int64(0)
 	db.Table("videos").Where("Activo = ?", true).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -206,8 +206,8 @@ func listarGruposName(c *fiber.Ctx) error {
 	genero := c.Params("name")
 	a := int64(0)
 	db.Find(&items).Where("genero = ?", genero).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)

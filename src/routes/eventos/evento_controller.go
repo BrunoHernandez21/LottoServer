@@ -117,7 +117,7 @@ func listarActivos(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)

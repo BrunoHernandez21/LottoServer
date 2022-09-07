@@ -106,7 +106,7 @@ func edit(c *fiber.Ctx) error {
 	}
 
 	a := gormdb.Planes{}
-	errdb := db.Table("planes").Find(&a, "id = ?", input.Id)
+	errdb := db.Find(&a, "id = ?", input.Id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -121,7 +121,7 @@ func edit(c *fiber.Ctx) error {
 		a.Titulo = input.Titulo
 	}
 
-	errdb = db.Table("plplanesan").Save(a)
+	errdb = db.Save(a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

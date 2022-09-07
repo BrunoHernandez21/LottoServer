@@ -45,7 +45,7 @@ func listar(c *fiber.Ctx) error {
 	compra := []compuestas.Pagos_orden{}
 	errdb := db.
 		Table("pagos as p").
-		Select(`p.id, p.fecha_pagado, p.orden_id, p.stripe_id, o.status, o.Fecha_emitido, o.Total, o.Iva, o.Descuento, o.Total_iva`).
+		Select(`p.id, p.fecha_pagado, p.usuario_id, p.orden_id,p.stripe_id, o.status, o.fecha_emitido, o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id`).
 		Joins("JOIN ordenes as o ON p.orden_id = o.id").
 		Where("p.usuario_id = ?", c.Locals("userID")).
 		Find(&compra)
@@ -64,7 +64,7 @@ func listarpaginado(c *fiber.Ctx) error {
 	a := int64(0)
 	db.Table("pagos").Where("usuario_id = ?", userID).Count(&a)
 	pag, err := strconv.ParseUint(c.Params("pag"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 0, 32)
+	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
 	if err != nil || err2 != nil {
 		resp["mensaje"] = err.Error()
 		return c.Status(500).JSON(resp)

@@ -27,7 +27,9 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	v1.Get("/estadisticas", get_statistics)
 	v1.Get("/estadisticas/:id", get_st_byID)
-	v1.Post("/estadisticas", mi.IsRoot, create_statistics)
+	v1.Post("/estadisticas", create_statistics)
 	v1.Put("/estadisticas", mi.IsRoot, edit_statistics)
+
 	v1.Delete("/estadisticas/:id", mi.IsRoot, delete_statistics)
+
 }

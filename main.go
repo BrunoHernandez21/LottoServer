@@ -8,6 +8,7 @@ import (
 	"lottomusic/src/routes/auth"
 	"lottomusic/src/routes/carrito"
 	"lottomusic/src/routes/compra"
+	"lottomusic/src/routes/compute"
 	evento "lottomusic/src/routes/eventos"
 	"lottomusic/src/routes/eventousuario"
 	"lottomusic/src/routes/plan"
@@ -72,6 +73,7 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	suscripcion.Init_routes(app, db)
 	videos.Init_routes(app, db)
 	utils.Init_routes(app, db)
+	compute.Init_routes(app, db)
 
 }
 
@@ -89,6 +91,7 @@ func loadInitialConfig() {
 	config.Mail = data.MainMail
 	config.Rest_Port = data.Rest_Port
 	config.JwtKey = []byte(data.JwtKey)
+	config.YTestadistics = "https://www.googleapis.com/youtube/v3/videos?key=" + data.JwtKey + "&part=statistics&id="
 }
 
 type ConfigMain struct {
@@ -96,6 +99,7 @@ type ConfigMain struct {
 	MainMail  config.ConfigEmail `json:"mail_config"`
 	Rest_Port string             `json:"port_rest"`
 	JwtKey    string             `json:"jwtKey"`
+	YtKey     string             `json:"ytKey"`
 }
 
 /*
