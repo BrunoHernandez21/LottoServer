@@ -16,5 +16,6 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	//comprar
 	v1.Post("/statistics", statistics)
 	v1.Post("/winner", winner)
+	v1.Get("/emit", emit)
 
 }

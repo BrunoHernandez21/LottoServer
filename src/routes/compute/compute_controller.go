@@ -21,6 +21,7 @@ func statistics(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
+	toDBT := []gormdb.VideosEstadisticas{}
 	for _, its := range eventos {
 		if its.Video_id != nil {
 			//Peticion HTTP GET
@@ -28,7 +29,7 @@ func statistics(c *fiber.Ctx) error {
 			req := a.Request()
 			req.Header.SetMethod("GET")
 			req.SetRequestURI(config.YTestadistics + *its.Video_id)
-			myTime := time.Now()
+			myTime := time.Now().UTC()
 			if err := a.Parse(); err != nil {
 				m["mensaje"] = err.Error()
 				return c.Status(500).JSON(m)
@@ -64,7 +65,7 @@ func statistics(c *fiber.Ctx) error {
 			Like_count := uint32(l)
 
 			//agregar a la lista
-			db.Create(&gormdb.VideosEstadisticas{
+			toDBT = append(toDBT, gormdb.VideosEstadisticas{
 				Video_id:       its.Vid_id,
 				Fecha:          myTime,
 				Like_count:     &Like_count,
@@ -76,10 +77,32 @@ func statistics(c *fiber.Ctx) error {
 			})
 		}
 	}
-
+	db.Create(&toDBT)
 	m["mensaje"] = "Creado con exito"
 	m["time"] = time.Now().String()
 	return c.JSON(m)
+}
+
+func emit(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	//Peticion HTTP GET
+	a := fiber.AcquireAgent()
+	req := a.Request()
+	req.Header.SetMethod("GET")
+	req.SetRequestURI("http://187.213.68.250:25567/api/v1/emit/send/message")
+	if err := a.Parse(); err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	code, body, _ := a.Bytes()
+	if code != 200 {
+		temp := make(map[string]interface{})
+		json.Unmarshal(body, &temp)
+		return c.Status(500).JSON(temp)
+	}
+	m["resp"] = "Enviado correctamente"
+	return c.Status(200).JSON(m)
+
 }
 
 func winner(c *fiber.Ctx) error {

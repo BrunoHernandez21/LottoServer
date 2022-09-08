@@ -54,7 +54,7 @@ func main() {
 }
 
 func conexionDB() (conexiones *gorm.DB) {
-	dns := config.DB.User + ":" + config.DB.Password + config.DB.Soc + config.DB.DatabaseName + "?charset=utf8&parseTime=True"
+	dns := config.DB.User + ":" + config.DB.Password + config.DB.Soc + config.DB.DatabaseName + "?charset=utf8&parseTime=True&loc=Local"
 	conexion, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
 		panic(err.Error())

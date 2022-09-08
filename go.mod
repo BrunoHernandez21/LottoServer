@@ -3,7 +3,6 @@ module lottomusic
 go 1.18
 
 require github.com/gofiber/fiber/v2 v2.37.0
-
 require github.com/golang-jwt/jwt/v4 v4.4.2 
 
 require (
