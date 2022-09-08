@@ -91,7 +91,7 @@ func loadInitialConfig() {
 	config.Mail = data.MainMail
 	config.Rest_Port = data.Rest_Port
 	config.JwtKey = []byte(data.JwtKey)
-	config.YTestadistics = "https://www.googleapis.com/youtube/v3/videos?key=" + data.JwtKey + "&part=statistics&id="
+	config.YTestadistics = "https://www.googleapis.com/youtube/v3/videos?key=" + data.YtKey + "&part=statistics&id="
 }
 
 type ConfigMain struct {
