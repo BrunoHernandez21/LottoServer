@@ -33,8 +33,10 @@ func verifica(c *fiber.Ctx) error {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
+	//TODO quitar stripe ID
 	var resp string
-	db.Raw("CALL pagos_realizado(?,?)", input.Orden_id, input.StripeKey).Scan(&resp)
+	db.Raw("CALL pago_unico(?)", input.Orden_id).Scan(&resp)
+
 	m["resp"] = resp
 	return c.Status(200).JSON(m)
 }

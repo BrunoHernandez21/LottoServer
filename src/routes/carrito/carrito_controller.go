@@ -51,7 +51,12 @@ func crear(c *fiber.Ctx) error {
 	input.Puntos_unitario = &a.Puntos
 	// moneda de intercambio
 	input.Moneda = &a.Moneda
-
+	if a.Suscribcion {
+		db.
+			Model(&gormdb.Carrito{}).
+			Where("? = usuario_id AND plan_id IN (SELECT id from planes WHERE suscribcion = true)", id).
+			Update("activo", false)
+	}
 	errdb = db.Create(&input)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

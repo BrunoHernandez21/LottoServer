@@ -225,7 +225,6 @@ CREATE TABLE `pagos` (
   `fecha_pagado` DATETIME DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
   `orden_id` bigint DEFAULT NULL,
-  `stripe_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKdfsg45Tth5666pDF43gfd34hF` (`usuario_id`),
   KEY `a8sf99SK80fsdf09er234gE7R6G` (`orden_id`),
@@ -312,17 +311,18 @@ UNLOCK TABLES;
 CREATE TABLE `suscripciones` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `monto_mensual` float NOT NULL,
-  `fecha_creado` DATETIME DEFAULT NULL,
   `fecha_inicio` DATETIME DEFAULT NULL,
   `fecha_fin` DATETIME DEFAULT NULL,
-  `fecha_cobro` DATETIME DEFAULT NULL,
   `dia_corte` int DEFAULT NULL,
   `plan_id` bigint DEFAULT NULL,
+  `next_plan_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK6fcib1tyjrhp8u95q3uhohqc6` (`plan_id`),
+  KEY `FK6fcib1tyjrhp8u95q3uhohqc7` (`plan_id`),
   KEY `FKh7go9iahtl5u5bs4dn1ymovlb` (`usuario_id`),
   CONSTRAINT `FK6fcib1tyjrhp8u95q3uhohqc6` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK6fcib1tyjrhp8u95q3uhohqc7` FOREIGN KEY (`plan_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FKh7go9iahtl5u5bs4dn1ymovlb` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 );
 

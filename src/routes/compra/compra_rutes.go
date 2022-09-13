@@ -15,10 +15,10 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	v1 := app.Group("/api" + config.Rest_version + "compra")
 
-	//comprar
+	// manda la orden
 	v1.Post("/checkout", mi.IsRegister, checkout)
 	// Punto de acceso para stripe
-	v1.Post("/verifica", mi.IsRegister, verifica)
+	v1.Post("/verifica", verifica)
 	//Historial de compras y ordenes
 	v1.Get("/compra", mi.IsRegister, listar)
 	v1.Get("/compra/:pag/:sizepage", mi.IsRegister, listarpaginado)
