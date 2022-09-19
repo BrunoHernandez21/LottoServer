@@ -12,12 +12,15 @@ var db *gorm.DB
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
 	v1 := app.Group("/api" + config.Rest_version + "compute")
-
-	//
-	v1.Get("/subscriptions", subscriptions)
-	v1.Get("/stateusers", stateusers)
-	v1.Post("/statistics", statistics)
-	v1.Get("/winner", winner)
-	v1.Get("/emit", emit)
+	// process
+	v1.Get("/process/subscriptions", subscriptions)
+	v1.Get("/process/state-user", stateusers)
+	v1.Get("/process/statistics", statistics)
+	v1.Get("/process/winner", winner)
+	// stripe
+	v1.Post("/webhook/stripe", statistics)
+	// emit
+	v1.Get("/emit/statistics", emit)
+	v1.Get("/emit/winner", winner)
 
 }

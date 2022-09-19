@@ -159,8 +159,70 @@ func checkout(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	// mandamos a stripe a verificar la compra
+	// mandamos a stripe a generar el intento de pago
+	resp, errstr := impstripe.Payment(&tarjeta, &orden)
+	var outReason string
+	if errstr != nil {
+		//Compra fallida
+		db.Raw("CALL pagos_rechazado(?,?)", orden.Id, errstr.Error()).Scan(&outReason)
+		m["mensaje"] = errstr.Error()
+		return c.Status(200).JSON(m)
+	}
 
+	data, err := json.Marshal(&resp)
+	if err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+
+	db.Raw("CALL pago_unico(?,?)", orden.Id, string(data)).Scan(&outReason)
+	m["resp"] = outReason
+	return c.Status(200).JSON(m)
+}
+
+func buy_retry(c *fiber.Ctx) error {
+	/// Verificar la respuesta del usuario
+	m := make(map[string]interface{})
+	input := inputs.RetryCheckout{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
+		return c.Status(500).JSON(m)
+	}
+	if input.Card_id == 0 {
+		m["mensaje"] = "Card no puede ser nulo o 0"
+		return c.Status(500).JSON(m)
+	}
+
+	// obtenemos la tarjeta del usuario
+	userID, isit := c.Locals("userID").(uint32)
+	if !isit {
+		m["mensaje"] = "internal error"
+		return c.Status(500).JSON(m)
+	}
+	tarjeta := gormdb.Payment_method{}
+	errdb := db.Find(&tarjeta, "Id = ? ", input.Card_id)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	if tarjeta.Usuario_id != userID {
+		m["mensaje"] = "La tarjeta no te pertenece"
+		return c.Status(500).JSON(m)
+	}
+
+	// obtener la orden
+	orden := gormdb.Ordenes{}
+	errdb = db.Find(&orden, "Id = ? ", input.Orden_id)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	if orden.Usuario_id != userID {
+		m["mensaje"] = "La tarjeta no te pertenece"
+		return c.Status(500).JSON(m)
+	}
+
+	// mandamos a stripe a verificar la compra
 	resp, errstr := impstripe.Payment(&tarjeta, &orden)
 	var outReason string
 	if errstr != nil {
@@ -180,23 +242,15 @@ func checkout(c *fiber.Ctx) error {
 	return c.Status(200).JSON(outReason)
 }
 
-func buy_retry(c *fiber.Ctx) error {
-	//TODO:
-	m := make(map[string]string)
-	input := []gormdb.Ordenes{}
-	errdb := db.Find(&input, "usuario_id = ? AND status = ?", c.Locals("userID"), "proceso")
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
+func buy_cancel(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := inputs.RetryCheckout{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
-}
-
-func buy_cancel(c *fiber.Ctx) error {
-	//TODO:
-	m := make(map[string]string)
-	input := []gormdb.Ordenes{}
-	errdb := db.Find(&input, "usuario_id = ? AND status = ?", c.Locals("userID"), "proceso")
+	orden := gormdb.Ordenes{}
+	errdb := db.Find(&orden, "usuario_id = ? AND id = ?", c.Locals("userID"), input.Orden_id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)

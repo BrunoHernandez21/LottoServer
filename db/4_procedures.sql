@@ -108,15 +108,25 @@ $$
 delimiter ;
 
 
-##-- Listo
+##-- pagos_cancelado
 DROP PROCEDURE IF EXISTS `pagos_cancelado`;
 delimiter $$
 CREATE PROCEDURE pagos_cancelado(IN iorden_id int) 
 begin 
     ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "cancelado", WHERE ordenes.id = iorden_id;
+    UPDATE ordenes SET	ordenes.status = "cancelado" WHERE ordenes.id = iorden_id;
     ## -- out
 	SELECT * from ordenes WHERE id = iorden_id;
+end
+$$
+delimiter ;
+
+##-- generar_ganador
+DROP PROCEDURE IF EXISTS `generar_ganador`;
+delimiter $$
+CREATE PROCEDURE pagos_cancelado() 
+begin 
+
 end
 $$
 delimiter ;
