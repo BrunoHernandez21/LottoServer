@@ -19,6 +19,7 @@ type ConfigEmail struct {
 }
 
 var Rest_Port = ""
+var Stripekey = ""
 var JwtKey = []byte("TestForFasthttpWithJWT")
 var YTestadistics = ""
 

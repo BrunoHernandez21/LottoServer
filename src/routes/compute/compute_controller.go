@@ -110,3 +110,14 @@ func winner(c *fiber.Ctx) error {
 	m["resp"] = "Hola mundo"
 	return c.Status(200).JSON(m)
 }
+
+func subscriptions(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	m["resp"] = "Hola mundo"
+	return c.Status(200).JSON(m)
+}
+func stateusers(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	m["resp"] = "Hola mundo"
+	return c.Status(200).JSON(m)
+}

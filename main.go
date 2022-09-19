@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"lottomusic/src/config"
+
 	"lottomusic/src/modules/midelware"
 	"lottomusic/src/routes/auth"
-	"lottomusic/src/routes/carrito"
-	"lottomusic/src/routes/compra"
+	"lottomusic/src/routes/buy"
 	"lottomusic/src/routes/compute"
-	evento "lottomusic/src/routes/eventos"
-	"lottomusic/src/routes/eventousuario"
+	event "lottomusic/src/routes/event"
 	"lottomusic/src/routes/plan"
-	"lottomusic/src/routes/suscripcion"
+	"lottomusic/src/routes/shoppingcar"
+	user "lottomusic/src/routes/user"
+	"lottomusic/src/routes/userevent"
 	"lottomusic/src/routes/utils"
 	"lottomusic/src/routes/videos"
 
@@ -66,14 +67,15 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	midelware.Init_state(db)
 	auth.Init_routes(app, db)
 	plan.Init_routes(app, db)
-	carrito.Init_routes(app, db)
-	compra.Init_routes(app, db)
-	eventousuario.Init_routes(app, db)
-	evento.Init_routes(app, db)
-	suscripcion.Init_routes(app, db)
+	shoppingcar.Init_routes(app, db)
+	buy.Init_routes(app, db)
+	userevent.Init_routes(app, db)
+	event.Init_routes(app, db)
 	videos.Init_routes(app, db)
-	utils.Init_routes(app, db)
 	compute.Init_routes(app, db)
+	user.Init_routes(app, db)
+	utils.Init_routes(app)
+	//impstripe.Init()
 
 }
 
@@ -90,6 +92,7 @@ func loadInitialConfig() {
 	config.DB = data.MainDB
 	config.Mail = data.MainMail
 	config.Rest_Port = data.Rest_Port
+	config.Stripekey = data.Stripekey
 	config.JwtKey = []byte(data.JwtKey)
 	config.YTestadistics = "https://www.googleapis.com/youtube/v3/videos?key=" + data.YtKey + "&part=statistics&id="
 }
@@ -100,6 +103,7 @@ type ConfigMain struct {
 	Rest_Port string             `json:"port_rest"`
 	JwtKey    string             `json:"jwtKey"`
 	YtKey     string             `json:"ytKey"`
+	Stripekey string             `json:"stripekey"`
 }
 
 /*

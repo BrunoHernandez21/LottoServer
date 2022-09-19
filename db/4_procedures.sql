@@ -3,12 +3,12 @@ delimiter $$
 CREATE PROCEDURE genera_orden(IN user_id int,IN card_id int) 
 begin
     DECLARE time_Now datetime;
-    DECLARE orden_id bigint;
-    DECLARE resp varchar(40);
+    DECLARE orden_id bigint DEFAULT 0;
+    IF ( (SELECT count(cantidad) from carrito WHERE usuario_id = user_id AND activo = TRUE) > 0 ) THEN 
     set time_Now = now();
 	##--crea la orden 
   	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,payment_method_id)
-		SELECT 	"proceso",
+        SELECT 	"pendiente",
                 time_Now,
                 SUM(total_linea),
                 SUM(puntos_linea),
@@ -30,17 +30,19 @@ begin
         WHERE carrito.usuario_id = user_id AND activo = TRUE;
 	##-- limpia el carrito
 	UPDATE carrito SET activo = false WHERE carrito.usuario_id = user_id;
-    ##-- imprimo una respuesta 
-    SET resp = "finalizado correctamente";
-    SELECT resp;
+    END IF;
+        ##-- imprimo una respuesta 
+    SELECT * from ordenes WHERE id = orden_id;
 end
 $$
 delimiter ;
 
+
+
 ##-- Determinando 
 DROP PROCEDURE IF EXISTS `pago_unico`;
 delimiter $$
-CREATE PROCEDURE pago_unico(IN iorden_id int) 
+CREATE PROCEDURE pago_unico(IN iorden_id int, IN razon TEXT) 
 begin
     DECLARE pcash bigint;
     DECLARE ccash bigint;
@@ -59,9 +61,9 @@ begin
     ##--actualizamos cartera
     UPDATE carteras SET puntos = ccash + pcash WHERE usuario_id = user_id;
     ## -- crear compra
-    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id) VALUES (now(),user_id,iorden_id);
+    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
     ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "cobrado" WHERE ordenes.id = iorden_id;
+    UPDATE ordenes SET	ordenes.status = "pagada" WHERE ordenes.id = iorden_id;
 	##--incertamos los beneficios de dias del plan
     INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
 		SELECT 	true,
@@ -88,16 +90,32 @@ end
 $$
 delimiter ;
 
-
-
-
 ##-- Listo
 DROP PROCEDURE IF EXISTS `pagos_rechazado`;
 delimiter $$
-CREATE PROCEDURE pagos_rechazado(IN iorden_id int) 
+CREATE PROCEDURE pagos_rechazado(IN iorden_id int,IN razon TEXT) 
 begin
+	DECLARE user_id bigint;
+    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);  
     ##--actualizamos la orden
     UPDATE ordenes SET	ordenes.status = "rechazado" WHERE ordenes.id = iorden_id;
+    ## -- crear compra
+    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,true);
+    ## -- out
+	SELECT * from ordenes WHERE id = iorden_id;
+end
+$$
+delimiter ;
+
+
+##-- Listo
+DROP PROCEDURE IF EXISTS `pagos_cancelado`;
+delimiter $$
+CREATE PROCEDURE pagos_cancelado(IN iorden_id int) 
+begin 
+    ##--actualizamos la orden
+    UPDATE ordenes SET	ordenes.status = "cancelado", WHERE ordenes.id = iorden_id;
+    ## -- out
 	SELECT * from ordenes WHERE id = iorden_id;
 end
 $$

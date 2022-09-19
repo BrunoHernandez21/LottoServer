@@ -1,4 +1,4 @@
-package carrito
+package shoppingcar
 
 import (
 	"lottomusic/src/models/compuestas"
@@ -100,17 +100,6 @@ func eliminarall(c *fiber.Ctx) error {
 	}
 	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
-}
-
-func listar(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Carrito{}
-	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ? ", c.Locals("userID"), true)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
 }
 
 func listarWPlan(c *fiber.Ctx) error {

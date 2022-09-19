@@ -5,7 +5,6 @@ import (
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -268,27 +267,6 @@ func get_st_byID(c *fiber.Ctx) error {
 	}
 	return c.JSON(input)
 }
-func create_statistics(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := gormdb.VideosEstadisticas{}
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(500).JSON(err)
-	}
-	if input.Video_id == 0 {
-		m["mensaje"] = "requieres incertar el video ID"
-		return c.Status(400).JSON(m)
-	}
-	fecha := time.Now()
-	input.Fecha = fecha
-	errdb := db.Create(&input)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	m["mensaje"] = "Creado con exito"
-	m["fecha"] = fecha.String()
-	return c.JSON(time.Now())
-}
 
 //TODO incompleto
 func delete_statistics(c *fiber.Ctx) error {
@@ -328,3 +306,25 @@ func edit_statistics(c *fiber.Ctx) error {
 	}
 	return c.JSON(input)
 }
+
+// func create_statistics(c *fiber.Ctx) error {
+// 	m := make(map[string]string)
+// 	input := gormdb.VideosEstadisticas{}
+// 	if err := c.BodyParser(&input); err != nil {
+// 		return c.Status(500).JSON(err)
+// 	}
+// 	if input.Video_id == 0 {
+// 		m["mensaje"] = "requieres incertar el video ID"
+// 		return c.Status(400).JSON(m)
+// 	}
+// 	fecha := time.Now()
+// 	input.Fecha = fecha
+// 	errdb := db.Create(&input)
+// 	if errdb.Error != nil {
+// 		m["mensaje"] = errdb.Error.Error()
+// 		return c.Status(500).JSON(m)
+// 	}
+// 	m["mensaje"] = "Creado con exito"
+// 	m["fecha"] = fecha.String()
+// 	return c.JSON(time.Now())
+// }

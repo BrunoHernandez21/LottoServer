@@ -13,5 +13,6 @@
 	},
 	"port_rest":"25566",
 	"jwtKey":"TestForFasthttpWithJWT",
-	"ytKey":"AIzaSyDJGZnO3AZ2fkYOctsTClRVuShJWRMpCt8"
+	"ytKey":"AIzaSyDJGZnO3AZ2fkYOctsTClRVuShJWRMpCt8",
+	"stripekey":"sk_test_51LhOYXA95JRQPIgUJ1hzUjtcRN3rjSdHvwV9FTyuQzn5hTjTszf6GRzwHIyK1PQi6pJjqgsKUYtIl4TNvp4rgjWY00fVlYgrpX"
 }

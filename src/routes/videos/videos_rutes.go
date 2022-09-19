@@ -12,24 +12,24 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api" + config.Rest_version + "videos")
+	v1 := app.Group("/api" + config.Rest_version + "video")
 
-	v1.Get("/eventos/:page/:sizepage", videos_evento_pag)
-
+	//listVideo
 	v1.Get("/video/:id", activoID)
 	v1.Get("/videos/:page/:sizepage", videos_pag)
-	v1.Post("/videos", mi.IsRoot, crear)
-	v1.Put("/videos", mi.IsRoot, editar)
-	v1.Delete("/videos/:id", mi.IsRoot, eliminar)
-
-	v1.Get("/grupos", listargrupos)
-	v1.Get("/grupos/:page/:sizepage/:name", listarGruposName)
-
-	v1.Get("/estadisticas", get_statistics)
-	v1.Get("/estadisticas/:id", get_st_byID)
-	v1.Post("/estadisticas", create_statistics)
-	v1.Put("/estadisticas", mi.IsRoot, edit_statistics)
-
-	v1.Delete("/estadisticas/:id", mi.IsRoot, delete_statistics)
+	v1.Get("/events/:page/:sizepage", videos_evento_pag)
+	// groups
+	v1.Get("/groups", listargrupos)
+	v1.Get("/groups/:page/:sizepage/:name", listarGruposName)
+	// statistics
+	v1.Get("/statistics", get_statistics)
+	v1.Get("/statistics/:id", get_st_byID)
+	// Root
+	v1.Put("/statistics", mi.IsRoot, edit_statistics)
+	v1.Delete("/statistics/:id", mi.IsRoot, delete_statistics)
+	v1.Post("/video", mi.IsRoot, crear)
+	v1.Put("/video", mi.IsRoot, editar)
+	v1.Delete("/video/:id", mi.IsRoot, eliminar)
+	// v1.Post("/statistics", mi.IsRoot,create_statistics)
 
 }

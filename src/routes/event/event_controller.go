@@ -97,16 +97,7 @@ func eliminar(c *fiber.Ctx) error {
 	m["mensaje"] = "Eliminado Satisfactoriamente"
 	return c.JSON(m)
 }
-func listarTodos(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Eventos{}
-	errdb := db.Find(&input)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
-}
+
 func listarActivos(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
@@ -137,14 +128,4 @@ func listarActivos(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(resp)
-}
-func activo(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Eventos{}
-	errdb := db.Find(&input, "activo = ?", true)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func listar_one(c *fiber.Ctx) error {
+func single_payment(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Planes{}
 	errdb := db.Table("plan_one").Find(&input)
@@ -19,7 +19,7 @@ func listar_one(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 
-func lista_suscripcion(c *fiber.Ctx) error {
+func list_subscriptions(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := []gormdb.Planes{}
 	errdb := db.Table("plan_suscripcion").Find(&input)
@@ -53,6 +53,9 @@ func byid(c *fiber.Ctx) error {
 	}
 	return c.JSON(a)
 }
+
+///// root
+
 func create(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	input := gormdb.Planes{}
