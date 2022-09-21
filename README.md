@@ -9,4 +9,4 @@ Verificar nuevamente todos los endpount existentes por motivos de actualizacion 
 
     Verificar la estrucura de tablas (ID, llaves foraneas, indices) // luego
 
- ## --  pendiente, rechazada, pagada, cancelada,
+ ## --  proceso, rechazado, pagado, cancelado,

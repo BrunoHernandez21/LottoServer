@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -203,7 +202,13 @@ func listarTarjeta(c *fiber.Ctx) error {
 
 func propiedades(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	m["time"] = time.Now().Local()
+	user_pro := gormdb.Propiedades_usuario{}
+	errdb := db.Find(&user_pro, "usuario_id = ?", c.Locals("userID"))
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["propiedades"] = user_pro
 	return c.JSON(m)
 }
 

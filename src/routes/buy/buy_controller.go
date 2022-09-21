@@ -12,33 +12,25 @@ import (
 )
 
 ////// Historial
-func buy_history(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	compra := []compuestas.Pagos_orden{}
-	errdb := db.
-		Table("pagos as p").
-		Select(`p.id, p.fecha_pagado, p.usuario_id, p.orden_id,p.stripe_id, o.status, o.fecha_emitido, o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id`).
-		Joins("JOIN ordenes as o ON p.orden_id = o.id").
-		Where("p.usuario_id = ?", c.Locals("userID")).
-		Find(&compra)
-
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(compra)
-}
 
 func buy_history_paginated(c *fiber.Ctx) error {
 	userID := c.Locals("userID")
 	resp := make(map[string]interface{})
-
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	a := int64(0)
-	db.Table("pagos").Where("usuario_id = ?", userID).Count(&a)
-	pag, err := strconv.ParseUint(c.Params("pag"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
-		resp["mensaje"] = err.Error()
+	db.
+		Table("pagos_orden").
+		Where("usuario_id = ? AND status = ?", userID, "pagado").
+		Count(&a)
+	pag, err4 := strconv.ParseUint(pagt, 10, 32)
+	if err4 != nil {
+		resp["mensaje"] = err4.Error()
+		return c.Status(500).JSON(resp)
+	}
+	sizepage, err5 := strconv.ParseUint(sizepaget, 10, 32)
+	if err5 != nil {
+		resp["mensaje"] = err5.Error()
 		return c.Status(500).JSON(resp)
 	}
 	pags := uint64(a) / sizepage
@@ -53,13 +45,12 @@ func buy_history_paginated(c *fiber.Ctx) error {
 	init := (pag - 1) * sizepage
 
 	compra := []compuestas.Pagos_orden{}
+
 	errdb := db.
-		Table("pagos as p").
-		Select("p.id, p.respuesta,p.fecha_pagado,p.is_error, o.status, o.fecha_emitido,  o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id  ").
-		Joins("JOIN ordenes as o ON p.orden_id = o.id").
+		Table("pagos_orden").
 		Offset(int(init)).
 		Limit(int(sizepage)).
-		Where("p.usuario_id = ?", c.Locals("userID")).
+		Where("usuario_id = ? AND status = ?", c.Locals("userID"), "pagado").
 		Find(&compra)
 
 	if errdb.Error != nil {
@@ -78,12 +69,7 @@ func list_orders(c *fiber.Ctx) error {
 	resp := make(map[string]interface{})
 
 	compra := []compuestas.Pagos_orden{}
-	errdb := db.
-		Table("pagos as p").
-		Select("p.id, p.respuesta,p.fecha_pagado,p.is_error, o.status, o.fecha_emitido,  o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id  ").
-		Joins("JOIN ordenes as o ON p.orden_id = o.id").
-		Where("p.usuario_id = ?", userID).
-		Find(&compra)
+	errdb := db.Table("pagos_orden").Where("usuario_id = ? AND status = ?", userID, "proceso").Find(&compra)
 
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()
@@ -101,12 +87,7 @@ func list_orders_errors(c *fiber.Ctx) error {
 	resp := make(map[string]interface{})
 
 	compra := []compuestas.Pagos_orden{}
-	errdb := db.
-		Table("pagos as p").
-		Select("p.id, p.respuesta,p.fecha_pagado,p.is_error, o.status, o.fecha_emitido,  o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id  ").
-		Joins("JOIN ordenes as o ON p.orden_id = o.id").
-		Where("p.usuario_id = ?", userID).
-		Find(&compra)
+	errdb := db.Table("pagos_orden").Where("usuario_id = ? AND status = ?", userID, "rechazado").Find(&compra)
 
 	if errdb.Error != nil {
 		resp["mensaje"] = errdb.Error.Error()

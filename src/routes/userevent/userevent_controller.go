@@ -10,19 +10,25 @@ import (
 )
 
 func active_events(c *fiber.Ctx) error {
-	m := make(map[string]string)
+
 	resp := make(map[string]interface{})
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	input := []gormdb.Evento_usuario{}
 	errdb := db.Find(&input, "Usuario_id = ? AND Activo = ?", c.Locals("userID"), true)
 	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
+		resp["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(resp)
 	}
-	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
+	page, err4 := strconv.ParseUint(pagt, 10, 32)
+	if err4 != nil {
+		resp["mensaje"] = err4.Error()
+		return c.Status(500).JSON(resp)
+	}
+	sizepage, err5 := strconv.ParseUint(sizepaget, 10, 32)
+	if err5 != nil {
+		resp["mensaje"] = err5.Error()
+		return c.Status(500).JSON(resp)
 	}
 
 	resp["pags"] = math.Round(float64(len(input)) / float64(sizepage))
@@ -41,15 +47,24 @@ func active_events(c *fiber.Ctx) error {
 }
 
 func winer_event(c *fiber.Ctx) error {
-	userID := c.Locals("userID")
 	resp := make(map[string]interface{})
-
+	userID, err1 := c.Locals("userID").(uint32)
+	if !err1 {
+		resp["mensaje"] = "internal error"
+		return c.Status(500).JSON(resp)
+	}
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	a := int64(0)
 	db.Table("ganador").Where("Usuario_id = ?", userID).Count(&a)
-	pag, err := strconv.ParseUint(c.Params("pag"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
-		resp["mensaje"] = err.Error()
+	pag, er4 := strconv.ParseUint(pagt, 10, 32)
+	if er4 != nil {
+		resp["mensaje"] = er4.Error()
+		return c.Status(500).JSON(resp)
+	}
+	sizepage, err5 := strconv.ParseUint(sizepaget, 10, 32)
+	if err5 != nil {
+		resp["mensaje"] = err5.Error()
 		return c.Status(500).JSON(resp)
 	}
 	pags := uint64(a) / sizepage
@@ -81,18 +96,20 @@ func winer_event(c *fiber.Ctx) error {
 }
 
 func history_event(c *fiber.Ctx) error {
-
 	resp := make(map[string]interface{})
-
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	a := int64(0)
 	userID := c.Locals("userID")
-	db.Table("evento_usuario").Where("Usuario_id = ? AND activo = ?", userID, false).Count(&a)
-
-	page, err := strconv.ParseUint(c.Params("page"), 0, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-
-	if err != nil || err2 != nil {
-		resp["mensaje"] = err.Error()
+	db.Table("evento_usuario").Where("usuario_id = ? AND activo = ?", userID, false).Count(&a)
+	page, err4 := strconv.ParseUint(pagt, 10, 32)
+	if err4 != nil {
+		resp["mensaje"] = err4.Error()
+		return c.Status(500).JSON(resp)
+	}
+	sizepage, err5 := strconv.ParseUint(sizepaget, 10, 32)
+	if err5 != nil {
+		resp["mensaje"] = err5.Error()
 		return c.Status(500).JSON(resp)
 	}
 	pags := uint64(a) / sizepage
@@ -220,16 +237,16 @@ func create_event(c *fiber.Ctx) error {
 
 // Root
 
-func userevent_list_all(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	input := []gormdb.Evento_usuario{}
-	errdb := db.Find(&input)
-	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
-	}
-	return c.JSON(input)
-}
+// func userevent_list_all(c *fiber.Ctx) error {
+// 	m := make(map[string]string)
+// 	input := []gormdb.Evento_usuario{}
+// 	errdb := db.Find(&input)
+// 	if errdb.Error != nil {
+// 		m["mensaje"] = errdb.Error.Error()
+// 		return c.Status(500).JSON(m)
+// 	}
+// 	return c.JSON(input)
+// }
 
 func userevent_edit(c *fiber.Ctx) error {
 	m := make(map[string]string)

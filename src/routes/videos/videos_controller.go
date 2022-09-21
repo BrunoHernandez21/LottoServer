@@ -14,13 +14,18 @@ func videos_evento_pag(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	items := []views.EventoVideo{}
-
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	a := int64(0)
 	db.Find(&items).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
+	page, err := strconv.ParseUint(pagt, 10, 32)
+	if err != nil {
 		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	sizepage, err2 := strconv.ParseUint(sizepaget, 10, 32)
+	if err2 != nil {
+		m["mensaje"] = err2.Error()
 		return c.Status(500).JSON(m)
 	}
 	pags := uint64(a) / sizepage
@@ -55,13 +60,18 @@ func videos_pag(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	resp := make(map[string]interface{})
 	input := []gormdb.Videos{}
-
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	a := int64(0)
 	db.Table("videos").Where("Activo = ?", true).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
+	page, err := strconv.ParseUint(pagt, 10, 32)
+	if err != nil {
 		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	sizepage, err2 := strconv.ParseUint(sizepaget, 10, 32)
+	if err2 != nil {
+		m["mensaje"] = err2.Error()
 		return c.Status(500).JSON(m)
 	}
 	pags := uint64(a) / sizepage
@@ -199,17 +209,24 @@ func listargrupos(c *fiber.Ctx) error {
 }
 
 func listarGruposName(c *fiber.Ctx) error {
-	m := make(map[string]string)
+
 	resp := make(map[string]interface{})
-	items := []views.EventoVideo{}
+
+	pagt := c.Params("pag")
+	sizepaget := c.Params("sizepage")
 	genero := c.Params("name")
+	items := []views.EventoVideo{}
 	a := int64(0)
 	db.Find(&items).Where("genero = ?", genero).Count(&a)
-	page, err := strconv.ParseUint(c.Params("page"), 10, 32)
-	sizepage, err2 := strconv.ParseUint(c.Params("sizepage"), 10, 32)
-	if err != nil || err2 != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
+	page, err4 := strconv.ParseUint(pagt, 10, 32)
+	if err4 != nil {
+		resp["mensaje"] = err4.Error()
+		return c.Status(500).JSON(resp)
+	}
+	sizepage, err5 := strconv.ParseUint(sizepaget, 10, 32)
+	if err5 != nil {
+		resp["mensaje"] = err5.Error()
+		return c.Status(500).JSON(resp)
 	}
 	pags := uint64(a) / sizepage
 	residuo := uint64(a) % sizepage
@@ -230,8 +247,8 @@ func listarGruposName(c *fiber.Ctx) error {
 		Find(&items)
 
 	if errdb.Error != nil {
-		m["mensaje"] = errdb.Error.Error()
-		return c.Status(500).JSON(m)
+		resp["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(resp)
 	}
 
 	resp["items"] = &items

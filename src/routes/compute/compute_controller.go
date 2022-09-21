@@ -12,7 +12,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func statistics(c *fiber.Ctx) error {
+// process
+
+func process_statistics(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	eventos := []views.EventoVideo{}
 
@@ -83,13 +85,38 @@ func statistics(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 
-func emit(c *fiber.Ctx) error {
+func process_users(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	var resp string
+	db.Raw("CALL verificar_propiedades_usuario()").Scan(&resp)
+	m["resp"] = resp
+	return c.Status(200).JSON(m)
+}
+
+func process_subscriptions(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	var resp string
+	db.Raw("CALL verificar_suscribciones()").Scan(&resp)
+	m["resp"] = resp
+	return c.Status(200).JSON(m)
+}
+
+func process_winner(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	var resp string
+	db.Raw("CALL generar_ganador()").Scan(&resp)
+	m["resp"] = resp
+	return c.Status(200).JSON(m)
+}
+
+///////////// emit
+func emit_statistics(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	//Peticion HTTP GET
 	a := fiber.AcquireAgent()
 	req := a.Request()
 	req.Header.SetMethod("GET")
-	req.SetRequestURI("http://187.213.68.250:25567/api/v1/emit/send/message")
+	req.SetRequestURI("https://lotto.inclusive.com.mx/api/v1/emit/send/message")
 	if err := a.Parse(); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -98,6 +125,7 @@ func emit(c *fiber.Ctx) error {
 	if code != 200 {
 		temp := make(map[string]interface{})
 		json.Unmarshal(body, &temp)
+		temp["error"] = "error"
 		return c.Status(500).JSON(temp)
 	}
 	m["resp"] = "Enviado correctamente"
@@ -105,18 +133,14 @@ func emit(c *fiber.Ctx) error {
 
 }
 
-func winner(c *fiber.Ctx) error {
+func emit_winner(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	m["resp"] = "Hola mundo"
 	return c.Status(200).JSON(m)
 }
 
-func subscriptions(c *fiber.Ctx) error {
-	m := make(map[string]interface{})
-	m["resp"] = "Hola mundo"
-	return c.Status(200).JSON(m)
-}
-func stateusers(c *fiber.Ctx) error {
+//// Webhook
+func stripe_webhook(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	m["resp"] = "Hola mundo"
 	return c.Status(200).JSON(m)

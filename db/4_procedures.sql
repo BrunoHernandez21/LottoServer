@@ -8,7 +8,7 @@ begin
     set time_Now = now();
 	##--crea la orden 
   	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,payment_method_id)
-        SELECT 	"pendiente",
+        SELECT 	"proceso",
                 time_Now,
                 SUM(total_linea),
                 SUM(puntos_linea),
@@ -63,7 +63,7 @@ begin
     ## -- crear compra
     INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
     ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "pagada" WHERE ordenes.id = iorden_id;
+    UPDATE ordenes SET	ordenes.status = "pagado" WHERE ordenes.id = iorden_id;
 	##--incertamos los beneficios de dias del plan
     INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
 		SELECT 	true,
@@ -102,7 +102,7 @@ begin
     ## -- crear compra
     INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,true);
     ## -- out
-	SELECT * from ordenes WHERE id = iorden_id;
+	SELECT razon;
 end
 $$
 delimiter ;
@@ -124,9 +124,29 @@ delimiter ;
 ##-- generar_ganador
 DROP PROCEDURE IF EXISTS `generar_ganador`;
 delimiter $$
-CREATE PROCEDURE pagos_cancelado() 
+CREATE PROCEDURE generar_ganador() 
 begin 
+    SELECT "Realizado correctamente";
+end
+$$
+delimiter ;
 
+##-- verificar_suscribciones
+DROP PROCEDURE IF EXISTS `verificar_suscribciones`;
+delimiter $$
+CREATE PROCEDURE verificar_suscribciones() 
+begin 
+    SELECT "Realizado correctamente";
+end
+$$
+delimiter ;
+
+##-- verificar_propiedades_usuario
+DROP PROCEDURE IF EXISTS `verificar_propiedades_usuario`;
+delimiter $$
+CREATE PROCEDURE verificar_propiedades_usuario() 
+begin 
+    SELECT "Realizado correctamente";
 end
 $$
 delimiter ;

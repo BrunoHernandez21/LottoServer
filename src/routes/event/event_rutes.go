@@ -19,6 +19,6 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Delete("/event/:id", mi.IsRoot, eliminar)
 
 	v1.Get("/event/:id", byid)
-	v1.Get("/active/page/:sizepage", listarActivos)
+	v1.Get("/active/:pag/:sizepage", listarActivos)
 
 }

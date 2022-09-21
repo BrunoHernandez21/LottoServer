@@ -193,7 +193,7 @@ CREATE TABLE `carrito` (
 ##-- Table structure for table `orden`
 CREATE TABLE `ordenes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `status` varchar(255) DEFAULT NULL,       ## --  pendiente, rechazada, pagada, cancelada,
+  `status` varchar(255) DEFAULT NULL,        ## --  proceso, rechazado, pagado, cancelado,
   `fecha_emitido` DATETIME DEFAULT NULL,
   `precio_total` double NOT NULL DEFAULT 0,
   `puntos_total` double NOT NULL DEFAULT 0,

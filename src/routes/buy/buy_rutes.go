@@ -15,7 +15,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	v1 := app.Group("/api" + config.Rest_version + "buy")
 
-	// manda la orden rechazada, pagada, cancelada,
+	// manda la orden
 	v1.Post("/orders/checkout", mi.IsRegister, checkout)
 	v1.Post("/orders/rentry", mi.IsRegister, buy_retry)
 	v1.Post("/orders/cancel", mi.IsRegister, buy_cancel)
@@ -23,7 +23,6 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Get("/orders/waiting", mi.IsRegister, list_orders)
 	v1.Get("/orders/rejected", mi.IsRegister, list_orders_errors)
 	v1.Get("/history/:pag/:sizepage", mi.IsRegister, buy_history_paginated)
-	v1.Get("/history", mi.IsRegister, buy_history)
 
 	//ROOT
 	v1.Delete("/orders/:id", mi.IsRoot, eliminar)

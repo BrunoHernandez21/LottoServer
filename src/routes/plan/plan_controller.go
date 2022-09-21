@@ -35,7 +35,8 @@ func list_subscriptions(c *fiber.Ctx) error {
 func byname(c *fiber.Ctx) error {
 	m := make(map[string]string)
 	a := gormdb.Planes{}
-	errdb := db.Table("planes").Find(&a, "nombre LIKE ?", "%"+c.Params("name")+"%")
+
+	errdb := db.Table("planes").Find(&a, "titulo LIKE ?", "%"+c.Params("name")+"%")
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -79,7 +80,6 @@ func create(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 func delete(c *fiber.Ctx) error {
-
 	m := make(map[string]string)
 	a := gormdb.Planes{}
 	err := db.Find(&a, "id = ?", c.Params("id"))

@@ -3,6 +3,7 @@ package inputs
 import "time"
 
 type Set_login struct {
+	User_id       uint32     `json:"user_id"`
 	Access_token  string     `json:"access_token"`
 	Token_type    *string    `gorm:"null" json:"token_type,omitempty"`
 	Refresh_token *string    `gorm:"null" json:"refresh_token,omitempty"`

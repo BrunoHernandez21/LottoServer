@@ -16,11 +16,11 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 
 	//listVideo
 	v1.Get("/video/:id", activoID)
-	v1.Get("/videos/:page/:sizepage", videos_pag)
-	v1.Get("/events/:page/:sizepage", videos_evento_pag)
+	v1.Get("/videos/:pag/:sizepage", videos_pag)
+	v1.Get("/events/:pag/:sizepage", videos_evento_pag)
 	// groups
 	v1.Get("/groups", listargrupos)
-	v1.Get("/groups/:page/:sizepage/:name", listarGruposName)
+	v1.Get("/groups/:pag/:sizepage/:name", listarGruposName)
 	// statistics
 	v1.Get("/statistics", get_statistics)
 	v1.Get("/statistics/:id", get_st_byID)

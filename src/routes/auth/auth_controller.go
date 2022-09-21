@@ -53,6 +53,7 @@ func login(c *fiber.Ctx) error {
 	token, expireAt := jwts.GenerateToken(a.Id)
 	tokentipe := "Bearer"
 	rsponse := inputs.Set_login{
+		User_id:      a.Id,
 		Access_token: token,
 		Token_type:   &tokentipe,
 		Expires_in:   &expireAt,
