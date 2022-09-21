@@ -126,6 +126,24 @@ DROP PROCEDURE IF EXISTS `generar_ganador`;
 delimiter $$
 CREATE PROCEDURE generar_ganador() 
 begin 
+    INSERT INTO ganador ( cantidad, cantidad_acumulada, concepto, evento_id, usuario_id, evento_usuario_id)
+	(SELECT 	e.premio_cash,
+     			e.acumulado,
+        		e.premio_otros,
+     			e.id,
+                eu.usuario_id,
+                eu.id
+        from eventos as e 
+       	LEFT JOIN evento_usuario as eu ON e.id = eu.evento_id   
+     	LEFT JOIN videos_estadisticas ve ON e.video_id = ve.video_id  
+        WHERE 	e.fechahora_evento > DATE_SUB(NOW(),INTERVAL 10 MINUTE ) AND
+     			MINUTE(ve.fecha) = MINUTE(NOW()) AND
+     			(eu.views_count = ve.views_count OR
+                 eu.like_count = ve.views_count OR  
+                 eu.shared_count = ve.views_count OR  
+                 eu.comments_count = ve.views_count OR  
+                 eu.saved_count = ve.views_count OR 
+                 eu.dislikes_count = ve.views_count));
     SELECT "Realizado correctamente";
 end
 $$
@@ -136,6 +154,14 @@ DROP PROCEDURE IF EXISTS `verificar_suscribciones`;
 delimiter $$
 CREATE PROCEDURE verificar_suscribciones() 
 begin 
+    UPDATE suscripciones as s
+    SET	monto_mensual = 0,
+    	fecha_inicio = null,
+        fecha_fin = null,
+        plan_id = null,
+        dia_corte = null,
+        next_plan_id = null
+    WHERE IFNULL(s.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 31 DAY)) < NOW();
     SELECT "Realizado correctamente";
 end
 $$
@@ -146,7 +172,20 @@ DROP PROCEDURE IF EXISTS `verificar_propiedades_usuario`;
 delimiter $$
 CREATE PROCEDURE verificar_propiedades_usuario() 
 begin 
+	UPDATE propiedades_usuarios as pu
+    LEFT JOIN suscripciones as s ON pu.usuario_id = s.usuario_id  
+    SET	pu.nivel_acceso 	=  
+    	IF(
+            s.plan_id != null,
+           (SELECT b.acces_id from beneficios_plan as bp LEFT JOIN beneficios as b ON bp.beneficio_id = b.id WHERE bp.plan_id = s.plan_id), 
+           "3"
+          ),
+    	pu.fecha_inicio	=  IF(s.plan_id != null, s.fecha_inicio, null),
+        pu.fecha_fin 		=  IF(s.plan_id != null, s.fecha_fin, null)
+    WHERE IFNULL(pu.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 31 DAY)) < NOW();
     SELECT "Realizado correctamente";
 end
 $$
 delimiter ;
+
+
