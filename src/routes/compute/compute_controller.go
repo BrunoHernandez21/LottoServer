@@ -5,7 +5,6 @@ import (
 	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
-	"lottomusic/src/models/views"
 	"strconv"
 	"time"
 
@@ -15,23 +14,23 @@ import (
 // process
 
 func process_statistics(c *fiber.Ctx) error {
-	m := make(map[string]string)
-	eventos := []views.EventoVideo{}
+	m := make(map[string]interface{})
+	videos := []gormdb.Videos{}
 
-	errdb := db.Find(&eventos)
+	errdb := db.Find(&videos, "activo = ? AND proveedor = ?", true, "Youtube")
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
 	toDBT := []gormdb.VideosEstadisticas{}
-	for _, its := range eventos {
+	for _, its := range videos {
 		if its.Video_id != nil {
 			//Peticion HTTP GET
 			a := fiber.AcquireAgent()
 			req := a.Request()
 			req.Header.SetMethod("GET")
 			req.SetRequestURI(config.YTestadistics + *its.Video_id)
-			myTime := time.Now().UTC()
+			myTime := time.Now().Local()
 			if err := a.Parse(); err != nil {
 				m["mensaje"] = err.Error()
 				return c.Status(500).JSON(m)
@@ -68,7 +67,7 @@ func process_statistics(c *fiber.Ctx) error {
 
 			//agregar a la lista
 			toDBT = append(toDBT, gormdb.VideosEstadisticas{
-				Video_id:       its.Vid_id,
+				Video_id:       its.Id,
 				Fecha:          myTime,
 				Like_count:     &Like_count,
 				Views_count:    &Views_count,
@@ -82,6 +81,7 @@ func process_statistics(c *fiber.Ctx) error {
 	db.Create(&toDBT)
 	m["mensaje"] = "Creado con exito"
 	m["time"] = time.Now().String()
+	m["nan"] = videos
 	return c.JSON(m)
 }
 

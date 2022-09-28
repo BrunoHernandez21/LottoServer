@@ -155,13 +155,31 @@ func create_event(c *fiber.Ctx) error {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
+
+	if input.Evento_id == 0 {
+		m["mensaje"] = "debe seleccionarse el evento"
+		return c.Status(500).JSON(m)
+	}
 	userID, ok := c.Locals("userID").(uint32)
 	if !ok {
 		m["mensaje"] = "internal error"
 		return c.Status(500).JSON(m)
 	}
+	// Validar el estado del ecento
+	evento := gormdb.Eventos{}
+	errdb := db.Find(&evento, "Id = ?", input.Evento_id)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	if !evento.Activo {
+		m["mensaje"] = "Evento expirado"
+		return c.Status(200).JSON(m)
+	}
+
+	// Cartera
 	cartera := gormdb.Carteras{}
-	errdb := db.Find(&cartera, "usuario_id = ?", userID)
+	errdb = db.Find(&cartera, "usuario_id = ?", userID)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -220,7 +238,6 @@ func create_event(c *fiber.Ctx) error {
 	}
 	cartera.Puntos -= count
 	/// reducir en cartera
-
 	errdb = db.Save(&cartera)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

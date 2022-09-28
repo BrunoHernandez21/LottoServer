@@ -7,13 +7,13 @@ DROP VIEW IF EXISTS `plan_suscripcion`;
 DROP VIEW IF EXISTS `eventos_videos`;
 CREATE VIEW eventos_videos AS
 SELECT 
-	eventos.id, eventos.fechahora_evento,eventos.premio_cash,eventos.acumulado,eventos.premio_otros,eventos.moneda,eventos.categoria_evento_id,
-    videos.id as vid_id, videos.artista,videos.canal,videos.fecha_video,videos.video_id,videos.thumblary,
-    videos.titulo,videos.url_video,videos.genero,videos.proveedor
-FROM eventos 
-INNER JOIN videos ON eventos.video_id = videos.id 
-WHERE eventos.activo=true
-ORDER BY eventos.fechahora_evento;
+	e.id, e.fechahora_evento,e.premio_cash,e.acumulado,e.premio_otros,e.moneda,
+    e.costo,e.is_views,e.is_like,e.is_comments,e.is_saved,e.is_shared,e.is_dislikes,
+    v.id as vid_id, v.artista,v.canal,v.fecha_video,v.video_id,v.thumblary,v.titulo,v.url_video,v.genero,v.proveedor
+FROM eventos as e
+INNER JOIN videos as v ON e.video_id = v.id 
+WHERE e.activo=true
+ORDER BY e.fechahora_evento;
 
 DROP VIEW IF EXISTS `plan_one`;
 CREATE VIEW plan_one AS

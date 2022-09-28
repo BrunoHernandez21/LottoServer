@@ -1,13 +1,12 @@
 package auth
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"lottomusic/src/globals"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
 	"lottomusic/src/modules/email"
 	"lottomusic/src/modules/jwts"
+	"lottomusic/src/modules/mysha"
 	"math/rand"
 	"time"
 
@@ -41,9 +40,7 @@ func login(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	//password midelware
-	h := sha1.New()
-	h.Write([]byte(*input.Password))
-	i := hex.EncodeToString(h.Sum(nil))
+	i := mysha.SHA1(*input.Password)
 	input.Password = &i
 	if *a.Password != *input.Password {
 		m["mensaje"] = "Contraseña invalida"
@@ -88,9 +85,7 @@ func signup(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	h := sha1.New()
-	h.Write([]byte(*input.Password))
-	i := hex.EncodeToString(h.Sum(nil))
+	i := mysha.SHA1(*input.Password)
 	var activo bool = true
 	out.Activo = &activo
 	out.Password = &i
@@ -138,9 +133,7 @@ func forgetpassword(c *fiber.Ctx) error {
 	}
 
 	password := randomString(12)
-	h := sha1.New()
-	h.Write([]byte(password))
-	i := hex.EncodeToString(h.Sum(nil))
+	i := mysha.SHA1(password)
 	a.Password = &i
 	email.Send_Recovery_Password(input.Email, password)
 

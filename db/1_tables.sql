@@ -5,7 +5,6 @@
   DROP TABLE IF EXISTS `evento_usuario`;
   DROP TABLE IF EXISTS `eventos`;
   DROP TABLE IF EXISTS `tipo_evento`;
-  DROP TABLE IF EXISTS `categoria_evento`;
   DROP TABLE IF EXISTS `videos_estadisticas`;
   DROP TABLE IF EXISTS `videos`;
   DROP TABLE IF EXISTS `suscripciones`;
@@ -369,17 +368,6 @@ CREATE TABLE `videos_estadisticas` (
   CONSTRAINT `FKs87xk1t7ytkg1xw9doomybg6m` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
 );
 
-##-- Table structure for table `categoria_evento`
-CREATE TABLE `categoria_evento` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) DEFAULT NULL,
-  `costo` INT NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`)
-);
-LOCK TABLES `categoria_evento` WRITE;
-INSERT INTO `categoria_evento` VALUES (1,'Oportunidades',1),(2,'Acumulado_alto8am',3),(3,'Acumulado_bajo8pm',1),(4,'aproximacion_alta00am',2),(5,'aproximacion_baja',1);
-UNLOCK TABLES;
-
 ##-- Table structure for table `tipo_evento`
 ##-- Esta tabla es meramente informativa
 CREATE TABLE `tipo_evento` (
@@ -399,19 +387,23 @@ UNLOCK TABLES;
 
 ##-- Table structure for table `eventos`
 CREATE TABLE `eventos` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `activo` BOOLEAN  DEFAULT true,
-  `fechahora_evento` DATETIME DEFAULT NULL,
-  `premio_cash` float DEFAULT NULL,
-  `acumulado` float DEFAULT NULL,
-  `premio_otros` varchar(255) DEFAULT NULL,
-  `moneda` varchar(255) DEFAULT NULL,
-  `categoria_evento_id` bigint DEFAULT NULL,
-  `video_id` bigint DEFAULT NULL,
+  `id`                bigint NOT NULL AUTO_INCREMENT,
+  `activo`            BOOLEAN  DEFAULT true,
+  `fechahora_evento`  DATETIME DEFAULT NULL,
+  `premio_cash`       float DEFAULT NULL,
+  `acumulado`         float DEFAULT NULL,
+  `premio_otros`      varchar(255) DEFAULT NULL,
+  `moneda`            varchar(255) DEFAULT NULL,
+  `video_id`          bigint DEFAULT NULL,
+  `costo`             INT NOT NULL DEFAULT 0,
+  `is_views`          BOOLEAN NOT NULL default false,
+  `is_like`           BOOLEAN NOT NULL default false,
+  `is_comments`       BOOLEAN NOT NULL default false,
+  `is_saved`          BOOLEAN NOT NULL default false,
+  `is_shared`         BOOLEAN NOT NULL default false,
+  `is_dislikes`       BOOLEAN NOT NULL default false,
   PRIMARY KEY (`id`),
-  KEY `FKk6e2a82e9uvkc8vrnijajf0c5` (`categoria_evento_id`),
   KEY `FKs87xk1t7ytkg1xw91sntybg6m` (`video_id`),
-  CONSTRAINT `FKk6e2a82e9uvkc8vrnijajf0c5` FOREIGN KEY (`categoria_evento_id`) REFERENCES `categoria_evento` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FKs87xk1t7ytkg1xw91sntybg6m` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 );
 LOCK TABLES `eventos` WRITE;
@@ -489,7 +481,8 @@ CREATE TABLE `evento_usuario` (
 ##-- Table structure for table `ganador`
 CREATE TABLE `ganador` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `cantidad` bigint DEFAULT NULL,
+  `cantidad` float DEFAULT NULL,
+  `cantidad_acumulada` float DEFAULT NULL,
   `concepto` varchar(255) DEFAULT NULL,
   `evento_id` bigint DEFAULT NULL,
   `usuario_id` bigint DEFAULT NULL,

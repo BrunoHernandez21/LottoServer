@@ -4,7 +4,7 @@ import "time"
 
 type Eventos struct {
 	Id                  uint32     `json:"id"`
-	Activo              *uint32    `json:"activo,omitempty"`
+	Activo              bool       `json:"activo,omitempty"`
 	Fechahora_evento    *time.Time `json:"fechahora_evento,omitempty"`
 	Premio_cash         *float32   `json:"premio_cash,omitempty"`
 	Acumulado           *float32   `json:"acumulado,omitempty"`

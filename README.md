@@ -1,12 +1,16 @@
-TODO:
-Verificar nuevamente todos los endpount existentes por motivos de actualizacion de la BD 
 
-    Generar un ENDPOINT para generar Ganador                    // ahora
-    Generar un ENDPOINT para temrinar las suscribciones         // loading
-    Generar un ENDPOINT para propiedades del usuario            // loading
-    Generar un ENDPOINT para reintentar compra                  // loading
-    Generar un ENDPOINT para cancelar compra                    // loading
+autorrellenado de video mediante vidID al crear evento  
+pedir CCV de la tarjeta y no guardarlo en el BD                            // espera
+terminar de separar plan y suscribcion                                     // espera
 
-    Verificar la estrucura de tablas (ID, llaves foraneas, indices) // luego
+ ## --  proceso, rechazado, pagado, cancelado
 
- ## --  proceso, rechazado, pagado, cancelado,
+ si Guardar la tarjeta
+ ccv guardar ASH1
+ pedir id y ccv
+Agregar el costo del evento a la peticion                                       // espera
+
+terminar de separar plan y suscribcion                                          // espera
+Reintentar comprar una orden y cancelarla                                       // espera
+websocket                                                                       // espera
+agregar la respuesta directamente a la lista existente                          // espera

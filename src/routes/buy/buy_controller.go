@@ -6,6 +6,7 @@ import (
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
 	impstripe "lottomusic/src/modules/imp_stripe"
+	"lottomusic/src/modules/mysha"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -122,6 +123,8 @@ func checkout(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	tarjeta := gormdb.Payment_method{}
+	shaccv := mysha.SHA256(input.Cvc)
+
 	errdb := db.Find(&tarjeta, "Id = ? ", input.Card_id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
@@ -129,6 +132,10 @@ func checkout(c *fiber.Ctx) error {
 	}
 	if tarjeta.Usuario_id != userID {
 		m["mensaje"] = "La tarjeta no te pertenece"
+		return c.Status(500).JSON(m)
+	}
+	if tarjeta.Cvc != shaccv {
+		m["mensaje"] = "Error de CCV"
 		return c.Status(500).JSON(m)
 	}
 
@@ -141,7 +148,7 @@ func checkout(c *fiber.Ctx) error {
 	}
 
 	// mandamos a stripe a generar el intento de pago
-	resp, errstr := impstripe.Payment(&tarjeta, &orden)
+	resp, errstr := impstripe.Payment(tarjeta.ToStripeMethod(input.Cvc), &orden)
 	var outReason string
 	if errstr != nil {
 		//Compra fallida
@@ -157,7 +164,7 @@ func checkout(c *fiber.Ctx) error {
 	}
 
 	db.Raw("CALL pago_unico(?,?)", orden.Id, string(data)).Scan(&outReason)
-	m["resp"] = outReason
+	m["resp"] = "Compra realizada con éxito"
 	return c.Status(200).JSON(m)
 }
 
@@ -180,6 +187,7 @@ func buy_retry(c *fiber.Ctx) error {
 		m["mensaje"] = "internal error"
 		return c.Status(500).JSON(m)
 	}
+	shaccv := mysha.SHA256(input.Cvc)
 	tarjeta := gormdb.Payment_method{}
 	errdb := db.Find(&tarjeta, "Id = ? ", input.Card_id)
 	if errdb.Error != nil {
@@ -188,6 +196,10 @@ func buy_retry(c *fiber.Ctx) error {
 	}
 	if tarjeta.Usuario_id != userID {
 		m["mensaje"] = "La tarjeta no te pertenece"
+		return c.Status(500).JSON(m)
+	}
+	if tarjeta.Cvc != shaccv {
+		m["mensaje"] = "Error de CCV"
 		return c.Status(500).JSON(m)
 	}
 
@@ -204,7 +216,7 @@ func buy_retry(c *fiber.Ctx) error {
 	}
 
 	// mandamos a stripe a verificar la compra
-	resp, errstr := impstripe.Payment(&tarjeta, &orden)
+	resp, errstr := impstripe.Payment(tarjeta.ToStripeMethod(input.Cvc), &orden)
 	var outReason string
 	if errstr != nil {
 		//Compra fallida

@@ -55,16 +55,16 @@ func Payment(payM *gormdb.Payment_method, orden *gormdb.Ordenes) (*stripe.Paymen
 	return out, nil
 }
 */
-func Payment(payM *gormdb.Payment_method, orden *gormdb.Ordenes) (*stripem.StripeIntentResponse, error) {
+func Payment(payM stripem.Stripe_Payment, orden *gormdb.Ordenes) (*stripem.StripeIntentResponse, error) {
 	// Generate paymentMethod
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")
 	args := fiber.AcquireArgs()
 	args.Set("type", "card")
 	args.Set("card[number]", payM.Card_number)
-	args.Set("card[exp_month]", strconv.FormatUint(uint64(payM.Expiry_month), 10))
-	args.Set("card[cvc]", strconv.FormatUint(uint64(payM.Cvc), 10))
-	args.Set("card[exp_year]", strconv.FormatUint(uint64(payM.Expiry_year), 10))
+	args.Set("card[exp_month]", payM.Expiry_month)
+	args.Set("card[cvc]", payM.Cvc)
+	args.Set("card[exp_year]", payM.Expiry_year)
 	a.Form(args)
 	req := a.Request()
 	req.Header.SetMethod("POST")
