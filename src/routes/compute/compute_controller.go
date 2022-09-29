@@ -116,7 +116,7 @@ func emit_statistics(c *fiber.Ctx) error {
 	a := fiber.AcquireAgent()
 	req := a.Request()
 	req.Header.SetMethod("GET")
-	req.SetRequestURI("https://lotto.inclusive.com.mx/api/v1/emit/send/message")
+	req.SetRequestURI("https://lotto.inclusive.com.mx/api/v1/emit/estadisticas")
 	if err := a.Parse(); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
