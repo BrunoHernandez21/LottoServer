@@ -67,8 +67,8 @@ func editar(c *fiber.Ctx) error {
 		m["mensaje"] = "video_id es requerido"
 		return c.Status(500).JSON(m)
 	}
-	if input.Categoria_evento_id == 0 {
-		m["mensaje"] = "Categoria_evento_id no puede ser nil"
+	if input.Costo == 0 {
+		m["mensaje"] = "costo no puede ser nil"
 		return c.Status(500).JSON(m)
 	}
 
