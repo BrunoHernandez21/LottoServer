@@ -22,5 +22,6 @@ var Rest_Port = ""
 var Stripekey = ""
 var JwtKey = []byte("TestForFasthttpWithJWT")
 var YTestadistics = ""
+var YTbyID = ""
 
 const Rest_version string = "/v3/"

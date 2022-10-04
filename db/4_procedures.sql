@@ -245,6 +245,10 @@ begin
         LEFT JOIN eventos as e ON e.id = eu.evento_id 
         SET eu.activo = false
         WHERE e.fechahora_evento < DATE_ADD(NOW(), INTERVAL 3 MINUTE) AND eu.activo = true;
+    UPDATE eventos as e  
+            SET e.activo = false
+            WHERE e.fechahora_evento < DATE_ADD(NOW(), INTERVAL 3 MINUTE);
+    UPDATE videos SET activo = false WHERE id NOT IN (SELECT video_id FROM eventos WHERE activo = true);
     SELECT "Realizado correctamente";
 end
 $$

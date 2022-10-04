@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
-	"lottomusic/src/models/inputs"
+	"lottomusic/src/models/youtube"
 	"strconv"
 	"time"
 
@@ -42,7 +42,7 @@ func process_statistics(c *fiber.Ctx) error {
 				return c.Status(500).JSON(temp)
 			}
 			// parseo
-			var resp = inputs.YtResponse{}
+			var resp = youtube.YtResponse{}
 			if err := json.Unmarshal(body, &resp); err != nil {
 				m["mensaje"] = err.Error()
 				return c.Status(500).JSON(m)

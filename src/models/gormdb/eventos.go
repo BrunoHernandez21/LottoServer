@@ -6,8 +6,8 @@ type Eventos struct {
 	Id               uint32     `json:"id"`
 	Activo           bool       `json:"activo,omitempty"`
 	Fechahora_evento *time.Time `json:"fechahora_evento,omitempty"`
-	Premio_cash      *float32   `json:"premio_cash,omitempty"`
-	Acumulado        *float32   `json:"acumulado,omitempty"`
+	Premio_cash      *float64   `json:"premio_cash,omitempty"`
+	Acumulado        *float64   `json:"acumulado,omitempty"`
 	Premio_otros     *string    `json:"premio_otros,omitempty"`
 	Moneda           *string    `json:"moneda,omitempty"`
 	Video_id         uint32     `json:"video_id,omitempty"`

@@ -95,6 +95,7 @@ func loadInitialConfig() {
 	config.Stripekey = data.Stripekey
 	config.JwtKey = []byte(data.JwtKey)
 	config.YTestadistics = "https://www.googleapis.com/youtube/v3/videos?key=" + data.YtKey + "&part=statistics&id="
+	config.YTbyID = "https://www.googleapis.com/youtube/v3/videos?key=" + data.YtKey + "&part=snippet&id="
 }
 
 type ConfigMain struct {

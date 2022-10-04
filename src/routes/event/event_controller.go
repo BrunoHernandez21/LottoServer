@@ -1,27 +1,138 @@
 package evento
 
 import (
+	"encoding/json"
+	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/models/inputs"
+	"lottomusic/src/models/youtube"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func crear(c *fiber.Ctx) error {
 	m := make(map[string]string)
-	input := gormdb.Eventos{}
+	input := inputs.Get_Event_Video{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
 	}
-	input.Id = 0
-	errdb := db.Create(&input)
+	// fase de comprovacion de entrada
+	if input.Video_id == "" {
+		m["mensaje"] = "video id no puede ser null"
+		return c.Status(500).JSON(m)
+	}
+
+	if input.Evento.Costo == 0 {
+		m["mensaje"] = "costo no puede ser 0"
+		return c.Status(500).JSON(m)
+	}
+	if input.Evento.Premio_otros == nil && *input.Evento.Premio_cash == 0 {
+		m["mensaje"] = "Premio no puede ser nil"
+		return c.Status(500).JSON(m)
+	}
+
+	if *input.Evento.Premio_cash != 0 && input.Evento.Moneda == nil {
+		m["mensaje"] = "si el premio es en cash moneda es necesario"
+		return c.Status(500).JSON(m)
+	}
+
+	if !(input.Evento.Is_comments || input.Evento.Is_dislikes || input.Evento.Is_like || input.Evento.Is_saved || input.Evento.Is_shared || input.Evento.Is_views) {
+
+		m["mensaje"] = "Selecciona los tipos permitidos para el evento"
+		return c.Status(500).JSON(m)
+	}
+	acumulado := 0.0
+	input.Evento.Acumulado = &acumulado
+	input.Evento.Id = 0
+
+	video := gormdb.Videos{}
+	errdb := db.Find(&video, "Video_id = ?", input.Video_id)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
-	return c.JSON(input)
+	myTime := time.Now().Local()
+	// Crear video si no existe
+	if video.Id == 0 {
+		a := fiber.AcquireAgent()
+		req := a.Request()
+		req.Header.SetMethod("GET")
+		req.SetRequestURI(config.YTbyID + input.Video_id)
+
+		if err := a.Parse(); err != nil {
+			m["mensaje"] = err.Error()
+			return c.Status(500).JSON(m)
+		}
+		code, body, _ := a.Bytes()
+		if code != 200 {
+			temp := make(map[string]interface{})
+			json.Unmarshal(body, &temp)
+			return c.Status(500).JSON(temp)
+		}
+		// parseo
+		var resp = youtube.YtResponse{}
+		if err := json.Unmarshal(body, &resp); err != nil {
+			m["mensaje"] = err.Error()
+			return c.Status(500).JSON(m)
+		}
+		if len(resp.Items) <= 0 {
+			m["mensaje"] = "yt no proporciono estadisticas"
+			return c.Status(500).JSON(m)
+		}
+		ytvideo := resp.Items[0].Snippet
+		if a == nil {
+			m["mensaje"] = "yt no proporciono estadisticas"
+			return c.Status(500).JSON(m)
+		}
+		activo := true
+		urlvideo := "https://www.youtube.com/watch?v=" + input.Video_id
+		proveedor := "Youtube"
+		videonew := gormdb.Videos{
+			Id:          0,
+			Activo:      &activo,
+			Artista:     &ytvideo.ChannelTitle,
+			Canal:       &ytvideo.ChannelTitle,
+			Fecha_video: &myTime,
+			Video_id:    &input.Video_id,
+			Titulo:      &ytvideo.Title,
+			Url_video:   &urlvideo,
+			Thumblary:   &ytvideo.Thumbnails.Default.URL,
+			Genero:      input.Genero,
+			Proveedor:   &proveedor,
+		}
+		//agregar a la lista
+		errdb = db.Create(&videonew)
+		if errdb.Error != nil {
+			m["mensaje"] = errdb.Error.Error()
+			return c.Status(500).JSON(m)
+		}
+		input.Evento.Video_id = videonew.Id
+	} else {
+		if !*video.Activo {
+			activo := true
+			video.Activo = &activo
+			video.Fecha_video = &myTime
+			errdb = db.Save(&video)
+			if errdb.Error != nil {
+				m["mensaje"] = errdb.Error.Error()
+				return c.Status(500).JSON(m)
+			}
+		}
+		input.Evento.Video_id = video.Id
+
+	}
+
+	var evento *gormdb.Eventos = input.Evento
+	errdb = db.Create(&evento)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	return c.JSON(evento)
 }
 func byid(c *fiber.Ctx) error {
 	m := make(map[string]string)

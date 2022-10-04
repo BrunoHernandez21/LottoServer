@@ -1,4 +1,4 @@
-package inputs
+package youtube
 
 type YtResponse struct {
 	Kind     string   `json:"kind"`
@@ -8,10 +8,11 @@ type YtResponse struct {
 }
 
 type Item struct {
-	Kind       string     `json:"kind"`
-	Etag       string     `json:"etag"`
-	ID         string     `json:"id"`
-	Statistics Statistics `json:"statistics"`
+	Kind       string      `json:"kind"`
+	Etag       string      `json:"etag"`
+	ID         string      `json:"id"`
+	Statistics *Statistics `json:"statistics"`
+	Snippet    *Snippet    `json:"snippet"`
 }
 
 type Statistics struct {

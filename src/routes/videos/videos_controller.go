@@ -43,6 +43,8 @@ func videos_evento_pag(c *fiber.Ctx) error {
 		Table("eventos_videos").
 		Offset(int(init)).
 		Limit(int(sizepage)).
+		Where("Fechahora_evento > NOW() AND DATE(Fechahora_evento) = DATE(now())").
+		Order("Fechahora_evento ASC").
 		Find(&items)
 
 	if errdb.Error != nil {
