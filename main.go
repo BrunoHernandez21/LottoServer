@@ -29,8 +29,9 @@ func main() {
 	loadInitialConfig()
 	//mainConfig
 	app := fiber.New(fiber.Config{
-		AppName: "Loto Music",
-		Prefork: false,
+		AppName:           "Loto Music",
+		Prefork:           false,
+		EnablePrintRoutes: false,
 	})
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
@@ -42,11 +43,14 @@ func main() {
 	}))
 
 	//instance DB
+
 	db := conexionDB()
-	//instance Ruts
-	app.Static("/pagina/web", "./home.html")
 	rutasMain(app, db)
 	//start Server
+	// err2 := app.ListenTLS(":"+config.Rest_Port,
+	// 	"/home/bruno/Escritorio/certificadoSSL/ssl/server.crt",
+	// 	"/home/bruno/Escritorio/certificadoSSL/ssl/server.key",
+	// )
 	err2 := app.Listen(":" + config.Rest_Port)
 	if err2 != nil {
 		panic(err2.Error())
@@ -64,6 +68,7 @@ func conexionDB() (conexiones *gorm.DB) {
 }
 
 func rutasMain(app *fiber.App, db *gorm.DB) {
+
 	midelware.Init_state(db)
 	auth.Init_routes(app, db)
 	plan.Init_routes(app, db)
@@ -75,7 +80,6 @@ func rutasMain(app *fiber.App, db *gorm.DB) {
 	compute.Init_routes(app, db)
 	user.Init_routes(app, db)
 	utils.Init_routes(app)
-	//impstripe.Init()
 
 }
 

@@ -12,13 +12,13 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api" + config.Rest_version + "event")
+	pre := "/api" + config.Rest_version + "event"
 
-	v1.Post("/event", mi.IsRoot, crear)
-	v1.Put("/event", mi.IsRoot, editar)
-	v1.Delete("/event/:id", mi.IsRoot, eliminar)
+	app.Post(pre+"/event", mi.IsRoot, crear)
+	app.Put(pre+"/event", mi.IsRoot, editar)
+	app.Delete(pre+"/event/:id", mi.IsRoot, eliminar)
 
-	v1.Get("/event/:id", byid)
-	v1.Get("/active/:pag/:sizepage", listarActivos)
+	app.Get(pre+"/event/:id", byid)
+	app.Get(pre+"/active/:pag/:sizepage", listarActivos)
 
 }

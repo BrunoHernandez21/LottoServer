@@ -10,7 +10,7 @@ import (
 //sqldb *gorm.DB
 func Init_routes(app *fiber.App) {
 	//db = sqldb
-	v1 := app.Group("/api" + config.Rest_version + "utils")
-	v1.Get("/oclock", oclock)
+	pre := "/api" + config.Rest_version + "utils"
+	app.Get(pre+"/oclock", oclock)
 
 }

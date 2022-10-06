@@ -12,19 +12,19 @@ var db *gorm.DB
 
 func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	db = sqldb
-	v1 := app.Group("/api" + config.Rest_version + "user-event")
+	pre := "/api" + config.Rest_version + "user-event"
 
 	//user event
-	v1.Post("/event", mi.IsRegister, create_event)
+	app.Post(pre+"/event", mi.IsRegister, create_event)
 	//history user event
-	v1.Get("/active/:pag/:sizepage", mi.IsRegister, active_events)
-	v1.Get("/history/:pag/:sizepage", mi.IsRegister, history_event)
-	v1.Get("/wins/:pag/:sizepage", mi.IsRegister, winer_event)
+	app.Get(pre+"/active/:pag/:sizepage", mi.IsRegister, active_events)
+	app.Get(pre+"/history/:pag/:sizepage", mi.IsRegister, history_event)
+	app.Get(pre+"/wins/:pag/:sizepage", mi.IsRegister, winer_event)
 
 	//root
-	v1.Get("byid/:id", mi.IsRoot, event_id)
-	v1.Put("/event", mi.IsRoot, userevent_edit)
-	v1.Delete("/event/:id", mi.IsRoot, userevent_delete)
-	// v1.Get("/event/:pag/:sizepage", mi.IsRoot, userevent_list_all)
+	app.Get(pre+"byid/:id", mi.IsRoot, event_id)
+	app.Put(pre+"/event", mi.IsRoot, userevent_edit)
+	app.Delete(pre+"/event/:id", mi.IsRoot, userevent_delete)
+	// app.Get(pre+"/event/:pag/:sizepage", mi.IsRoot, userevent_list_all)
 
 }
