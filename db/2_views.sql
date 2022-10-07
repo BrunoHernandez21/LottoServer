@@ -12,7 +12,7 @@ SELECT
     v.id as vid_id, v.artista,v.canal,v.fecha_video,v.video_id,v.thumblary,v.titulo,v.url_video,v.genero,v.proveedor
 FROM eventos as e
 INNER JOIN videos as v ON e.video_id = v.id 
-WHERE e.activo=true
+WHERE e.activo=true and date(now())=date(fechahora_evento)
 ORDER BY e.fechahora_evento;
 
 DROP VIEW IF EXISTS `plan_one`;
