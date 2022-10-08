@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/models/views"
 	"lottomusic/src/models/youtube"
 	"strconv"
 	"time"
@@ -16,9 +17,9 @@ import (
 
 func process_statistics(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
-	videos := []gormdb.Videos{}
+	videos := []views.EventoVideo{}
 
-	errdb := db.Find(&videos, "activo = ? AND proveedor = ?", true, "Youtube")
+	errdb := db.Raw("select distinct video_id,vid_id from eventos_videos").Scan(&videos)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
@@ -68,7 +69,7 @@ func process_statistics(c *fiber.Ctx) error {
 
 			//agregar a la lista
 			toDBT = append(toDBT, gormdb.VideosEstadisticas{
-				Video_id:       its.Id,
+				Video_id:       its.Vid_id,
 				Fecha:          myTime,
 				Like_count:     &Like_count,
 				Views_count:    &Views_count,
