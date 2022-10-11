@@ -1,20 +1,20 @@
 DROP PROCEDURE IF EXISTS `genera_orden_unico`;
 delimiter $$
-CREATE PROCEDURE genera_orden_unico(IN user_id int,IN card_id int) 
+CREATE PROCEDURE genera_orden_unico(IN user_id int) 
 begin
     DECLARE time_Now datetime;
     DECLARE orden_id bigint DEFAULT 0;
     IF ( (SELECT count(cantidad) from carrito WHERE usuario_id = user_id AND activo = TRUE) > 0 ) THEN 
     set time_Now = now();
 	##--crea la orden 
-  	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,payment_method_id,ordenes.is_suscription)
+  	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,is_suscription,moneda)
         SELECT 	"proceso",
                 time_Now,
                 SUM(c.total_linea),
                 SUM(c.puntos_linea),
                 user_id,
-                card_id,
-                false
+                false,
+                "MXN"
         from carrito as c
         JOIN planes p ON c.plan_id = p.id 
         WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;

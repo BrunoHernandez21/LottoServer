@@ -101,8 +101,54 @@ func list_orders_errors(c *fiber.Ctx) error {
 
 }
 
-// Orders
+func create_order(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	//generar y obtener la orden
+	orden := gormdb.Ordenes{}
+	db.Raw("CALL genera_orden_unico(?)", c.Locals("userID")).Scan(&orden)
+	if orden.Id == 0 {
+		m["mensaje"] = "Carrito vacio"
+		return c.Status(500).JSON(m)
+	}
 
+	items_orden := []gormdb.ItemsOrden{}
+	db.Find(&items_orden, "Orden_id = ?", orden.Id)
+	m["orden"] = orden
+	m["items_orden"] = items_orden
+	return c.Status(500).JSON(m)
+}
+
+func create_payment_intent(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
+	input := inputs.GenerarPaymentItent{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
+		return c.Status(500).JSON(m)
+	}
+	if input.Orden_id == 0 {
+		m["mensaje"] = "orden no puede estar vacio"
+		return c.Status(500).JSON(m)
+	}
+	orden := gormdb.Ordenes{}
+	db.Find(&orden, "id = ? AND status = ?", input.Orden_id, "proceso")
+	if orden.Id == 0 {
+		m["mensaje"] = "La orden expiro o no existe"
+		return c.Status(500).JSON(m)
+	}
+	//generar y obtener la orden
+	a, err := impstripe.Create_payment_intent(&orden)
+	if err != nil {
+		m["mensaje"] = "Stripe error"
+		return c.Status(500).JSON(m)
+	}
+	m["id"] = a.ID
+	m["status"] = a.Status
+	m["amount"] = a.Amount
+	m["client_secret"] = a.ClientSecret
+	return c.JSON(m)
+}
+
+// Orders
 func checkout(c *fiber.Ctx) error {
 	/// Verificar la respuesta del usuario
 	m := make(map[string]interface{})

@@ -10,7 +10,11 @@ type RetryCheckout struct {
 	Orden_id uint32 `json:"orden_id"`
 	Cvc      string `json:"cvc"`
 }
-type Get_Stripe struct {
-	Orden_id  uint32 `json:"orden_id"`
-	StripeKey string `json:"stripe_key"`
+type GenerarPaymentItent struct {
+	Orden_id uint32 `json:"orden_id"`
+}
+
+type GenerarOrden struct {
+	Orden_id uint32 `json:"card_id"`
+	Cvc      string `json:"cvc"`
 }

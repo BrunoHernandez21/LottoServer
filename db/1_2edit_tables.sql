@@ -29,3 +29,8 @@ DROP TABLE IF EXISTS `categoria_evento`;
 
 ALTER TABLE payment_method DROP cvc;
 ALTER TABLE payment_method ADD cvc varchar(256) NOT NULL;
+
+ALTER TABLE ordenes DROP FOREIGN KEY a8sf99SK80fsdff02l34gCR76G ;
+-- ALTER table ordenes DROP COLUMN ordenes.payment_method_id;
+ALTER TABLE ordenes ADD moneda varchar(8) NOT null DEFAULT "MXN"
+ALTER TABLE item_orden ADD titulo varchar(8) null;

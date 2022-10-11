@@ -16,6 +16,8 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1 := app.Group("/api" + config.Rest_version + "buy")
 
 	// manda la orden
+	v1.Post("/orders/order", mi.IsRegister, create_order)
+	v1.Post("/orders/payment-intent", mi.IsRegister, create_payment_intent)
 	v1.Post("/orders/checkout", mi.IsRegister, checkout)
 	v1.Post("/orders/rentry", mi.IsRegister, buy_retry)
 	v1.Post("/orders/cancel", mi.IsRegister, buy_cancel)
