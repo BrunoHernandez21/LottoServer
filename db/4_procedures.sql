@@ -1,28 +1,131 @@
-DROP PROCEDURE IF EXISTS `genera_orden_unico`;
+##-------------------------------------- Proces de Pasarela de pagos
+##----------- Pagos unicos
+##-- generar Orden
+DROP PROCEDURE IF EXISTS `genera_orden`;
 delimiter $$
-CREATE PROCEDURE genera_orden_unico(IN user_id int) 
+CREATE PROCEDURE genera_orden(IN user_id int) 
+genorden:begin
+DECLARE time_Now datetime;
+DECLARE orden_id bigint DEFAULT 0;
+IF  (SELECT count(id) from carrito WHERE usuario_id = user_id AND activo = TRUE) = 0  THEN
+    SELECT * from ordenes WHERE id = null;
+	LEAVE genorden;
+END IF;
+set time_Now = now();
+##--crea la orden 
+INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,is_suscription,moneda)
+	SELECT 	"proceso",
+		time_Now,
+        SUM(c.total_linea),
+        SUM(c.puntos_linea),
+        user_id,
+        false,
+        "MXN"
+	from carrito as c
+    JOIN planes p ON c.plan_id = p.id 
+    WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
+##-- Busca su id de orden
+SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now AND usuario_id = user_id);
+##-- crea los items de la orden            
+INSERT INTO items_orden ( cantidad,titulo,total_linea,puntos_linea,moneda,plan_id,orden_id)
+	SELECT 	c.cantidad,
+    	p.titulo,
+        c.total_linea,
+        c.puntos_linea,
+        c.moneda,
+        c.plan_id,
+        orden_id
+	from carrito as c
+    JOIN planes p ON c.plan_id = p.id 
+    WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
+##-- limpia el carrito
+UPDATE carrito SET activo = false WHERE carrito.usuario_id = user_id;
+SELECT * from ordenes WHERE id = orden_id;
+end
+$$
+delimiter ;
+## -- Se pago Satisfctoriamente
+DROP PROCEDURE IF EXISTS `orden_pagada`;
+delimiter $$
+CREATE PROCEDURE orden_pagada(IN iorden_id int, IN razon TEXT) 
+ordenpag:begin
+DECLARE pcash bigint;
+DECLARE ccash bigint;
+DECLARE user_id bigint;
+DECLARE susc_id bigint;
+DECLARE resp varchar(40);
+IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = false) > 0 ) THEN
+	##--TODO Hospital
+	SELECT "Orden corrupta";
+    LEAVE ordenpag;
+END IF;
+    ##--optenemos el usuario
+    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);      
+	##--optenemos valores actuales de cartera
+    SET ccash = (SELECT	puntos from carteras WHERE usuario_id = user_id);
+	##--optenemos la suma total de pontos
+    SET pcash = (SELECT puntos_total FROM ordenes WHERE id = iorden_id);
+    ##--actualizamos cartera
+    UPDATE carteras SET puntos = ccash + pcash WHERE usuario_id = user_id;
+    ## -- crear compra
+    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
+    ##--actualizamos la orden
+    UPDATE ordenes SET	ordenes.status = "pagado" WHERE ordenes.id = iorden_id;
+	##--incertamos los beneficios de dias del plan
+    INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
+		SELECT 	true,
+        		user_id,
+                bp.beneficio_id
+        from items_orden i 
+        JOIN beneficios_plan bp ON i.plan_id = bp.plan_id 
+        WHERE i.orden_id = iorden_id; 
+    
+    SELECT "Proceso realizado con exito";
+end
+$$
+delimiter ;
+## -- Error en el pago
+DROP PROCEDURE IF EXISTS `orden_rechazada`;
+delimiter $$
+CREATE PROCEDURE orden_rechazada(IN iorden_id int,IN razon TEXT) 
 begin
-    DECLARE time_Now datetime;
+	DECLARE user_id bigint;
+    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);  
+    ##--actualizamos la orden
+    UPDATE ordenes SET	ordenes.status = "rechazado" WHERE ordenes.id = iorden_id;
+    ## -- crear compra fallida
+    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,true);
+    ## -- out
+	SELECT razon;
+end
+$$
+delimiter ; 
+##----------- Susctibciones
+##-- Generar Suscribcion  (orden)
+DROP PROCEDURE IF EXISTS `orden_suscribcion`;
+delimiter $$
+CREATE PROCEDURE orden_suscribcion(IN user_id int,IN plan_id int) 
+begin
+	DECLARE time_Now datetime;
     DECLARE orden_id bigint DEFAULT 0;
-    IF ( (SELECT count(cantidad) from carrito WHERE usuario_id = user_id AND activo = TRUE) > 0 ) THEN 
     set time_Now = now();
-	##--crea la orden 
+    ##--generamos la orden
   	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,is_suscription,moneda)
-        SELECT 	"proceso",
+        SELECT 	"pagado",
                 time_Now,
-                SUM(c.total_linea),
-                SUM(c.puntos_linea),
+                p.precio,
+                p.puntos,
                 user_id,
-                false,
-                "MXN"
-        from carrito as c
-        JOIN planes p ON c.plan_id = p.id 
-        WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
+                true,
+                p.moneda
+        from planes p 
+        WHERE p.id = plan_id;
 	##-- Busca su id de orden
-	SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now);
-    ##-- crea los items de la orden            
-    INSERT INTO items_orden ( cantidad, total_linea,puntos_linea,moneda,plan_id,orden_id)
+	SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now AND usuario_id = user_id);
+    ##-- crea el item de la suscribcion            
+    INSERT INTO items_orden ( cantidad,titulo,total_linea,puntos_linea,moneda,plan_id,orden_id)
         SELECT 	c.cantidad,
+        		p.titulo,
                 c.total_linea,
                 c.puntos_linea,
                 c.moneda,
@@ -31,83 +134,34 @@ begin
         from carrito as c
         JOIN planes p ON c.plan_id = p.id 
         WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
-	##-- limpia el carrito
-	UPDATE carrito SET activo = false WHERE carrito.usuario_id = user_id;
-    END IF;
-        ##-- imprimo una respuesta 
-    SELECT * from ordenes WHERE id = orden_id;
 end
 $$
 delimiter ;
-
-DROP PROCEDURE IF EXISTS `genera_orden_suscribcion`;
+##-- Suscribcion Pagada (stack/mes)
+DROP PROCEDURE IF EXISTS `suscribcion_aceptada`;
 delimiter $$
-CREATE PROCEDURE genera_orden_suscribcion(IN user_id int,IN card_id int) 
-begin
-    DECLARE time_Now datetime;
-    DECLARE orden_id bigint DEFAULT 0;
-    IF ( (SELECT count(cantidad) from carrito WHERE usuario_id = user_id AND activo = TRUE) > 0 ) THEN 
-    set time_Now = now();
-	##--crea la orden 
-  	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,payment_method_id,is_suscription)
-        SELECT 	"proceso",
-                time_Now,
-                SUM(c.total_linea),
-                SUM(c.puntos_linea),
-                user_id,
-                card_id,
-                true
-        from carrito as c
-        JOIN planes p ON c.plan_id = p.id 
-        WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = true;
-	##-- Busca su id de orden
-	SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now);
-    ##-- crea los items de la orden            
-    INSERT INTO items_orden ( cantidad, total_linea,puntos_linea,moneda,plan_id,orden_id)
-        SELECT 	c.cantidad,
-                c.total_linea,
-                c.puntos_linea,
-                c.moneda,
-                c.plan_id,
-                orden_id 
-        from carrito as c
-        JOIN planes p ON c.plan_id = p.id 
-        WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = true;
-	##-- limpia el carrito
-	UPDATE carrito SET activo = false WHERE carrito.usuario_id = user_id;
-    END IF;
-        ##-- imprimo una respuesta 
-    SELECT * from ordenes WHERE id = orden_id;
-end
-$$
-delimiter ;
-
-
-##-- Determinando 
-DROP PROCEDURE IF EXISTS `pago_unico`;
-delimiter $$
-CREATE PROCEDURE pago_unico(IN iorden_id int, IN razon TEXT) 
-begin
+CREATE PROCEDURE suscribcion_aceptada(IN iorden_id int, IN razon TEXT,IN str_suscript varchar(64)) 
+susacept:begin
     DECLARE pcash bigint;
     DECLARE ccash bigint;
     DECLARE user_id bigint;
-    DECLARE susc_id bigint;
-    DECLARE resp varchar(40);
-    IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = false) != 1 ) THEN 
-        SET resp = "La orden no cumple con los requisitos";
-    ELSE
+    DECLARE plann_id bigint;
+    IF  (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = true) = 0  THEN 
+    	SELECT "Orden corrupta";
+        LEAVE susacept;
+    END IF;
     ##--optenemos el usuario
-    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);      
+    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);                                    
 	##--optenemos valores actuales de cartera
     SET ccash = (SELECT	puntos from carteras WHERE usuario_id = user_id);
-	##--optenemos la suma total de pontos
+	##--optenemos la suma total de puntos
     SET pcash = (SELECT puntos_total FROM ordenes WHERE id = iorden_id);
     ##--actualizamos cartera
     UPDATE carteras SET puntos = ccash + pcash WHERE usuario_id = user_id;
     ## -- crear compra
     INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
     ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "pagado" WHERE ordenes.id = iorden_id;
+    UPDATE ordenes SET	ordenes.status = "suscrito" WHERE ordenes.id = iorden_id;
 	##--incertamos los beneficios de dias del plan
     INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
 		SELECT 	true,
@@ -116,108 +170,38 @@ begin
         from items_orden i 
         JOIN beneficios_plan bp ON i.plan_id = bp.plan_id 
         WHERE i.orden_id = iorden_id;
-	##--incertamos los beneficios de dias del plan
-    SET susc_id = (SELECT p.id from items_orden as i INNER JOIN planes AS p ON i.plan_id = p.id WHERE p.suscribcion = true AND i.orden_id = iorden_id LIMIT 1);
+	##--actualizamos la suscribcion
+    SET plann_id = (SELECT p.id from items_orden as i INNER JOIN planes AS p ON i.plan_id = p.id WHERE i.orden_id = iorden_id);
     UPDATE suscripciones 
-    SET monto_mensual=(SELECT precio from planes WHERE id = susc_id),
+    SET monto_mensual=(SELECT precio from planes WHERE id = plann_id),
         fecha_inicio=NOW(),
-        fecha_fin=DATE_ADD(NOW(), INTERVAL 1 YEAR),
-        dia_corte=EXTRACT(DAY FROM NOW()),
-        plan_id=susc_id,
-        next_plan_id=null
-      WHERE suscripciones.usuario_id = user_id AND susc_id IS NOT NULL;
-
-	SET resp = "Proceso realizado con exito";
-    END IF;
-    SELECT resp;
+        fecha_fin=DATE_ADD(NOW(), INTERVAL 1 MONTH),
+        plan_id=plann_id,
+        next_plan_id=null,
+        stripe_suscription = str_suscript
+      WHERE suscripciones.usuario_id = user_id AND plann_id IS NOT NULL;
+    SELECT "Proceso realizado con exito";
 end
 $$
 delimiter ;
-
-
-
-##-- listo 
-DROP PROCEDURE IF EXISTS `pago_suscribcion`;
+##-- Suscribcion RECHADAZADA (Retira los beneficios)
+DROP PROCEDURE IF EXISTS `suscribcion_rechazada`;
 delimiter $$
 CREATE PROCEDURE pago_suscribcion(IN iorden_id int, IN razon TEXT) 
 begin
-    DECLARE pcash bigint;
-    DECLARE ccash bigint;
     DECLARE user_id bigint;
-    DECLARE susc_id bigint;
-    DECLARE resp varchar(40);
-    IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = TRUE) != 1 ) THEN 
-        SET resp = "La orden no cumple con los requisitos";
-    ELSE
-    ##--optenemos el usuario
-    SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);      
-	##--optenemos valores actuales de cartera
-    SET ccash = (SELECT	puntos from carteras WHERE usuario_id = user_id);
-	##--optenemos la suma total de pontos
-    SET pcash = (SELECT puntos_total FROM ordenes WHERE id = iorden_id);
-    ##--actualizamos cartera
-    UPDATE carteras SET puntos = ccash + pcash WHERE usuario_id = user_id;
-    ## -- crear compra
-    INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
-    ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "pagado" WHERE ordenes.id = iorden_id;
-	##--incertamos los beneficios de dias del plan
-    INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
-		SELECT 	true,
-        		user_id,
-                bp.beneficio_id
-        from items_orden i 
-        JOIN beneficios_plan bp ON i.plan_id = bp.plan_id 
-        WHERE i.orden_id = iorden_id;
-	##--incertamos los beneficios de dias del plan
-    SET susc_id = (SELECT p.id from items_orden as i INNER JOIN planes AS p ON i.plan_id = p.id WHERE p.suscribcion = true AND i.orden_id = iorden_id LIMIT 1);
-    UPDATE suscripciones 
-    SET monto_mensual=(SELECT precio from planes WHERE id = susc_id),
-        fecha_inicio=NOW(),
-        fecha_fin=DATE_ADD(NOW(), INTERVAL 1 YEAR),
-        dia_corte=EXTRACT(DAY FROM NOW()),
-        plan_id=susc_id,
-        next_plan_id=null
-      WHERE suscripciones.usuario_id = user_id AND susc_id IS NOT NULL;
-
-	SET resp = "Proceso realizado con exito";
-    END IF;
-    SELECT resp;
-end
-$$
-delimiter ;
-
-##-- Listo
-DROP PROCEDURE IF EXISTS `pagos_rechazado`;
-delimiter $$
-CREATE PROCEDURE pagos_rechazado(IN iorden_id int,IN razon TEXT) 
-begin
-	DECLARE user_id bigint;
     SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);  
     ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "rechazado" WHERE ordenes.id = iorden_id;
-    ## -- crear compra
+    UPDATE ordenes SET	ordenes.status = "finalizado" WHERE ordenes.id = iorden_id;
+    ## -- crear compra fallida
     INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,true);
     ## -- out
 	SELECT razon;
 end
 $$
 delimiter ;
-
-
-##-- pagos_cancelado
-DROP PROCEDURE IF EXISTS `pagos_cancelado`;
-delimiter $$
-CREATE PROCEDURE pagos_cancelado(IN iorden_id int) 
-begin 
-    ##--actualizamos la orden
-    UPDATE ordenes SET	ordenes.status = "cancelado" WHERE ordenes.id = iorden_id;
-    ## -- out
-	SELECT * from ordenes WHERE id = iorden_id;
-end
-$$
-delimiter ;
-
+##--------------------------------------  Flow Control
+##----------- Proceso que requieren calcular
 ##-- generar_ganador
 DROP PROCEDURE IF EXISTS `generar_ganador`;
 delimiter $$
@@ -253,20 +237,13 @@ begin
 end
 $$
 delimiter ;
-
-##-- verificar_suscribciones
-DROP PROCEDURE IF EXISTS `verificar_suscribciones`;
+##----------- Procesos de verificacion
+##-- verificar_propiedades_usuario
+DROP PROCEDURE IF EXISTS `verificar_tablas_usuario`;
 delimiter $$
-CREATE PROCEDURE verificar_suscribciones() 
+CREATE PROCEDURE verificar_tablas_usuario(IN user_id bigint) 
 begin 
-    UPDATE suscripciones as s
-    SET	monto_mensual = 0,
-    	fecha_inicio = null,
-        fecha_fin = null,
-        plan_id = null,
-        dia_corte = null,
-        next_plan_id = null
-    WHERE IFNULL(s.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 31 DAY)) < NOW();
+	
     SELECT "Realizado correctamente";
 end
 $$
@@ -294,3 +271,52 @@ $$
 delimiter ;
 
 
+
+
+##-------------------------------------- Funciones legacy
+##----------- Propiedades usuario
+##-- verificar_suscribciones
+DROP PROCEDURE IF EXISTS `verificar_suscribciones`;
+delimiter $$
+CREATE PROCEDURE verificar_suscribciones() 
+begin 
+    UPDATE suscripciones as s
+    SET	monto_mensual = 0,
+    	fecha_inicio = null,
+        fecha_fin = null,
+        plan_id = null,
+        dia_corte = null,
+        next_plan_id = null
+    WHERE IFNULL(s.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 31 DAY)) < NOW();
+    SELECT "Realizado correctamente";
+end
+$$
+delimiter ;
+
+
+
+
+
+
+DROP PROCEDURE IF EXISTS `prueba`;
+DELIMITER $$
+CREATE PROCEDURE prueba()
+BEGIN
+DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
+    BEGIN
+        
+	    SELECT "Error en clase";
+        ROLLBACK;
+    END;
+	START TRANSACTION;
+		myclass:BEGIN 
+        IF true THEN 
+        	SELECT * from pagos WHERE null;
+        	SELECT "mi clase";
+        	LEAVE myclass; 
+        END IF; 
+        SELECT "Esto ya no";
+	END;
+END
+$$
+delimiter ;

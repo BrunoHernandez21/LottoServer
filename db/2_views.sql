@@ -1,10 +1,4 @@
 DROP VIEW IF EXISTS `eventos_videos`;
-DROP VIEW IF EXISTS `plan_one`;
-DROP VIEW IF EXISTS `plan_suscribcion`;
-DROP VIEW IF EXISTS `plan_suscripcion`;
-
-
-DROP VIEW IF EXISTS `eventos_videos`;
 CREATE VIEW eventos_videos AS
 SELECT 
 	e.id, e.fechahora_evento,e.premio_cash,e.acumulado,e.premio_otros,e.moneda,

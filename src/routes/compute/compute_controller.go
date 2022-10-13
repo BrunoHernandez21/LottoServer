@@ -2,7 +2,6 @@ package compute
 
 import (
 	"encoding/json"
-	"fmt"
 	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
@@ -145,7 +144,6 @@ func emit_winner(c *fiber.Ctx) error {
 func stripe_webhook(c *fiber.Ctx) error {
 	// input := make(map[string]interface{})
 
-	fmt.Println(string(c.Body()))
 	out := make(map[string]interface{})
 	return c.Status(200).JSON(out)
 }

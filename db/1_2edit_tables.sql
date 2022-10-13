@@ -34,3 +34,18 @@ ALTER TABLE ordenes DROP FOREIGN KEY a8sf99SK80fsdff02l34gCR76G ;
 -- ALTER table ordenes DROP COLUMN ordenes.payment_method_id;
 ALTER TABLE ordenes ADD moneda varchar(8) NOT null DEFAULT "MXN"
 ALTER TABLE item_orden ADD titulo varchar(8) null;
+ALTER table ordenes ADD payment_method_id bigint;
+
+ALTER table suscripciones ADD stripe_customer varchar(64);
+ALTER table suscripciones ADD stripe_suscription varchar(64);
+ALTER table suscripciones ADD stripe_paymenth varchar(64);
+ALTER table planes ADD stripe_price varchar(64);
+ALTER table planes ADD stripe_produc varchar(64);
+
+
+ALTER table suscripciones DROP COLUMN id;
+ALTER table suscripciones DROP COLUMN dia_corte;
+ALTER table suscripciones DROP COLUMN next_plan_id;
+ALTER table items_orden ADD COLUMN titulo varchar(64);
+
+ALTER table pagos DROP COLUMN id;
