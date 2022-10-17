@@ -1,8 +1,23 @@
-package stripem
+package eventpayment
 
-type StripeIntentResponse struct {
-	ID                        string               `json:"id"`
-	Object                    string               `json:"object"`
+type EventPayment struct {
+	APIVersion      string  `json:"api_version"`
+	Created         int64   `json:"created"`
+	Data            Data    `json:"data"`
+	ID              string  `json:"id"`
+	Livemode        bool    `json:"livemode"`
+	Object          string  `json:"object"`
+	PendingWebhooks int64   `json:"pending_webhooks"`
+	Request         Request `json:"request"`
+	Type            string  `json:"type"`
+	Error           *Error  `json:"error"`
+}
+
+type Data struct {
+	Object Object `json:"object"`
+}
+
+type Object struct {
 	Amount                    int64                `json:"amount"`
 	AmountCapturable          int64                `json:"amount_capturable"`
 	AmountDetails             AmountDetails        `json:"amount_details"`
@@ -18,13 +33,15 @@ type StripeIntentResponse struct {
 	ConfirmationMethod        string               `json:"confirmation_method"`
 	Created                   int64                `json:"created"`
 	Currency                  string               `json:"currency"`
-	Customer                  interface{}          `json:"customer"`
-	Description               interface{}          `json:"description"`
-	Invoice                   interface{}          `json:"invoice"`
+	Customer                  string               `json:"customer"`
+	Description               string               `json:"description"`
+	ID                        string               `json:"id"`
+	Invoice                   string               `json:"invoice"`
 	LastPaymentError          interface{}          `json:"last_payment_error"`
 	Livemode                  bool                 `json:"livemode"`
 	Metadata                  Metadata             `json:"metadata"`
 	NextAction                interface{}          `json:"next_action"`
+	Object                    string               `json:"object"`
 	OnBehalfOf                interface{}          `json:"on_behalf_of"`
 	PaymentMethod             string               `json:"payment_method"`
 	PaymentMethodOptions      PaymentMethodOptions `json:"payment_method_options"`
@@ -32,7 +49,7 @@ type StripeIntentResponse struct {
 	Processing                interface{}          `json:"processing"`
 	ReceiptEmail              interface{}          `json:"receipt_email"`
 	Review                    interface{}          `json:"review"`
-	SetupFutureUsage          interface{}          `json:"setup_future_usage"`
+	SetupFutureUsage          string               `json:"setup_future_usage"`
 	Shipping                  interface{}          `json:"shipping"`
 	Source                    interface{}          `json:"source"`
 	StatementDescriptor       interface{}          `json:"statement_descriptor"`
@@ -40,7 +57,6 @@ type StripeIntentResponse struct {
 	Status                    string               `json:"status"`
 	TransferData              interface{}          `json:"transfer_data"`
 	TransferGroup             interface{}          `json:"transfer_group"`
-	Error                     *Error               `json:"error"`
 }
 
 type AmountDetails struct {
@@ -51,8 +67,6 @@ type Tip struct {
 }
 
 type Datum struct {
-	ID                            string               `json:"id"`
-	Object                        string               `json:"object"`
 	Amount                        int64                `json:"amount"`
 	AmountCaptured                int64                `json:"amount_captured"`
 	AmountRefunded                int64                `json:"amount_refunded"`
@@ -65,8 +79,8 @@ type Datum struct {
 	Captured                      bool                 `json:"captured"`
 	Created                       int64                `json:"created"`
 	Currency                      string               `json:"currency"`
-	Customer                      interface{}          `json:"customer"`
-	Description                   interface{}          `json:"description"`
+	Customer                      string               `json:"customer"`
+	Description                   string               `json:"description"`
 	Destination                   interface{}          `json:"destination"`
 	Dispute                       interface{}          `json:"dispute"`
 	Disputed                      bool                 `json:"disputed"`
@@ -74,9 +88,11 @@ type Datum struct {
 	FailureCode                   interface{}          `json:"failure_code"`
 	FailureMessage                interface{}          `json:"failure_message"`
 	FraudDetails                  Tip                  `json:"fraud_details"`
-	Invoice                       interface{}          `json:"invoice"`
+	ID                            string               `json:"id"`
+	Invoice                       string               `json:"invoice"`
 	Livemode                      bool                 `json:"livemode"`
 	Metadata                      Metadata             `json:"metadata"`
+	Object                        string               `json:"object"`
 	OnBehalfOf                    interface{}          `json:"on_behalf_of"`
 	Order                         interface{}          `json:"order"`
 	Outcome                       Outcome              `json:"outcome"`
@@ -101,9 +117,9 @@ type Datum struct {
 }
 
 type Charges struct {
-	Object     string  `json:"object"`
 	Data       []Datum `json:"data"`
 	HasMore    bool    `json:"has_more"`
+	Object     string  `json:"object"`
 	TotalCount int64   `json:"total_count"`
 	URL        string  `json:"url"`
 }
@@ -125,7 +141,7 @@ type Address struct {
 }
 
 type Metadata struct {
-	Orden string `json:"orden"`
+	OrdenID string `json:"orden_id"`
 }
 
 type Outcome struct {
@@ -161,7 +177,7 @@ type PaymentMethodDetailsCard struct {
 type Checks struct {
 	AddressLine1Check      interface{} `json:"address_line1_check"`
 	AddressPostalCodeCheck interface{} `json:"address_postal_code_check"`
-	CvcCheck               string      `json:"cvc_check"`
+	CvcCheck               interface{} `json:"cvc_check"`
 }
 
 type PaymentMethodOptions struct {
@@ -173,4 +189,17 @@ type PaymentMethodOptionsCard struct {
 	MandateOptions      interface{} `json:"mandate_options"`
 	Network             interface{} `json:"network"`
 	RequestThreeDSecure string      `json:"request_three_d_secure"`
+}
+
+type Request struct {
+	ID             string `json:"id"`
+	IdempotencyKey string `json:"idempotency_key"`
+}
+
+type Error struct {
+	Code    string `json:"code"`
+	DocURL  string `json:"doc_url"`
+	Message string `json:"message"`
+	Param   string `json:"param"`
+	Type    string `json:"type"`
 }

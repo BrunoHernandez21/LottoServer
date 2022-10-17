@@ -212,7 +212,7 @@ func propiedades(c *fiber.Ctx) error {
 	return c.JSON(m)
 }
 
-func suscribcion(c *fiber.Ctx) error {
+func suscripcion(c *fiber.Ctx) error {
 	input := gormdb.Suscripciones{}
 	db.Find(&input, "usuario_id = ?", c.Locals("userID"))
 	return c.JSON(input)

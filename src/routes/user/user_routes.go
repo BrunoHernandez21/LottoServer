@@ -29,7 +29,7 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	//user-state
 	app.Get(pre+"/purse", mi.IsRegister, cartera)
 	app.Get(pre+"/properties", mi.IsRegister, propiedades)
-	app.Get(pre+"/subscription", mi.IsRegister, suscribcion)
+	app.Get(pre+"/subscription", mi.IsRegister, suscripcion)
 
 	// payment-method
 	app.Post(pre+"/payment/method", mi.IsRegister, createTarjeta)

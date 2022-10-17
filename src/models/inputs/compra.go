@@ -1,8 +1,8 @@
 package inputs
 
 type Checkout struct {
-	Card_id uint32 `json:"card_id"`
-	Cvc     string `json:"cvc"`
+	Orden_id       uint32 `json:"Orden_id"`
+	Stripe_Payment string `json:"stripe_payment"`
 }
 
 type RetryCheckout struct {
@@ -17,4 +17,8 @@ type GenerarPaymentItent struct {
 type GenerarOrden struct {
 	Orden_id uint32 `json:"card_id"`
 	Cvc      string `json:"cvc"`
+}
+
+type SuscripcionOrden struct {
+	Plan_id uint32 `json:"plan_id"`
 }

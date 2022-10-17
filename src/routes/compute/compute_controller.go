@@ -6,6 +6,7 @@ import (
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
 	"lottomusic/src/models/youtube"
+	"lottomusic/src/modules/stripe/models/eventinvoice"
 	"strconv"
 	"time"
 
@@ -143,7 +144,37 @@ func emit_winner(c *fiber.Ctx) error {
 //// Webhook
 func stripe_webhook(c *fiber.Ctx) error {
 	// input := make(map[string]interface{})
-
+	input := eventinvoice.EventInvoice{}
 	out := make(map[string]interface{})
+
+	err := c.BodyParser(&input)
+	if err != nil {
+		return err
+	}
+	var resp string
+	suscripcion := input.Data.Object.Lines.Data
+	if input.Type == "invoice.payment_succeeded" {
+		for i := 0; i < len(suscripcion); i++ {
+			data, err := json.Marshal(&suscripcion)
+			if err != nil {
+				out["mensaje"] = err.Error()
+				return c.Status(500).JSON(out)
+			}
+			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
+			db.Raw("suscribcion_aceptada(?,?,?)", orden, string(data), suscripcion[i].ID).Scan(&resp)
+		}
+	}
+	if input.Type == "invoice.payment_failed" {
+		for i := 0; i < len(suscripcion); i++ {
+			data, err := json.Marshal(&suscripcion)
+			if err != nil {
+				out["mensaje"] = err.Error()
+				return c.Status(500).JSON(out)
+			}
+			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
+			db.Raw("suscribcion_rechazada(?,?)", orden, string(data)).Scan(&resp)
+		}
+	}
+
 	return c.Status(200).JSON(out)
 }

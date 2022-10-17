@@ -59,11 +59,11 @@ IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = fa
 	SELECT "Orden corrupta";
     LEAVE ordenpag;
 END IF;
-    ##--optenemos el usuario
+    ##--obtenemos el usuario
     SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);      
-	##--optenemos valores actuales de cartera
+	##--obtenemos valores actuales de cartera
     SET ccash = (SELECT	puntos from carteras WHERE usuario_id = user_id);
-	##--optenemos la suma total de pontos
+	##--obtenemos la suma total de pontos
     SET pcash = (SELECT puntos_total FROM ordenes WHERE id = iorden_id);
     ##--actualizamos cartera
     UPDATE carteras SET puntos = ccash + pcash WHERE usuario_id = user_id;
@@ -71,7 +71,7 @@ END IF;
     INSERT INTO pagos (fecha_pagado,usuario_id,orden_id,respuesta,is_error) VALUES (now(),user_id,iorden_id,razon,false);
     ##--actualizamos la orden
     UPDATE ordenes SET	ordenes.status = "pagado" WHERE ordenes.id = iorden_id;
-	##--incertamos los beneficios de dias del plan
+	##--insertamos los beneficios del plan
     INSERT INTO beneficios_usuario ( cobrado, usuario_id,beneficio_id)
 		SELECT 	true,
         		user_id,
@@ -100,11 +100,11 @@ begin
 end
 $$
 delimiter ; 
-##----------- Susctibciones
-##-- Generar Suscribcion  (orden)
-DROP PROCEDURE IF EXISTS `orden_suscribcion`;
+##----------- Subscripciones
+##-- Generar Subscripcion  (orden)
+DROP PROCEDURE IF EXISTS `orden_subscripcion`;
 delimiter $$
-CREATE PROCEDURE orden_suscribcion(IN user_id int,IN plan_id int) 
+CREATE PROCEDURE orden_subscripcion(IN user_id int,IN plan_id int) 
 begin
 	DECLARE time_Now datetime;
     DECLARE orden_id bigint DEFAULT 0;
@@ -134,6 +134,7 @@ begin
         from carrito as c
         JOIN planes p ON c.plan_id = p.id 
         WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
+    SELECT * FROM ordenes WHERE fecha_emitido = time_Now AND usuario_id = user_id;
 end
 $$
 delimiter ;
@@ -187,7 +188,7 @@ delimiter ;
 ##-- Suscribcion RECHADAZADA (Retira los beneficios)
 DROP PROCEDURE IF EXISTS `suscribcion_rechazada`;
 delimiter $$
-CREATE PROCEDURE pago_suscribcion(IN iorden_id int, IN razon TEXT) 
+CREATE PROCEDURE suscribcion_rechazada(IN iorden_id int, IN razon TEXT) 
 begin
     DECLARE user_id bigint;
     SET user_id = (SELECT  usuario_id from ordenes WHERE id = iorden_id);  
@@ -242,8 +243,7 @@ delimiter ;
 DROP PROCEDURE IF EXISTS `verificar_tablas_usuario`;
 delimiter $$
 CREATE PROCEDURE verificar_tablas_usuario(IN user_id bigint) 
-begin 
-	
+begin
     SELECT "Realizado correctamente";
 end
 $$

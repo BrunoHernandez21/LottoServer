@@ -19,6 +19,6 @@ SELECT * FROM planes WHERE planes.suscribcion = TRUE;
 
 DROP VIEW IF EXISTS `pagos_orden`;
 CREATE VIEW pagos_orden AS
-SELECT p.id, p.respuesta,p.fecha_pagado,p.is_error, o.status, o.fecha_emitido,  o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id
+SELECT o.id,p.respuesta,p.fecha_pagado,p.is_error, o.status, o.fecha_emitido,  o.precio_total, o.puntos_total, o.usuario_id, o.payment_method_id
 FROM pagos as p
 LEFT JOIN ordenes as o ON p.orden_id = o.id;
