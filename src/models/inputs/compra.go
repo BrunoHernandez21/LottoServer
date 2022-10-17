@@ -1,7 +1,7 @@
 package inputs
 
 type Checkout struct {
-	Orden_id       uint32 `json:"Orden_id"`
+	Orden_id       uint32 `json:"orden_id"`
 	Stripe_Payment string `json:"stripe_payment"`
 }
 

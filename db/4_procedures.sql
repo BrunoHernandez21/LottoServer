@@ -54,7 +54,7 @@ DECLARE ccash bigint;
 DECLARE user_id bigint;
 DECLARE susc_id bigint;
 DECLARE resp varchar(40);
-IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = false) > 0 ) THEN
+IF ( (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = false) != 1 ) THEN
 	##--TODO Hospital
 	SELECT "Orden corrupta";
     LEAVE ordenpag;
@@ -147,7 +147,7 @@ susacept:begin
     DECLARE ccash bigint;
     DECLARE user_id bigint;
     DECLARE plann_id bigint;
-    IF  (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = true) = 0  THEN 
+    IF  (SELECT COUNT(id) from ordenes WHERE id = iorden_id AND is_suscription = true) != 1  THEN 
     	SELECT "Orden corrupta";
         LEAVE susacept;
     END IF;

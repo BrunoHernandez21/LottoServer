@@ -22,11 +22,11 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	// suscripciónes
 	v1.Post("/orders/subscription/orden", mi.IsRegister, subscription_orden)
 	v1.Post("/orders/subscription/checkout", mi.IsRegister, subscription_checkout)
-	//history
+	// history
 	v1.Get("/orders/waiting", mi.IsRegister, list_orders)
 	v1.Get("/orders/rejected", mi.IsRegister, list_orders_errors)
 	v1.Get("/history/:pag/:sizepage", mi.IsRegister, buy_history_paginated)
-	//ROOT
+	// ROOT
 	v1.Delete("/orders/:id", mi.IsRoot, eliminar)
 
 	// v1.Post("/orders/rentry", mi.IsRegister, buy_retry)
