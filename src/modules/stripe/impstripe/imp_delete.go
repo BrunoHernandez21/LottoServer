@@ -1,4 +1,4 @@
-package stripeme
+package impstripe
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Get_item_suscription(sub_id string) (*paymentintent.PaymentIntent, *error) {
+func Delete_suscription(sub_id string) (*paymentintent.PaymentIntent, error) {
 	// Generate intent
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")
@@ -18,7 +18,7 @@ func Get_item_suscription(sub_id string) (*paymentintent.PaymentIntent, *error) 
 	req.Header.Add("Authorization", "Bearer "+config.Stripekey)
 	req.SetRequestURI("https://api.stripe.com/v1/subscriptions/" + sub_id)
 	if err := a.Parse(); err != nil {
-		return nil, &err
+		return nil, err
 	}
 	_, intentBody, intentErr := a.Bytes()
 	if intentErr != nil {
@@ -27,11 +27,11 @@ func Get_item_suscription(sub_id string) (*paymentintent.PaymentIntent, *error) 
 	intent_out := paymentintent.PaymentIntent{}
 	err := json.Unmarshal(intentBody, &intent_out)
 	if err != nil {
-		return nil, &err
+		return nil, err
 	}
 	if intent_out.Error != nil {
 		outerr := errors.New(intent_out.Error.Message)
-		return nil, &outerr
+		return nil, outerr
 	}
 	//out
 	return &intent_out, nil

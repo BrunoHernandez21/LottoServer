@@ -2,10 +2,11 @@ package buy
 
 import (
 	"encoding/json"
+	"fmt"
 	"lottomusic/src/models/compuestas"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
-	"lottomusic/src/modules/stripe/stripeme"
+	"lottomusic/src/modules/stripe/impstripe"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -135,7 +136,7 @@ func create_payment_intent(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 	//generar y obtener la orden
-	a, err := stripeme.Create_payment_intent(&orden)
+	a, err := impstripe.Create_payment_intent(&orden)
 	if err != nil {
 		m["mensaje"] = "Stripe error"
 		return c.Status(500).JSON(m)
@@ -170,7 +171,7 @@ func checkout(c *fiber.Ctx) error {
 	}
 
 	// mandamos a stripe a generar el intento de pago
-	resp, errstr := stripeme.Pay_payment_intent(&orden, input.Stripe_Payment)
+	resp, errstr := impstripe.Pay_payment_intent(&orden, input.Stripe_Payment)
 	var outReason string
 	if errstr != nil {
 		// Compra fallida
@@ -192,11 +193,16 @@ func checkout(c *fiber.Ctx) error {
 // checkout
 func subscription_orden(c *fiber.Ctx) error {
 	/// Verificar la respuesta del usuario
-	input := inputs.SuscripcionOrden{}
-	orden := gormdb.Ordenes{}
 	m := make(map[string]interface{})
+	input := inputs.SuscripcionOrden{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
+		return c.Status(500).JSON(m)
+	}
 
-	db.Raw("CALL genera_orden_unico(?,?)", c.Locals("userID"), input.Plan_id).Scan(&orden)
+	orden := gormdb.Ordenes{}
+
+	db.Raw("CALL orden_subscripcion( ? , ? )", c.Locals("userID"), input.Plan_id).Scan(&orden)
 	if orden.Id == 0 {
 		m["mensaje"] = "Error interno"
 		return c.Status(500).JSON(m)
@@ -207,93 +213,78 @@ func subscription_orden(c *fiber.Ctx) error {
 
 func subscription_checkout(c *fiber.Ctx) error {
 	/// Verificar la respuesta del usuario
+
 	m := make(map[string]interface{})
+
+	input := inputs.SuscripcionCheckout{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
+		return c.Status(500).JSON(m)
+	}
+
+	itms_ord := gormdb.ItemsOrden{}
+	db.Find(&itms_ord, "Orden_id = ?", input.Orden_id)
+
+	plan := gormdb.Planes{}
+	db.Find(&plan, "id = ?", itms_ord.Plan_id)
+
+	if plan.Id == 0 || plan.Stripe_price == nil || !plan.Suscribcion {
+		m["mensaje"] = "este plan no cumple con los requisitos"
+		m["items"] = itms_ord
+		m["plan"] = plan
+		m["Orden_id"] = input.Orden_id
+		return c.Status(500).JSON(m)
+	}
+
+	sus := gormdb.Suscripciones{}
+	db.Find(&sus, "usuario_id = ?", c.Locals("userID"))
+	if sus.Usuario_id == 0 {
+		m["mensaje"] = "Error de usuario"
+		return c.Status(500).JSON(m)
+	}
+	if sus.Stripe_customer == "" {
+		cus, err2 := impstripe.Create_customer(input.Stripe_Payment, sus.Usuario_id)
+		if err2 != nil {
+			m["mensaje"] = "Stripe error"
+			return c.Status(500).JSON(m)
+		}
+		sus.Stripe_paymenth = input.Stripe_Payment
+		sus.Stripe_customer = cus.ID
+		sus.Usuario_id = 0
+		fmt.Println("pre incert")
+		err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(sus)
+		if err3.Error != nil {
+			m["mensaje"] = "DB error"
+			return c.Status(500).JSON(m)
+		}
+
+	}else{
+		impstripe.Detach(sus.Stripe_paymenth)
+		_, err2 := impstripe.Atach(sus.Stripe_customer,input.Stripe_Payment)
+		if err2 != nil {
+			m["mensaje"] = "Stripe error"
+			return c.Status(500).JSON(m)
+		}
+	}
+
+	fmt.Println("Salgo del if")
+	stripe_sus, err2 := impstripe.Create_suscription(input.Orden_id, sus.Stripe_customer, *plan.Stripe_price)
+	if err2 != nil {
+		m["mensaje"] = "Stripe error"
+		return c.Status(500).JSON(m)
+	}
+	fmt.Println("if")
+	sus.Stripe_suscription = stripe_sus.ID
+	sus.Usuario_id = 0
+	err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(sus)
+	if err3.Error != nil {
+		m["mensaje"] = "DB error"
+		return c.Status(500).JSON(m)
+	}
+
 	m["resp"] = "Compra realizada con éxito"
 	return c.Status(200).JSON(m)
 }
-
-// func buy_retry(c *fiber.Ctx) error {
-// 	/// Verificar la respuesta del usuario
-// 	m := make(map[string]interface{})
-// 	input := inputs.RetryCheckout{}
-// 	if err := c.BodyParser(&input); err != nil {
-// 		m["mensaje"] = "error al parcear datos de entrada"
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	if input.Card_id == 0 {
-// 		m["mensaje"] = "Card no puede ser nulo o 0"
-// 		return c.Status(500).JSON(m)
-// 	}
-
-// 	// obtenemos la tarjeta del usuario
-// 	userID, isit := c.Locals("userID").(uint32)
-// 	if !isit {
-// 		m["mensaje"] = "internal error"
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	shaccv := mysha.SHA256(input.Cvc)
-// 	tarjeta := gormdb.Payment_method{}
-// 	errdb := db.Find(&tarjeta, "Id = ? ", input.Card_id)
-// 	if errdb.Error != nil {
-// 		m["mensaje"] = errdb.Error.Error()
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	if tarjeta.Usuario_id != userID {
-// 		m["mensaje"] = "La tarjeta no te pertenece"
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	if tarjeta.Cvc != shaccv {
-// 		m["mensaje"] = "Error de CCV"
-// 		return c.Status(500).JSON(m)
-// 	}
-
-// 	// obtener la orden
-// 	orden := gormdb.Ordenes{}
-// 	errdb = db.Find(&orden, "Id = ? ", input.Orden_id)
-// 	if errdb.Error != nil {
-// 		m["mensaje"] = errdb.Error.Error()
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	if orden.Usuario_id != userID {
-// 		m["mensaje"] = "La tarjeta no te pertenece"
-// 		return c.Status(500).JSON(m)
-// 	}
-
-// 	// mandamos a stripe a verificar la compra
-// 	resp, errstr := stripeme.Payment(tarjeta.ToStripeMethod(input.Cvc), &orden)
-// 	var outReason string
-// 	if errstr != nil {
-// 		//Compra fallida
-// 		db.Raw("CALL pagos_rechazado(?,?)", orden.Id, errstr.Error()).Scan(&outReason)
-// 		m["mensaje"] = errstr.Error()
-// 		return c.Status(200).JSON(m)
-// 	}
-
-// 	data, err := json.Marshal(&resp)
-// 	if err != nil {
-// 		m["mensaje"] = err.Error()
-// 		return c.Status(500).JSON(m)
-// 	}
-
-// 	db.Raw("CALL pago_unico(?,?)", orden.Id, string(data)).Scan(&outReason)
-// 	return c.Status(200).JSON(outReason)
-// }
-
-// func buy_cancel(c *fiber.Ctx) error {
-// 	m := make(map[string]interface{})
-// 	input := inputs.RetryCheckout{}
-// 	if err := c.BodyParser(&input); err != nil {
-// 		m["mensaje"] = "error al parcear datos de entrada"
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	orden := gormdb.Ordenes{}
-// 	errdb := db.Find(&orden, "usuario_id = ? AND id = ?", c.Locals("userID"), input.Orden_id)
-// 	if errdb.Error != nil {
-// 		m["mensaje"] = errdb.Error.Error()
-// 		return c.Status(500).JSON(m)
-// 	}
-// 	return c.JSON(input)
-// }
 
 ////// ROOT
 func eliminar(c *fiber.Ctx) error {

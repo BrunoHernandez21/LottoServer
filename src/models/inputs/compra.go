@@ -22,3 +22,8 @@ type GenerarOrden struct {
 type SuscripcionOrden struct {
 	Plan_id uint32 `json:"plan_id"`
 }
+
+type SuscripcionCheckout struct {
+	Orden_id       uint32 `json:"orden_id"`
+	Stripe_Payment string `json:"stripe_payment"`
+}

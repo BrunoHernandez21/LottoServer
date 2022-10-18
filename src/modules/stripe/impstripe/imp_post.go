@@ -1,4 +1,4 @@
-package stripeme
+package impstripe
 
 import (
 	"encoding/json"
@@ -223,13 +223,13 @@ func Create_price(plan *gormdb.Planes, productid string) (*price.Price, error) {
 	return &intent_out, nil
 }
 
-func Create_customer(payment_id string, user_id string) (*customer.Customer, error) {
+func Create_customer(payment_id string, user_id uint32) (*customer.Customer, error) {
 	// Generate intent
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")
 	args := fiber.AcquireArgs()
 	args.Set("payment_method", payment_id)
-	args.Set("name", user_id)
+	args.Set("name", strconv.FormatUint(uint64(user_id), 10))
 	args.Set("invoice_settings[default_payment_method]", payment_id)
 	a.Form(args)
 	req := a.Request()
@@ -256,15 +256,15 @@ func Create_customer(payment_id string, user_id string) (*customer.Customer, err
 	return &intent_out, nil
 }
 
-func Create_suscription(plan gormdb.Planes, customer string) (*subscription.Subscription, error) {
+func Create_suscription(orden uint32, customer string, str_price string) (*subscription.Subscription, error) {
 	// Generate intent
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")
 	args := fiber.AcquireArgs()
 	args.Set("customer", customer)
-	args.Set("items[0][price]", *plan.Stripe_price)
-	args.Set("items[0][metadata][orden_id]", strconv.FormatUint(uint64(plan.Id), 10))
-	args.Set("metadata[orden_id]", strconv.FormatUint(uint64(plan.Id), 10))
+	args.Set("items[0][price]", str_price)
+	args.Set("items[0][metadata][orden_id]", strconv.FormatUint(uint64(orden), 10))
+	args.Set("metadata[orden_id]", strconv.FormatUint(uint64(orden), 10))
 	a.Form(args)
 	req := a.Request()
 	req.Header.SetMethod("POST")

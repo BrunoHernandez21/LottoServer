@@ -2,6 +2,7 @@ package plan
 
 import (
 	"lottomusic/src/models/gormdb"
+	"lottomusic/src/modules/stripe/impstripe"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -75,6 +76,21 @@ func create(c *fiber.Ctx) error {
 		m["mensaje"] = errdb.Error.Error()
 		return c.Status(500).JSON(m)
 	}
+	product, err := impstripe.Create_product(&input)
+	if err != nil {
+		db.Delete(&input)
+		m["mensaje"] = "Stripe no esta disponible"
+		return c.JSON(m)
+	}
+	price, err2 := impstripe.Create_price(&input, product.ID)
+	if err2 != nil {
+		db.Delete(&input)
+		m["mensaje"] = "Stripe no esta disponible"
+		return c.JSON(m)
+	}
+	input.Stripe_price = &price.ID
+	input.Stripe_product = &product.ID
+	db.Save(input)
 
 	m["mensaje"] = "El plan ha sido creado"
 	return c.JSON(m)
@@ -123,7 +139,18 @@ func edit(c *fiber.Ctx) error {
 	if input.Titulo != nil {
 		a.Titulo = input.Titulo
 	}
-
+	product, err := impstripe.Create_product(&a)
+	if err != nil {
+		m["mensaje"] = "Stripe no esta disponible"
+		return c.JSON(m)
+	}
+	price, err2 := impstripe.Create_price(&a, product.ID)
+	if err2 != nil {
+		m["mensaje"] = "Stripe no esta disponible"
+		return c.JSON(m)
+	}
+	a.Stripe_price = &price.ID
+	a.Stripe_product = &product.ID
 	errdb = db.Save(a)
 	if errdb.Error != nil {
 		m["mensaje"] = errdb.Error.Error()

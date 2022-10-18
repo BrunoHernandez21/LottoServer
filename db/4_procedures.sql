@@ -102,17 +102,20 @@ $$
 delimiter ; 
 ##----------- Subscripciones
 ##-- Generar Subscripcion  (orden)
-DROP PROCEDURE IF EXISTS `orden_subscripcion`;
+DDROP PROCEDURE IF EXISTS `orden_subscripcion`;
 delimiter $$
 CREATE PROCEDURE orden_subscripcion(IN user_id int,IN plan_id int) 
-begin
-	DECLARE time_Now datetime;
-    DECLARE orden_id bigint DEFAULT 0;
-    set time_Now = now();
-    ##--generamos la orden
-  	INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,is_suscription,moneda)
-        SELECT 	"pagado",
-                time_Now,
+ordensubs:begin
+DECLARE time_Now datetime;
+DECLARE orden_id bigint DEFAULT 0;
+IF  (SELECT count(id) from planes WHERE planes.id = plan_id AND activo = TRUE AND suscribcion = true) = 0  THEN
+    LEAVE ordensubs;
+END IF;
+
+set time_Now = now();
+INSERT INTO ordenes ( ordenes.status, fecha_emitido, precio_total,puntos_total,usuario_id,is_suscription,moneda)
+	SELECT 	"proceso",
+		time_Now,
                 p.precio,
                 p.puntos,
                 user_id,
@@ -120,20 +123,17 @@ begin
                 p.moneda
         from planes p 
         WHERE p.id = plan_id;
-	##-- Busca su id de orden
 	SET orden_id = (SELECT  id from ordenes WHERE fecha_emitido = time_Now AND usuario_id = user_id);
-    ##-- crea el item de la suscribcion            
     INSERT INTO items_orden ( cantidad,titulo,total_linea,puntos_linea,moneda,plan_id,orden_id)
-        SELECT 	c.cantidad,
-        		p.titulo,
-                c.total_linea,
-                c.puntos_linea,
-                c.moneda,
-                c.plan_id,
-                orden_id
-        from carrito as c
-        JOIN planes p ON c.plan_id = p.id 
-        WHERE c.usuario_id = user_id AND c.activo = TRUE AND p.suscribcion = FALSE;
+	SELECT 	1,
+    	p.titulo,
+        p.precio,
+        p.puntos,
+        p.moneda,
+        p.id,
+        orden_id
+	from planes p
+    WHERE p.activo = TRUE AND p.suscribcion = TRUE AND p.id = plan_id ;        
     SELECT * FROM ordenes WHERE fecha_emitido = time_Now AND usuario_id = user_id;
 end
 $$

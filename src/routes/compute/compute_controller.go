@@ -161,7 +161,7 @@ func stripe_webhook(c *fiber.Ctx) error {
 				return c.Status(500).JSON(out)
 			}
 			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
-			db.Raw("suscribcion_aceptada(?,?,?)", orden, string(data), suscripcion[i].ID).Scan(&resp)
+			db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), suscripcion[i].ID).Scan(&resp)
 		}
 	}
 	if input.Type == "invoice.payment_failed" {
@@ -172,7 +172,7 @@ func stripe_webhook(c *fiber.Ctx) error {
 				return c.Status(500).JSON(out)
 			}
 			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
-			db.Raw("suscribcion_rechazada(?,?)", orden, string(data)).Scan(&resp)
+			db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
 		}
 	}
 

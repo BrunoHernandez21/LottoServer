@@ -1,4 +1,4 @@
-package stripeme
+package impstripe
 
 import (
 	"encoding/json"
