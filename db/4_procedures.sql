@@ -173,14 +173,13 @@ susacept:begin
         WHERE i.orden_id = iorden_id;
 	##--actualizamos la suscribcion
     SET plann_id = (SELECT p.id from items_orden as i INNER JOIN planes AS p ON i.plan_id = p.id WHERE i.orden_id = iorden_id);
-    UPDATE suscripciones 
+    UPDATE suscripciones sus
     SET monto_mensual=(SELECT precio from planes WHERE id = plann_id),
         fecha_inicio=NOW(),
         fecha_fin=DATE_ADD(NOW(), INTERVAL 1 MONTH),
         plan_id=plann_id,
-        next_plan_id=null,
         stripe_suscription = str_suscript
-      WHERE suscripciones.usuario_id = user_id AND plann_id IS NOT NULL;
+      WHERE sus.usuario_id = user_id AND plann_id IS NOT NULL;
     SELECT "Proceso realizado con exito";
 end
 $$
@@ -244,6 +243,19 @@ DROP PROCEDURE IF EXISTS `verificar_tablas_usuario`;
 delimiter $$
 CREATE PROCEDURE verificar_tablas_usuario(IN user_id bigint) 
 begin
+    IF (SELECT COUNT(pu.id) from propiedades_usuarios pu WHERE pu.usuario_id = user_id) = 0  THEN 
+        INSERT INTO propiedades_usuarios(id,nivel_acceso,custom_attributes,fecha_inicio,fecha_fin,usuario_id) 
+        VALUES (null,'3',null,now(),now(),user_id);
+    END IF;
+   	IF (SELECT COUNT(s.id) from suscripciones s WHERE s.usuario_id = user_id) = 0  THEN 
+    	INSERT INTO suscripciones(monto_mensual,suscripciones.usuario_id) VALUES (0,user_id);
+    END IF;
+    IF (SELECT COUNT(c.id) from carteras c WHERE c.usuario_id = user_id) = 0  THEN 
+        INSERT INTO carteras(puntos,saldo_mxn,saldo_usd,usuario_id) VALUES (0,0,0,user_id);
+    END IF;
+    IF (SELECT COUNT(ur.id) from usuarios_roles ur WHERE ur.user_id = user_id) = 0  THEN 
+        INSERT INTO usuarios_roles(user_id,role_id) VALUES (user_id,1);
+    END IF;
     SELECT "Realizado correctamente";
 end
 $$
@@ -285,9 +297,7 @@ begin
     	fecha_inicio = null,
         fecha_fin = null,
         plan_id = null,
-        dia_corte = null,
-        next_plan_id = null
-    WHERE IFNULL(s.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 31 DAY)) < NOW();
+    WHERE IFNULL(s.fecha_fin = null, DATE_SUB(NOW(),INTERVAL 32 DAY)) < NOW();
     SELECT "Realizado correctamente";
 end
 $$

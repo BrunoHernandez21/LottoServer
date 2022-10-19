@@ -94,6 +94,8 @@ func Pay_payment_intent(orden *gormdb.Ordenes, Paymentid string) (*paymentintent
 	args.Set("currency", "mxn")
 	args.Set("payment_method", Paymentid)
 	args.Set("description", "Lotto Music points")
+	args.Set("confirm", "true")
+	args.Set("capture_method", "automatic")
 	args.Set("metadata[orden]", strconv.FormatUint(uint64(orden.Id), 10))
 	a.Form(args)
 	req := a.Request()

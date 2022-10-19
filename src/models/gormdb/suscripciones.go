@@ -10,7 +10,7 @@ type Suscripciones struct {
 	Usuario_id         uint32     `json:"usuario_id"`
 	Stripe_customer    string     `json:"stripe_customer"`
 	Stripe_suscription string     `json:"stripe_suscription"`
-	Stripe_paymenth    string     `json:"stripe_paymenth"`
+	Stripe_payment     string     `json:"stripe_payment"`
 }
 
 func (product *Suscripciones) TableName() string {

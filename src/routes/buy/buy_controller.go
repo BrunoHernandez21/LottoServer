@@ -105,7 +105,7 @@ func create_order(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	//generar y obtener la orden
 	orden := gormdb.Ordenes{}
-	db.Raw("CALL genera_orden_unico(?)", c.Locals("userID")).Scan(&orden)
+	db.Raw("CALL genera_orden(?)", c.Locals("userID")).Scan(&orden)
 	if orden.Id == 0 {
 		m["mensaje"] = "Carrito vacio"
 		return c.Status(500).JSON(m)
@@ -199,43 +199,36 @@ func subscription_orden(c *fiber.Ctx) error {
 		m["mensaje"] = "error al parcear datos de entrada"
 		return c.Status(500).JSON(m)
 	}
-
 	orden := gormdb.Ordenes{}
-
 	db.Raw("CALL orden_subscripcion( ? , ? )", c.Locals("userID"), input.Plan_id).Scan(&orden)
 	if orden.Id == 0 {
-		m["mensaje"] = "Error interno"
+		m["mensaje"] = "No es una suscripcion valida"
 		return c.Status(500).JSON(m)
 	}
 
-	return c.Status(200).JSON(orden)
+	items_orden := []gormdb.ItemsOrden{}
+	db.Find(&items_orden, "Orden_id = ?", orden.Id)
+	m["orden"] = orden
+	m["items_orden"] = items_orden
+	return c.Status(500).JSON(m)
 }
 
 func subscription_checkout(c *fiber.Ctx) error {
 	/// Verificar la respuesta del usuario
-
 	m := make(map[string]interface{})
-
 	input := inputs.SuscripcionCheckout{}
 	if err := c.BodyParser(&input); err != nil {
 		m["mensaje"] = "error al parcear datos de entrada"
 		return c.Status(500).JSON(m)
 	}
-
 	itms_ord := gormdb.ItemsOrden{}
 	db.Find(&itms_ord, "Orden_id = ?", input.Orden_id)
-
 	plan := gormdb.Planes{}
 	db.Find(&plan, "id = ?", itms_ord.Plan_id)
-
 	if plan.Id == 0 || plan.Stripe_price == nil || !plan.Suscribcion {
 		m["mensaje"] = "este plan no cumple con los requisitos"
-		m["items"] = itms_ord
-		m["plan"] = plan
-		m["Orden_id"] = input.Orden_id
 		return c.Status(500).JSON(m)
 	}
-
 	sus := gormdb.Suscripciones{}
 	db.Find(&sus, "usuario_id = ?", c.Locals("userID"))
 	if sus.Usuario_id == 0 {
@@ -248,7 +241,7 @@ func subscription_checkout(c *fiber.Ctx) error {
 			m["mensaje"] = "Stripe error"
 			return c.Status(500).JSON(m)
 		}
-		sus.Stripe_paymenth = input.Stripe_Payment
+		sus.Stripe_payment = input.Stripe_Payment
 		sus.Stripe_customer = cus.ID
 		sus.Usuario_id = 0
 		fmt.Println("pre incert")
@@ -257,10 +250,9 @@ func subscription_checkout(c *fiber.Ctx) error {
 			m["mensaje"] = "DB error"
 			return c.Status(500).JSON(m)
 		}
-
-	}else{
-		impstripe.Detach(sus.Stripe_paymenth)
-		_, err2 := impstripe.Atach(sus.Stripe_customer,input.Stripe_Payment)
+	} else {
+		impstripe.Detach(sus.Stripe_payment)
+		_, err2 := impstripe.Atach(sus.Stripe_customer, input.Stripe_Payment)
 		if err2 != nil {
 			m["mensaje"] = "Stripe error"
 			return c.Status(500).JSON(m)

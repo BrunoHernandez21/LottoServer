@@ -46,6 +46,12 @@ func login(c *fiber.Ctx) error {
 		m["mensaje"] = "Contraseña invalida"
 		return c.JSON(m)
 	}
+	var resp string
+	errdb = db.Raw("CALL verificar_tablas_usuario(?)", a.Id).Scan(&resp)
+	if errdb.Error != nil {
+		m["mensaje"] = errdb.Error.Error()
+		return c.Status(500).JSON(m)
+	}
 	//// JWT midelware
 	token, expireAt := jwts.GenerateToken(a.Id)
 	tokentipe := "Bearer"
