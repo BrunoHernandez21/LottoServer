@@ -213,9 +213,15 @@ func propiedades(c *fiber.Ctx) error {
 }
 
 func suscripcion(c *fiber.Ctx) error {
+	m := make(map[string]interface{})
 	input := gormdb.Suscripciones{}
-	db.Find(&input, "usuario_id = ?", c.Locals("userID"))
-	return c.JSON(input)
+	err := db.Find(&input, "usuario_id = ?", c.Locals("userID"))
+	if err.Error != nil {
+		m["mensaje"] = err.Error.Error()
+		return c.Status(500).JSON(m)
+	}
+	m["suscripcion"] = input
+	return c.JSON(m)
 }
 
 func cartera(c *fiber.Ctx) error {

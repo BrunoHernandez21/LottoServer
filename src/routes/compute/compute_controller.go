@@ -151,27 +151,28 @@ func stripe_webhook(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	var resp string
-	suscripcion := input.Data.Object.Lines.Data
+	meta := input.Data.Object.Lines.Data
 	if input.Type == "invoice.payment_succeeded" {
-		for i := 0; i < len(suscripcion); i++ {
-			data, err := json.Marshal(&suscripcion)
+		for i := 0; i < len(meta); i++ {
+			data, err := json.Marshal(&meta)
 			if err != nil {
 				out["mensaje"] = err.Error()
 				return c.Status(500).JSON(out)
 			}
-			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
-			db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), suscripcion[i].ID).Scan(&resp)
+			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
+			db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), meta[i].Subscription).Scan(&resp)
 		}
 	}
 	if input.Type == "invoice.payment_failed" {
-		for i := 0; i < len(suscripcion); i++ {
-			data, err := json.Marshal(&suscripcion)
+		for i := 0; i < len(meta); i++ {
+			data, err := json.Marshal(&meta)
 			if err != nil {
 				out["mensaje"] = err.Error()
 				return c.Status(500).JSON(out)
 			}
-			orden, _ := strconv.ParseUint(suscripcion[i].Metadata.OrdenID, 10, 64)
+			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
 			db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
 		}
 	}

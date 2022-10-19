@@ -2,7 +2,6 @@ package buy
 
 import (
 	"encoding/json"
-	"fmt"
 	"lottomusic/src/models/compuestas"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/inputs"
@@ -190,7 +189,86 @@ func checkout(c *fiber.Ctx) error {
 	return c.Status(200).JSON(m)
 }
 
-// checkout
+// Suscripcion
+func delete_suscription(c *fiber.Ctx) error {
+	/// Verificar la respuesta del usuario
+	m := make(map[string]interface{})
+
+	susc := gormdb.Suscripciones{}
+	db.Find(&susc, "Usuario_id = ?", c.Locals("userID"))
+	if susc.Usuario_id == 0 {
+		m["mensaje"] = "No es una suscripcion valida"
+		return c.Status(500).JSON(m)
+	}
+	_, err := impstripe.Delete_suscription(susc.Stripe_suscription)
+	if err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	susc.Stripe_suscription = ""
+	err3 := db.Model(&susc).Select("Stripe_suscription").Where("usuario_id = ?", c.Locals("userID")).Updates(&susc)
+	if err3.Error != nil {
+		m["mensaje"] = "DB error"
+		return c.Status(500).JSON(m)
+	}
+	m["resp"] = "Suscripcion finalizada"
+	return c.Status(500).JSON(m)
+}
+
+// Suscripcion
+func proration_suscription(c *fiber.Ctx) error {
+	/// Verificar la respuesta del usuario
+	m := make(map[string]interface{})
+	input := inputs.SuscripcionCheckout{}
+	if err := c.BodyParser(&input); err != nil {
+		m["mensaje"] = "error al parcear datos de entrada"
+		return c.Status(500).JSON(m)
+	}
+
+	items := gormdb.ItemsOrden{}
+	db.Find(&items, "Orden_id = ?", input.Orden_id)
+	if items.Plan_id == 0 {
+		m["mensaje"] = "No es una orden valida"
+		return c.Status(500).JSON(m)
+	}
+	plan := gormdb.Planes{}
+	db.Find(&plan, "id = ?", items.Plan_id)
+	if plan.Id == 0 {
+		m["mensaje"] = "Error al buscar plan"
+		return c.Status(500).JSON(m)
+	}
+	susc := gormdb.Suscripciones{}
+	db.Find(&susc, "Usuario_id = ?", c.Locals("userID"))
+	if susc.Usuario_id == 0 {
+		m["mensaje"] = "No es una suscripcion valida"
+		return c.Status(500).JSON(m)
+	}
+	item_sub, err := impstripe.Get_item_suscription(susc.Stripe_suscription)
+	if err != nil {
+		m["mensaje"] = err.Error()
+		return c.Status(500).JSON(m)
+	}
+	if len(item_sub.Items.Data) == 0 {
+		m["mensaje"] = "Stripe error"
+		return c.Status(500).JSON(m)
+	}
+	_, err2 := impstripe.Update_suscription_proration(susc.Stripe_suscription, item_sub.Items.Data[0].ID, *plan.Stripe_price, input.Orden_id)
+	if err2 != nil {
+		m["mensaje"] = err2.Error()
+		return c.Status(500).JSON(m)
+	}
+	susc.Plan_id = plan.Id
+	susc.Usuario_id = 0
+	err3 := db.Model(&susc).Where("usuario_id = ?", c.Locals("userID")).Updates(&susc)
+	if err3.Error != nil {
+		m["mensaje"] = "DB error"
+		return c.Status(500).JSON(m)
+	}
+
+	m["resp"] = "Se cambio la suscripcion"
+	return c.Status(500).JSON(m)
+}
+
 func subscription_orden(c *fiber.Ctx) error {
 	/// Verificar la respuesta del usuario
 	m := make(map[string]interface{})
@@ -244,31 +322,35 @@ func subscription_checkout(c *fiber.Ctx) error {
 		sus.Stripe_payment = input.Stripe_Payment
 		sus.Stripe_customer = cus.ID
 		sus.Usuario_id = 0
-		fmt.Println("pre incert")
-		err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(sus)
+		err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(&sus)
 		if err3.Error != nil {
 			m["mensaje"] = "DB error"
 			return c.Status(500).JSON(m)
 		}
 	} else {
 		impstripe.Detach(sus.Stripe_payment)
+		impstripe.Delete_suscription(sus.Stripe_suscription)
 		_, err2 := impstripe.Atach(sus.Stripe_customer, input.Stripe_Payment)
 		if err2 != nil {
 			m["mensaje"] = "Stripe error"
 			return c.Status(500).JSON(m)
 		}
+		_, err3 := impstripe.Update_customer(input.Stripe_Payment, sus.Stripe_customer)
+		if err3 != nil {
+			m["mensaje"] = "Stripe error"
+			return c.Status(500).JSON(m)
+		}
+
 	}
 
-	fmt.Println("Salgo del if")
 	stripe_sus, err2 := impstripe.Create_suscription(input.Orden_id, sus.Stripe_customer, *plan.Stripe_price)
 	if err2 != nil {
 		m["mensaje"] = "Stripe error"
 		return c.Status(500).JSON(m)
 	}
-	fmt.Println("if")
 	sus.Stripe_suscription = stripe_sus.ID
 	sus.Usuario_id = 0
-	err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(sus)
+	err3 := db.Model(&sus).Where("usuario_id = ?", c.Locals("userID")).Updates(&sus)
 	if err3.Error != nil {
 		m["mensaje"] = "DB error"
 		return c.Status(500).JSON(m)
