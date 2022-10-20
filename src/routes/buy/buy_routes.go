@@ -20,17 +20,17 @@ func Init_routes(app *fiber.App, sqldb *gorm.DB) {
 	v1.Post("/orders/payment-intent", mi.IsRegister, create_payment_intent)
 	v1.Post("/orders/checkout", mi.IsRegister, checkout)
 	// suscripciónes
-	v1.Delete("/orders/subscription", mi.IsRegister, delete_suscription)
-	v1.Put("/orders/subscription/proration", mi.IsRegister, proration_suscription)
 	v1.Post("/orders/subscription/orden", mi.IsRegister, subscription_orden)
 	v1.Post("/orders/subscription/checkout", mi.IsRegister, subscription_checkout)
+	v1.Delete("/orders/subscription", mi.IsRegister, delete_suscription)
+	v1.Put("/orders/subscription/proration", mi.IsRegister, proration_suscription)
+	v1.Put("/orders/subscription/now", mi.IsRegister, change_suscription)
+	v1.Put("/orders/subscription/payment", mi.IsRegister, subscription_change_payment)
+	v1.Get("/orders/subscription/payment", mi.IsRegister, subscription_get_payment)
 	// history
 	v1.Get("/orders/waiting", mi.IsRegister, list_orders)
 	v1.Get("/orders/rejected", mi.IsRegister, list_orders_errors)
 	v1.Get("/history/:pag/:sizepage", mi.IsRegister, buy_history_paginated)
 	// ROOT
-	v1.Delete("/orders/:id", mi.IsRoot, eliminar)
-
-	// v1.Post("/orders/rentry", mi.IsRegister, buy_retry)
-	// v1.Post("/orders/cancel", mi.IsRegister, buy_cancel)
+	v1.Delete("/orders/:id", mi.IsRoot, eliminar_orden)
 }
