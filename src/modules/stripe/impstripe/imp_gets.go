@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Get_item_suscription(sub_id string) (*subscription.Subscription, error) {
+func Get_suscription(sub_id string) (*subscription.Subscription, error) {
 	// Generate intent
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")

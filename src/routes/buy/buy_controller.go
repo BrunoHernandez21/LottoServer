@@ -250,7 +250,7 @@ func proration_suscription(c *fiber.Ctx) error {
 		m["mensaje"] = "No es una suscripcion valida"
 		return c.Status(500).JSON(m)
 	}
-	item_sub, err := impstripe.Get_item_suscription(susc.Stripe_suscription)
+	item_sub, err := impstripe.Get_suscription(susc.Stripe_suscription)
 	if err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)
@@ -304,7 +304,7 @@ func change_suscription(c *fiber.Ctx) error {
 		m["mensaje"] = "No es una suscripcion valida"
 		return c.Status(500).JSON(m)
 	}
-	item_sub, err := impstripe.Get_item_suscription(susc.Stripe_suscription)
+	item_sub, err := impstripe.Get_suscription(susc.Stripe_suscription)
 	if err != nil {
 		m["mensaje"] = err.Error()
 		return c.Status(500).JSON(m)

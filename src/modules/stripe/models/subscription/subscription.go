@@ -98,6 +98,7 @@ type Plan struct {
 }
 
 type PlanMetadata struct {
+	OrdenID string `json:"orden_id"`
 }
 
 type Price struct {

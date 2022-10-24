@@ -7,6 +7,7 @@ import (
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
 	"lottomusic/src/models/youtube"
+	"lottomusic/src/modules/stripe/impstripe"
 	"lottomusic/src/modules/stripe/models/eventinvoice"
 	"strconv"
 	"time"
@@ -144,50 +145,48 @@ func emit_winner(c *fiber.Ctx) error {
 
 //// Webhook
 func stripe_webhook(c *fiber.Ctx) error {
-	// input := make(map[string]interface{})
-
-	input := eventinvoice.EventInvoice{}
 	out := make(map[string]interface{})
+	input := eventinvoice.EventInvoice{}
 
 	err := c.BodyParser(&input)
 	if err != nil {
-		return err
+		out["mensaje"] = "Internal Error"
+		return c.Status(500).JSON(out)
 	}
 
 	var resp string
-	meta := input.Data.Object.Lines.Data
+	suscID := input.Data.Object.Subscription
+	suscription, errstr := impstripe.Get_suscription(suscID)
+	if errstr != nil {
+		out["mensaje"] = "Error de conección"
+		return c.Status(200).JSON(out)
+	}
+	fmt.Println(suscription.Metadata.OrdenID)
 	if input.Type == "invoice.payment_succeeded" {
-		for i := 0; i < len(meta); i++ {
-			fmt.Println(meta[i].Metadata.OrdenID)
-			data, err := json.Marshal(&meta)
-			if err != nil {
-				out["mensaje"] = err.Error()
-				return c.Status(500).JSON(out)
-			}
-			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
-			errdb := db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), meta[i].Subscription).Scan(&resp)
-			if errdb.Error != nil {
-				out["mensaje"] = errdb.Error.Error()
-				return c.Status(500).JSON(out)
-			}
-
+		data, err := json.Marshal(&input)
+		if err != nil {
+			out["mensaje"] = err.Error()
+			return c.Status(500).JSON(out)
+		}
+		orden, _ := strconv.ParseUint(suscription.Metadata.OrdenID, 10, 64)
+		errdb := db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), suscription.ID).Scan(&resp)
+		if errdb.Error != nil {
+			out["mensaje"] = errdb.Error.Error()
+			return c.Status(500).JSON(out)
 		}
 	}
 	if input.Type == "invoice.payment_failed" {
-		for i := 0; i < len(meta); i++ {
-			data, err := json.Marshal(&meta)
-			if err != nil {
-				out["mensaje"] = err.Error()
-				return c.Status(500).JSON(out)
-			}
-			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
-			errdb := db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
-			if errdb.Error != nil {
-				out["mensaje"] = errdb.Error.Error()
-				return c.Status(500).JSON(out)
-			}
+		data, err := json.Marshal(&input)
+		if err != nil {
+			out["mensaje"] = err.Error()
+			return c.Status(500).JSON(out)
+		}
+		orden, _ := strconv.ParseUint(suscription.Metadata.OrdenID, 10, 64)
+		errdb := db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
+		if errdb.Error != nil {
+			out["mensaje"] = errdb.Error.Error()
+			return c.Status(500).JSON(out)
 		}
 	}
-
 	return c.Status(200).JSON(out)
 }
