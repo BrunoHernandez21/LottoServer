@@ -2,6 +2,7 @@ package compute
 
 import (
 	"encoding/json"
+	"fmt"
 	"lottomusic/src/config"
 	"lottomusic/src/models/gormdb"
 	"lottomusic/src/models/views"
@@ -144,6 +145,7 @@ func emit_winner(c *fiber.Ctx) error {
 //// Webhook
 func stripe_webhook(c *fiber.Ctx) error {
 	// input := make(map[string]interface{})
+
 	input := eventinvoice.EventInvoice{}
 	out := make(map[string]interface{})
 
@@ -156,13 +158,19 @@ func stripe_webhook(c *fiber.Ctx) error {
 	meta := input.Data.Object.Lines.Data
 	if input.Type == "invoice.payment_succeeded" {
 		for i := 0; i < len(meta); i++ {
+			fmt.Println(meta[i].Metadata.OrdenID)
 			data, err := json.Marshal(&meta)
 			if err != nil {
 				out["mensaje"] = err.Error()
 				return c.Status(500).JSON(out)
 			}
 			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
-			db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), meta[i].Subscription).Scan(&resp)
+			errdb := db.Raw("CALL suscribcion_aceptada( ? , ? , ? )", orden, string(data), meta[i].Subscription).Scan(&resp)
+			if errdb.Error != nil {
+				out["mensaje"] = errdb.Error.Error()
+				return c.Status(500).JSON(out)
+			}
+
 		}
 	}
 	if input.Type == "invoice.payment_failed" {
@@ -173,7 +181,11 @@ func stripe_webhook(c *fiber.Ctx) error {
 				return c.Status(500).JSON(out)
 			}
 			orden, _ := strconv.ParseUint(meta[i].Metadata.OrdenID, 10, 64)
-			db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
+			errdb := db.Raw("CALL suscribcion_rechazada( ? , ? )", orden, string(data)).Scan(&resp)
+			if errdb.Error != nil {
+				out["mensaje"] = errdb.Error.Error()
+				return c.Status(500).JSON(out)
+			}
 		}
 	}
 

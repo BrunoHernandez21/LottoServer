@@ -67,14 +67,13 @@ func checkout(c *fiber.Ctx) error {
 	m := make(map[string]interface{})
 	input := inputs.Checkout{}
 	if err := c.BodyParser(&input); err != nil {
-		m["mensaje"] = "error al parcear datos de entrada"
+		m["mensaje"] = "error al parsear datos de entrada"
 		return c.Status(500).JSON(m)
 	}
 	if input.Orden_id == 0 || input.Stripe_Payment == "" {
 		m["mensaje"] = "Card y stripe_payment no pueden ser nulo"
 		return c.Status(500).JSON(m)
 	}
-
 	//obtener la orden
 	orden := gormdb.Ordenes{}
 	db.Find(&orden, "id = ?", input.Orden_id)
@@ -82,7 +81,6 @@ func checkout(c *fiber.Ctx) error {
 		m["mensaje"] = "Carrito vacio"
 		return c.Status(500).JSON(m)
 	}
-
 	// mandamos a stripe a generar el intento de pago
 	resp, errstr := impstripe.Pay_payment_intent(&orden, input.Stripe_Payment)
 	var outReason string
@@ -93,11 +91,7 @@ func checkout(c *fiber.Ctx) error {
 		return c.Status(200).JSON(m)
 	}
 	// Compra realizada
-	data, err := json.Marshal(&resp)
-	if err != nil {
-		m["mensaje"] = err.Error()
-		return c.Status(500).JSON(m)
-	}
+	data, _ := json.Marshal(&resp)
 	db.Raw("CALL orden_pagada(?,?)", orden.Id, string(data)).Scan(&outReason)
 	m["resp"] = "Compra realizada con éxito"
 	return c.Status(200).JSON(m)
@@ -319,7 +313,7 @@ func change_suscription(c *fiber.Ctx) error {
 		m["mensaje"] = "Stripe error"
 		return c.Status(500).JSON(m)
 	}
-	_, err2 := impstripe.Update_suscription_proration(susc.Stripe_suscription, item_sub.Items.Data[0].ID, *plan.Stripe_price, input.Orden_id)
+	_, err2 := impstripe.Update_suscription_now(susc.Stripe_suscription, item_sub.Items.Data[0].ID, *plan.Stripe_price, input.Orden_id)
 	if err2 != nil {
 		m["mensaje"] = err2.Error()
 		return c.Status(500).JSON(m)
@@ -359,7 +353,6 @@ func subscription_change_payment(c *fiber.Ctx) error {
 		return c.Status(500).JSON(m)
 	}
 
-	impstripe.Detach(sus.Stripe_payment)
 	_, err2 := impstripe.Atach(sus.Stripe_customer, input.Stripe_Payment)
 	if err2 != nil {
 		m["mensaje"] = "Stripe error"
@@ -370,6 +363,7 @@ func subscription_change_payment(c *fiber.Ctx) error {
 		m["mensaje"] = "Stripe error"
 		return c.Status(500).JSON(m)
 	}
+	impstripe.Detach(sus.Stripe_payment)
 	return c.JSON(m)
 }
 
@@ -411,7 +405,7 @@ func buy_history_paginated(c *fiber.Ctx) error {
 	a := int64(0)
 	db.
 		Table("pagos_orden").
-		Where("usuario_id = ? AND status = ?", userID, "pagado").
+		Where("usuario_id = ? ", userID).
 		Count(&a)
 	pag, err4 := strconv.ParseUint(pagt, 10, 32)
 	if err4 != nil {
@@ -440,7 +434,8 @@ func buy_history_paginated(c *fiber.Ctx) error {
 		Table("pagos_orden").
 		Offset(int(init)).
 		Limit(int(sizepage)).
-		Where("usuario_id = ? AND status = ?", c.Locals("userID"), "pagado").
+		Where("usuario_id = ? ", c.Locals("userID")).
+		Order("fecha_pagado DESC").
 		Find(&compra)
 
 	if errdb.Error != nil {

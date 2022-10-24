@@ -12,14 +12,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Update_suscription_now(sub_id string, item_sub_id string, price_id string) (*subscription.Subscription, error) {
+func Update_suscription_now(sub_id string, item_sub_id string, price_id string, orden_id uint32) (*subscription.Subscription, error) {
 	a := fiber.AcquireAgent()
 	a.ContentType("application/x-www-form-urlencoded")
 	args := fiber.AcquireArgs()
 	args.Set("items[0][id]", item_sub_id)
 	args.Set("items[0][price]", price_id)
+	args.Set("items[0][metadata][orden_id]", strconv.FormatUint(uint64(orden_id), 10))
 	args.Set("cancel_at_period_end", "false")
 	args.Set("proration_behavior", "always_invoice")
+	args.Set("metadata[orden_id]", strconv.FormatUint(uint64(orden_id), 10))
 	a.Form(args)
 	req := a.Request()
 	req.Header.SetMethod("POST")
